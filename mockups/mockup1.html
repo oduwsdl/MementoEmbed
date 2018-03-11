@@ -72,6 +72,13 @@
 
     <h2>via Popup from Link In Footer with Link to Service</h2>
 
+    <script>
+        function loadPopup1() {
+            var popup = document.getElementById("myPopup1");
+            popup.classList.toggle("show");
+        }
+    </script>
+
    <div class="social_card">
         <div class="sc_image">
             <img src="images/occupy_la-150x150.jpg" class="sc_image">
@@ -96,8 +103,30 @@
                 <a href="http://www.salon.com/">@ 08, May 2012</a>
             </div>
             <div class="spacer"></div>
-            <div class="sc_footer_plugin">
-                <a href="http://memento-damage.cs.odu.edu/memento/check/?url=http%3A%2F%2Fwayback.archive-it.org%2F2950%2F20120508033201%2Fhttp%3A%2F%2Fwww.salon.com%2F2012%2F05%2F02%2Fdid_may_day_succeed%2Fsingleton%2F">MementoDamage: 0.001</a>
+            <div class="sc_footer_plugin popup" onclick="loadPopup()">MementoDamage: 0.001
+                <span class="popuptext" id="myPopup">
+                    <strong>Memento Damage Statistics</strong>
+                    <br /><br />
+                    <strong>Actual Damage = 0.001</strong>
+                    <ul>
+                        <li>Images = 0.001</li>
+                        <li>Stylesheets = 0.000</li>
+                        <li>Multimedia = 0.000</li>
+                        <li>Javascript = 0.000</li>
+                        <li>IFrames = 0.000</li>
+                        <li>Text = 0</li>
+                    </ul>
+                    <strong>Potential Damage = 0.663</strong>
+                    <ul>
+                        <li>Images = 0.183</li>
+                        <li>Stylesheets = 0.225</li>
+                        <li>Multimedia = 0.000</li>
+                        <li>Javascript = 0.100</li>
+                        <li>IFrames = 0.023</li>
+                        <li>Text = 0.133</li>
+                    </ul>
+                    <a class="popuplink" href="http://memento-damage.cs.odu.edu/memento/check/?url=http%3A%2F%2Fwayback.archive-it.org%2F2950%2F20120508033201%2Fhttp%3A%2F%2Fwww.salon.com%2F2012%2F05%2F02%2Fdid_may_day_succeed%2Fsingleton%2F">Link to Full Memento Damage Report</a>
+                </span>
             </div>
         </div>
     </div>
