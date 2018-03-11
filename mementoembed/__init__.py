@@ -1,0 +1,1 @@
+from .mementoembed import app
