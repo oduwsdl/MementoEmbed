@@ -2,12 +2,15 @@
 <head>
     <title>Social Card Mockup</title>
     <link rel="stylesheet" type="text/css" href="styles/storify-lookalike.css">
+    <link rel="stylesheet" type="text/css" href="styles/three-column.css">
 </head>
 <body>
 
 <div class="mainbody">
 
     <h1>MementoEmbed Mockup Ideas</h1>
+
+    <hr />
 
     <h2>Base case: something like a Storify Card</h1>
 
@@ -237,44 +240,254 @@
     <h3>via Popup from Link below title to Collection</h3>
 
     <div class="social_card">
-            <div class="sc_image">
-                <img src="images/occupy_la-150x150.jpg" class="sc_image">
+        <div class="sc_image">
+            <img src="images/occupy_la-150x150.jpg" class="sc_image">
+        </div>
+        <div class="sc_title">
+            <a href="http://wayback.archive-it.org/2950/20120508033201/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/">Did May Day succeed?</a>
+        </div>
+        <!-- <div class="sc_belowtitle_plugin">
+            Member of <a href="https://archive-it.org/collections/2950">Archive-It Collection Occupy Movement 2011/2012</a>
+        </div> -->
+        <div class="sc_belowtitle_plugin popup" onclick="document.getElementById('myPopup2').classList.toggle('show');">Member of Archive-It Collection Occupy Movement 2011/2012
+            <span class="popuptext" id="myPopup2">
+                <strong>Occupy Movement 2011/2012</strong><br />
+                <strong>Collected by:</strong> Internet Archive Global Events<br /><br />
+                <strong>Description:</strong> This collection documents and aggregates information related to the Occupy Movement starting in the Autumn of 2011 and continuing in 2012. In September of 2011, a demonstration was held in New York City, calling itself Occupy Wall Street. This demonstration inspired similar protests and demonstrations around the world calling for social and economic equality, which are collectively now referred to as the Occupy Movement.
+                <br /><br />
+                <strong>Group:</strong> News Sites and Articles<br />
+                <br />
+                <a href="https://archive-it.org/collections/2950" class="popuplink">Link to Collection</a>
+            </span>
+        </div>
+        <div class="sc_snippet">
+            <p>In the home city of Occupy Wall Street yesterday, myriad activities dominated three iconic public spaces - Bryant Park near Times Square, Madison Square Park in view of the Flatiron Building, and Union Square, roughly straddling the East and West Villages.</p>
+        </div>
+        <div class="sc_footer">
+            <div class="sc_favicon">
+                <a href="https://archive-it.org" target="_blank" rel="nofollow"><img src="images/archiveit-favicon.png"></a>
             </div>
-            <div class="sc_title">
-                <a href="http://wayback.archive-it.org/2950/20120508033201/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/">Did May Day succeed?</a>
+            <div class="sc_favicon">
+                <a href="http://www.salon.com/" target="_blank" rel="nofollow"><img src="images/salon-favicon.png"></a>
             </div>
-            <!-- <div class="sc_belowtitle_plugin">
-                Member of <a href="https://archive-it.org/collections/2950">Archive-It Collection Occupy Movement 2011/2012</a>
-            </div> -->
-            <div class="sc_belowtitle_plugin popup" onclick="document.getElementById('myPopup2').classList.toggle('show');">Member of Archive-It Collection Occupy Movement 2011/2012
-                <span class="popuptext" id="myPopup2">
-                    <strong>Occupy Movement 2011/2012</strong><br />
-                    <strong>Collected by:</strong> Internet Archive Global Events<br /><br />
-                    <strong>Description:</strong> This collection documents and aggregates information related to the Occupy Movement starting in the Autumn of 2011 and continuing in 2012. In September of 2011, a demonstration was held in New York City, calling itself Occupy Wall Street. This demonstration inspired similar protests and demonstrations around the world calling for social and economic equality, which are collectively now referred to as the Occupy Movement.
-                    <br /><br />
-                    <strong>Group:</strong> News Sites and Articles<br />
-                    <br />
-                    <a href="https://archive-it.org/collections/2950" class="popuplink">Link to Collection</a>
-                </span>
+            <div class="sc_source">
+                <a href="http://www.salon.com/">www.salon.com</a>
             </div>
-            <div class="sc_snippet">
-                <p>In the home city of Occupy Wall Street yesterday, myriad activities dominated three iconic public spaces - Bryant Park near Times Square, Madison Square Park in view of the Flatiron Building, and Union Square, roughly straddling the East and West Villages.</p>
-            </div>
-            <div class="sc_footer">
-                <div class="sc_favicon">
-                    <a href="https://archive-it.org" target="_blank" rel="nofollow"><img src="images/archiveit-favicon.png"></a>
-                </div>
-                <div class="sc_favicon">
-                    <a href="http://www.salon.com/" target="_blank" rel="nofollow"><img src="images/salon-favicon.png"></a>
-                </div>
-                <div class="sc_source">
-                    <a href="http://www.salon.com/">www.salon.com</a>
-                </div>
-                <div class="sc_pubdate">
-                    <a href="http://www.salon.com/">@ 08, May 2012</a>
-                </div>
+            <div class="sc_pubdate">
+                <a href="http://www.salon.com/">@ 08, May 2012</a>
             </div>
         </div>
+    </div>
+
+    <hr />
+
+    <h2>Three Columns</h2>
+
+    <h3>Thumbnail on Right</h3>
+
+    <div class="tc_social_card">
+        <div>
+            <div class="tc_leftcolumn">
+                <img src="images/occupy_la-150x150.jpg" class="tc_topimage">
+            </div>
+            <div class="tc_midcolumn">
+                <a href="http://wayback.archive-it.org/2950/20120508033201/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/" class="tc_title">Did May Day succeed?</a>
+                <p>
+                    In the home city of Occupy Wall Street yesterday, myriad activities dominated three iconic public spaces - Bryant Park near Times Square, Madison Square Park in view of the Flatiron Building, and Union Square, roughly straddling the East and West Villages.
+                </p>        
+            </div>
+            <div class="tc_rightcolumn">
+                <img src="images/archive-thumbnail.png" class="tc_thumbnail">
+            </div>
+        </div>
+        <div class="sc_footer">
+            <div class="sc_favicon">
+                <a href="https://archive-it.org" target="_blank" rel="nofollow"><img src="images/archiveit-favicon.png"></a>
+            </div>
+            <div class="sc_favicon">
+                <a href="http://www.salon.com/" target="_blank" rel="nofollow"><img src="images/salon-favicon.png"></a>
+            </div>
+            <div class="sc_source">
+                <a href="http://www.salon.com/">www.salon.com</a>
+            </div>
+            <div class="sc_pubdate">
+                <a href="http://www.salon.com/">@ 08, May 2012</a>
+            </div>
+            <!-- <div class="sc_clear"></div> -->
+        </div>
+    </div>
+
+    <h3>Multiple Plugins: Member of Collection Plugin, On-Topic for Collection Plugin, Top 3 Named Entities Plugin</h3> 
+
+    <div class="tc_social_card">
+        <div>
+            <div class="tc_leftcolumn">
+                <img src="images/occupy_la-150x150.jpg" class="tc_topimage">
+            </div>
+            <div class="tc_midcolumn">
+                <a href="http://wayback.archive-it.org/2950/20120508033201/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/" class="tc_title">Did May Day succeed?</a>
+                <p>
+                    In the home city of Occupy Wall Street yesterday, myriad activities dominated three iconic public spaces - Bryant Park near Times Square, Madison Square Park in view of the Flatiron Building, and Union Square, roughly straddling the East and West Villages.
+                </p>        
+            </div>
+            <div class="tc_rightcolumn">
+                <strong>Memento Information</strong><br /><br />
+                <div class="popup" onclick="document.getElementById('myPopup3').classList.toggle('show');"><strong>Member of:</strong> Archive-It Collection Occupy Movement 2011/2012
+                    <span class="popuptext" id="myPopup3">
+                        <strong>Occupy Movement 2011/2012</strong><br />
+                        <strong>Collected by:</strong> Internet Archive Global Events<br /><br />
+                        <strong>Description:</strong> This collection documents and aggregates information related to the Occupy Movement starting in the Autumn of 2011 and continuing in 2012. In September of 2011, a demonstration was held in New York City, calling itself Occupy Wall Street. This demonstration inspired similar protests and demonstrations around the world calling for social and economic equality, which are collectively now referred to as the Occupy Movement.
+                        <br /><br />
+                        <strong>Group:</strong> News Sites and Articles<br />
+                        <br />
+                        <a href="https://archive-it.org/collections/2950" class="popuplink">Link to Collection</a>
+                    </span>
+                </div>
+                <br /><br />
+                <strong>On-Topic For Collection</strong>
+                <br /><br />
+                <strong>Top 3 Extracted Named Entities:</strong> <br />
+                Wall Street, Chase Plaza, Madison Square Park
+            </div>
+        </div>
+        <div class="sc_footer">
+            <div class="sc_favicon">
+                <a href="https://archive-it.org" target="_blank" rel="nofollow"><img src="images/archiveit-favicon.png"></a>
+            </div>
+            <div class="sc_favicon">
+                <a href="http://www.salon.com/" target="_blank" rel="nofollow"><img src="images/salon-favicon.png"></a>
+            </div>
+            <div class="sc_source">
+                <a href="http://www.salon.com/">www.salon.com</a>
+            </div>
+            <div class="sc_pubdate">
+                <a href="http://www.salon.com/">@ 08, May 2012</a>
+            </div>
+            <!-- <div class="sc_clear"></div> -->
+        </div>
+    </div>
+    
+    <h3>Multiple Plugins: HTML Metadata Plugin, Additional Images Plugin, Original HTTP Headers Plugin</h3> 
+
+    <div class="tc_social_card">
+        <div>
+            <div class="tc_leftcolumn">
+                <img src="images/occupy_la-150x150.jpg" class="tc_topimage">
+            </div>
+            <div class="tc_midcolumn">
+                <a href="http://wayback.archive-it.org/2950/20120508033201/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/" class="tc_title">Did May Day succeed?</a>
+                <p>
+                    In the home city of Occupy Wall Street yesterday, myriad activities dominated three iconic public spaces - Bryant Park near Times Square, Madison Square Park in view of the Flatiron Building, and Union Square, roughly straddling the East and West Villages.
+                </p>        
+            </div>
+            <div class="tc_rightcolumn">
+                <strong>Memento Information</strong><br /><br />
+                <div class="tcpopup" onclick="document.getElementById('myPopup4').classList.toggle('show');"><strong><u>Additional Metadata Fields</u></strong>
+                    <span class="tcpopuptext" id="myPopup4">
+                        title = Did May Day succeed?<br />
+                        description = Yesterday's Occupy reboot mobilized a diverse group of people, but reverted to familiar tactics in the end<br />
+                        keywords = Salon.com, Occupy Wall Street<br />
+                        og:title = Did May Day succeed?<br />
+                        og:url = http://www.salon.com/2012/05/02/did_may_day_succeed/singleton<br />
+                        og:image = http://media.salon.com/2012/05/occupy_la-150x150.jpg<br />
+                        og:description = Yesterday's Occupy reboot mobilized a diverse group of people, but reverted to familiar tactics in the end<br />
+                        og:type = article<br />
+                        fb:admins = 21500228<br />
+                        fb:app_id = 114477658586677<br />
+                    </span>
+                </div>
+                <br /><br />
+                <div class="tcpopup" onclick="document.getElementById('myPopup5').classList.toggle('show');"><strong><u>Additional Images</u></strong>
+                    <span class="tcpopuptext" id="myPopup5">
+                            <a href='images/120501104548-etzioni-occupy-video-tease.jpg'><img src='images/120501104548-etzioni-occupy-video-tease.jpg' width='100px'></a>
+                            <a href='images/boy_rectangle-186x124.jpg'><img src='images/boy_rectangle-186x124.jpg' width='100px'></a>
+                            <a href='images/cary-tennis-22-186x124.jpg'><img src='images/cary-tennis-22-186x124.jpg' width='100px'></a>
+                            <a href='images/credit_Cards-186x124.jpg'><img src='images/credit_Cards-186x124.jpg' width='100px'></a>
+                            <a href='images/cufflinkscrop21.jpg'><img src='images/cufflinkscrop21.jpg' width='100px'></a>
+                            <a href='images/occupy_la-150x150.jpg'><img src='images/occupy_la-150x150.jpg' width='100px'></a>
+                            <a href='images/occupy_la-460x307.jpg'><img src='images/occupy_la-460x307.jpg' width='100px'></a>
+                    </span>
+                </div>
+                <br /><br />
+                <div class="tcpopup" onclick="document.getElementById('myPopup6').classList.toggle('show');"><strong><u>Original HTTP Headers</u></strong>
+                    <span class="tcpopuptext" id="myPopup6">
+                        Expires: Tue, 08 May 2012 03:33:54 GMT<br />
+                        Connection: close<br />
+                        Link: &lt;http://www.salon.com/?p=12913497&gt;; rel=shortlink<br />
+                        X-Powered-By: PHP/5.3.5-1ubuntu7.7<br />
+                        X-Pingback: http://www.salon.com/xmlrpc.php<br />
+                        Last-Modified: Tue, 08 May 2012 03:25:30 GMT<br />
+                        Date: Tue, 08 May 2012 03:32:01 GMT<br />
+                        Content-Type: text/html; charset=UTF-8<br />
+                        X-Set-Cache: akamai-single, 512<br />
+                        Server: nginx<br />
+                    </span>
+                </div>
+
+                <!-- <strong>Top 3 Extracted Named Entities:</strong> <br />
+                Wall Street, Chase Plaza, Madison Square Park -->
+            </div>
+        </div>
+        <div class="sc_footer">
+            <div class="sc_favicon">
+                <a href="https://archive-it.org" target="_blank" rel="nofollow"><img src="images/archiveit-favicon.png"></a>
+            </div>
+            <div class="sc_favicon">
+                <a href="http://www.salon.com/" target="_blank" rel="nofollow"><img src="images/salon-favicon.png"></a>
+            </div>
+            <div class="sc_source">
+                <a href="http://www.salon.com/">www.salon.com</a>
+            </div>
+            <div class="sc_pubdate">
+                <a href="http://www.salon.com/">@ 08, May 2012</a>
+            </div>
+            <!-- <div class="sc_clear"></div> -->
+        </div>
+    </div>
+
+    <h3>Multiple Plugins: TimeMap Plugin, Original Resource Status Plugin</h3>
+
+    <div class="tc_social_card">
+        <div>
+            <div class="tc_leftcolumn">
+                <img src="images/occupy_la-150x150.jpg" class="tc_topimage">
+            </div>
+            <div class="tc_midcolumn">
+                <a href="http://wayback.archive-it.org/2950/20120508033201/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/" class="tc_title">Did May Day succeed?</a>
+                <p>
+                    In the home city of Occupy Wall Street yesterday, myriad activities dominated three iconic public spaces - Bryant Park near Times Square, Madison Square Park in view of the Flatiron Building, and Union Square, roughly straddling the East and West Villages.
+                </p>        
+            </div>
+            <div class="tc_rightcolumn" size="4">
+                <strong>Additional Mementos:</strong>
+                <select onchange="location = this.value;">
+                    <option value="http://wayback.archive-it.org/2950/20120508033201/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/">2012/05/08 03:32:01 GMT</option>
+                    <option value="http://wayback.archive-it.org/2950/20120508033206/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton">2012/05/08 03:32:06 GMT</option>
+                    <option value="http://wayback.archive-it.org/2950/20120510205438/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/">2012/05/10 20:54:38 GMT</option>
+                </select>
+                <br /><br />
+                
+                <strong>Original Resource Status:</strong><br />
+                <a href="https://www.salon.com/2012/05/02/did_may_day_succeed/singleton/"><span style="color: #ff0000; text-decoration:underline;">Link Rotten</span></a>
+            </div>
+        </div>
+        <div class="sc_footer">
+            <div class="sc_favicon">
+                <a href="https://archive-it.org" target="_blank" rel="nofollow"><img src="images/archiveit-favicon.png"></a>
+            </div>
+            <div class="sc_favicon">
+                <a href="http://www.salon.com/" target="_blank" rel="nofollow"><img src="images/salon-favicon.png"></a>
+            </div>
+            <div class="sc_source">
+                <a href="http://www.salon.com/">www.salon.com</a>
+            </div>
+            <div class="sc_pubdate">
+                <a href="http://www.salon.com/">@ 08, May 2012</a>
+            </div>
+            <!-- <div class="sc_clear"></div> -->
+        </div>
+    </div>
+
 
 </div>
     
