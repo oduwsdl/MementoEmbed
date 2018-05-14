@@ -1,0 +1,66 @@
+import sys
+import logging
+import requests
+import errno
+import json
+
+from mementoembed import Surrogate
+from archivenow import archivenow
+
+if __name__ == '__main__':
+
+    logger = logging.getLogger(__name__)
+
+    logging.basicConfig(
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        level=logging.INFO,
+        filename='fetch_surrogate.log'
+    )
+
+    try:
+        uri = sys.argv[1]
+    except IndexError as e:
+        print("You must supply a URI as the argument to this command")
+        sys.exit(errno.EINVAL)
+
+    logger.info("Starting process for URI {}".format(uri))
+
+    # HEAD the URI
+    resp = requests.head(uri, allow_redirects=True)
+
+    logger.info("HEAD on URI {}, HTTP status: {}".format(uri, resp.status_code))
+
+    try:
+        mdt = resp.headers['memento-datetime']
+        logger.info("Detected a memento, submitted URI {} will be treated as a URI-M")
+        urim = uri
+
+    except KeyError as e:
+        # if it is a URI-R, create a URI-M with archivenow.push
+        logger.info("No Memento-Datetime detected for URI {}, archiving now...".format(uri))
+        # urims = archivenow.push(uri, "all")
+        # not all archives respond after URI-Ms are created, so we use ia
+        urims = archivenow.push(uri, "ia")
+        urim = urims[0]
+
+    # TODO: handle meta-tag refreshes
+    
+    logger.info("Using URI-M {} for surrogate extraction".format(urim))
+
+    # do a GET on it and pass it into Surrogate
+    resp = requests.get(urim)
+
+    logger.info("creating surrogate information")
+
+    s = Surrogate(urim, resp.text, resp.headers)
+
+    output = {
+        "URI-M": urim,
+        "Text Snippet": s.text_snippet,
+        "Striking Image": s.striking_image,
+        "Title": s.title
+    }
+
+    print(json.dumps(output))
+
+    logger.info("Finished processing.")
