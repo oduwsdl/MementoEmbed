@@ -11,7 +11,8 @@ setup(
         'html5lib',
         'archivenow',
         'requests',
-        'readability-lxml'
+        'readability-lxml',
+        'Pillow'
     ],
     scripts=['bin/fetch_surrogate_data'],
     test_suite="tests"

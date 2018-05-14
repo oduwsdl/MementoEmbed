@@ -1,6 +1,11 @@
+import sys
+import re
+import requests
+
+from urllib.parse import urljoin
+from PIL import ImageFile
 from bs4 import BeautifulSoup
 from readability import Document
-import re
 
 p = re.compile(' +')
 
@@ -21,6 +26,7 @@ class Surrogate:
         self.text_snippet_string = None
         self.striking_image_uri = None
         self.title_string = None
+        self.image_list = None
 
     @property
     def text_snippet(self):
@@ -55,6 +61,10 @@ class Surrogate:
             if self.striking_image_uri == None:
 
                 self.striking_image_uri = self._getMetadataTwitterImage()
+
+                if self.striking_image_uri == None:
+
+                    self.striking_image_uri = self._getLargestImage()
 
         return self.striking_image_uri
 
@@ -138,4 +148,41 @@ class Surrogate:
 
         return description
         
+    def _find_all_images(self):
 
+        if self.image_list == None:
+
+            self.image_list = {}
+
+            for imgtag in self.soup.find_all("img"):
+
+                imageuri = urljoin(self.uri, imgtag.get("src"))
+
+                if imageuri not in self.image_list:
+                    resp = requests.get(imageuri)
+
+                    imagedata = resp.content
+
+                    self.image_list[imageuri] = imagedata
+
+    def _getLargestImage(self):
+
+        maxsize = 0
+        maximageuri = None
+
+        self._find_all_images()
+
+        for imageuri in self.image_list:
+
+            p = ImageFile.Parser()
+            p.feed(self.image_list[imageuri])
+
+            width, height = p.image.size
+
+            imgsize = width * height
+
+            if imgsize > maxsize:
+                maxsize = imgsize
+                maximageuri = imageuri
+
+        return maximageuri

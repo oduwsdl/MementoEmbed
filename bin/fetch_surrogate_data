@@ -4,7 +4,7 @@ import requests
 import errno
 import json
 
-from mementoembed import Surrogate
+from mementoembed import Surrogate, identify_archive, identify_collection, generate_raw_urim, get_archive_favicon
 from archivenow import archivenow
 
 if __name__ == '__main__':
@@ -49,6 +49,7 @@ if __name__ == '__main__':
 
     # do a GET on it and pass it into Surrogate
     resp = requests.get(urim)
+    mdt = resp.headers['memento-datetime']
 
     logger.info("creating surrogate information")
 
@@ -58,7 +59,12 @@ if __name__ == '__main__':
         "URI-M": urim,
         "Text Snippet": s.text_snippet,
         "Striking Image": s.striking_image,
-        "Title": s.title
+        "Title": s.title,
+        "Member of Archive": identify_archive(urim),
+        "Archive Collection": identify_collection(urim),
+        "Archive Favicon": get_archive_favicon(urim),
+        "Memento-Datetime": mdt
+        # "Site Favicon":
     }
 
     print(json.dumps(output))
