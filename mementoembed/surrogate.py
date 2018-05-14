@@ -40,7 +40,10 @@ class Surrogate:
 
                         self.text_snippet_string = self._getLede3Description()
 
-        return self.text_snippet_string
+        if len(self.text_snippet_string) > 297:
+            return "{}...".format(self.text_snippet_string[0:297])
+        else:
+            return self.text_snippet_string
 
     @property
     def striking_image(self):
@@ -131,7 +134,7 @@ class Surrogate:
                 maxscore = d[para]['content_score']
 
         allparatext = maxpara.text_content().replace('\n', ' ').replace('\r', ' ').strip()
-        description = "{}...".format(p.sub(' ', allparatext)[0:297])
+        description = p.sub(' ', allparatext)
 
         return description
         
