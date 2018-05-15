@@ -4,7 +4,7 @@ import requests
 import errno
 import json
 
-from mementoembed import Surrogate, identify_archive, identify_collection, generate_raw_urim, get_archive_favicon
+from mementoembed import Surrogate, identify_archive, identify_collection, get_archive_favicon
 from archivenow import archivenow
 
 if __name__ == '__main__':
