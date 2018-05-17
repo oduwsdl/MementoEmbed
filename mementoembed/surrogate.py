@@ -27,6 +27,7 @@ class Surrogate:
         self.striking_image_uri = None
         self.title_string = None
         self.image_list = None
+        self.site_favicon_uri = None
 
     @property
     def text_snippet(self):
@@ -75,6 +76,14 @@ class Surrogate:
             self.title_string = self.soup.title.string
 
         return self.title_string
+
+    @property
+    def site_favicon(self):
+
+        if self.site_favicon_uri == None:
+            self.site_favicon_uri = self._getSiteFavicon()
+
+        return self.site_favicon_uri
 
     def _getMetadataDescription(self):
 
@@ -186,3 +195,8 @@ class Surrogate:
                 maximageuri = imageuri
 
         return maximageuri
+
+    def _getSiteFavicon(self):
+
+        # self.response_headers["Link"]
+        return None
