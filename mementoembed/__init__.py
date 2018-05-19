@@ -1,9 +1,12 @@
 from .mementoembed import app
 from .surrogate import Surrogate
 from .archiveinfo import identify_archive, identify_collection, \
-    generate_raw_urim, get_archive_favicon
+    get_archive_favicon, archive_names, get_collection_uri, \
+    get_archive_uri
 
 __all__ = [
-    "Surrogate", "generate_raw_urim", "identify_archive", 
-    "identify_collection", "get_archive_favicon"
+    "Surrogate", "identify_archive", 
+    "identify_collection", "get_archive_favicon",
+    "archive_names", "get_collection_uri",
+    "get_archive_uri"
     ]

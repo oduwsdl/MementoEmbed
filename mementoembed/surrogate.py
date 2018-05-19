@@ -77,13 +77,13 @@ class Surrogate:
 
         return self.title_string
 
-    @property
-    def site_favicon(self):
+    # @property
+    # def site_favicon(self):
 
-        if self.site_favicon_uri == None:
-            self.site_favicon_uri = self._getSiteFavicon()
+    #     if self.site_favicon_uri == None:
+    #         self.site_favicon_uri = self._getSiteFavicon()
 
-        return self.site_favicon_uri
+    #     return self.site_favicon_uri
 
     def _getMetadataDescription(self):
 
@@ -196,7 +196,10 @@ class Surrogate:
 
         return maximageuri
 
-    def _getSiteFavicon(self):
+    # def _getOriginalStatus(self):
+        
 
-        # self.response_headers["Link"]
-        return None
+    # def _getSiteFavicon(self):
+
+    #     # self.response_headers["Link"]
+    #     return None
