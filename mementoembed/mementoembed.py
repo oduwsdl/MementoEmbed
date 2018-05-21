@@ -12,6 +12,8 @@ from urllib.parse import urlparse
 
 from requests.structures import CaseInsensitiveDict
 from flask import Flask, render_template
+from filelock import Timeout, FileLock
+from warcio import WARCWriter, ArchiveIterator, StatusAndHeaders
 
 from .archiveinfo import get_archive_favicon, \
     identify_archive, identify_collection, \
@@ -30,85 +32,111 @@ def get_record_dir(identifier):
 
     record_dir = "{}/{}".format(working_dir, identifier)
 
-    return record_dir
-
-def release_job_record(identifier):
-    """
-    Releases a record for identifier so that other processes
-    can use it.
-    """
-    record_dir = get_record_dir(identifier)
-
-    # pylint: disable=no-member
-    app.logger.debug("using job record dir {}".format(record_dir))
-
-    os.unlink("{}/LOCK".format(record_dir))
-
-    # pylint: disable=no-member
-    app.logger.debug("job record should be released")
-
-def get_job_record(identifier):
-    """
-    Creates a record for identifier so that future work can be done.
-    This also informs other processes that such a record occurs.
-    """
-
-    # pylint: disable=no-member
-    app.logger.debug("getting job record for {}".format(identifier))
-
-    record_dir = get_record_dir(identifier)
-
     if not os.path.exists(record_dir):
-        os.makedirs(record_dir)
-
-    while os.path.exists("{}/LOCK".format(record_dir)):
-        # TODO: timeouts, what if a process never comes back?
-        # pylint: disable=no-member
-        app.logger.info("LOCK found, sleeping for 2 seconds")
-        time.sleep(2)
-
-    app.logger.debug("writing lock file for this record in directory {}".format(record_dir))
-    with open("{}/LOCK".format(record_dir), 'w') as f:
-        app.logger.debug("writing directly to lockfile at {}".format(f))
-        f.write(str(datetime.now()))
-        app.logger.debug("lockfile should be written to")
-
-    # pylint: disable=no-member
-    app.logger.debug("job record should be locked for {}".format(identifier))
+        try:
+            os.makedirs(record_dir)
+        except FileExistsError:
+            # pylint: disable=no-member
+            app.logger.warn("another process already created the record directory {}, ignoring...".format(record_dir))
 
     return record_dir
+
+# def release_job_record(identifier):
+#     """
+#     Releases a record for identifier so that other processes
+#     can use it.
+#     """
+#     record_dir = get_record_dir(identifier)
+
+#     # pylint: disable=no-member
+#     app.logger.debug("using job record dir {}".format(record_dir))
+
+#     os.unlink("{}/LOCK".format(record_dir))
+
+#     # pylint: disable=no-member
+#     app.logger.debug("job record should be released")
+
+# def get_job_record(identifier):
+#     """
+#     Creates a record for identifier so that future work can be done.
+#     This also informs other processes that such a record occurs.
+#     """
+
+#     # pylint: disable=no-member
+#     app.logger.debug("getting job record for {}".format(identifier))
+
+#     record_dir = get_record_dir(identifier)
+
+#     # TODO: this needs a lock as well, if multiple processes rush to make the same dir
+#     if not os.path.exists(record_dir):
+#         os.makedirs(record_dir)
+
+#     time.sleep(1)
+
+#     while os.path.exists("{}/LOCK".format(record_dir)):
+#         # TODO: timeouts, what if a process never comes back?
+#         # pylint: disable=no-member
+#         app.logger.info("LOCK found, sleeping for 2 seconds")
+#         time.sleep(2)
+
+#     app.logger.debug("writing lock file for this record in directory {}".format(record_dir))
+#     with open("{}/LOCK".format(record_dir), 'w') as f:
+#         app.logger.debug("writing directly to lockfile at {}".format(f))
+#         f.write(str(datetime.now()))
+#         app.logger.debug("lockfile should be written to")
+
+#     # pylint: disable=no-member
+#     app.logger.debug("job record should be locked for {}".format(identifier))
+
+#     return record_dir
 
 def fetch_web_resource(uri, identifier):
     """
-    Acquires a URI-M.
+    Acquires a URI-M and saves it to a WARC.
     """
 
     # pylint: disable=no-member
     app.logger.debug("fetching web resource for {}".format(uri))
 
-    record_dir = get_job_record(identifier)
+    # record_dir = get_job_record(identifier)
+    record_dir = get_record_dir(identifier)
 
-    # TODO: check this boolean logic...
-    # pylint: disable=no-member
-    if os.path.exists("{}/content.dat".format(record_dir)) and os.path.exists("{}/headers.json".format(record_dir)):
+        # pylint: disable=no-member
+
+    warc_file_path = "{}/memento.warc.gz".format(record_dir)
+    warc_lock_file_path = "{}/memento.warc.gz.lock".format(record_dir)
+
+    if os.path.exists(warc_file_path):
 
         app.logger.debug("discovered both files, no need to download content from {}".format(uri))
 
     else:
-        
-        app.logger.debug("no files from previous run, downloading {}".format(uri))
-        r = requests.get(uri)
-        
-        with open("{}/headers.json".format(record_dir), 'w') as h:
-            h.write( json.dumps(dict(r.headers)) )
 
-        with open("{}/content.dat".format(record_dir), 'w') as c:
-            c.write(r.text)
+        warc_file_lock = FileLock(warc_lock_file_path, timeout=1)
+        warc_file_lock.acquire()
 
-    # pylint: disable=no-member
-    app.logger.debug("attempting to release job record")
+        app.logger.debug("no files from previous run, generating {}".format(warc_file_path))
 
-    release_job_record(identifier)
+        with open(warc_file_path, 'wb') as output:
+            writer = WARCWriter(output, gzip=True)
+
+            app.logger.debug("no files from previous run, downloading {}".format(uri))
+
+            r = requests.get(uri, headers={'Accept-Encoding': 'identity'}, stream=True)
+
+            headers_list = r.raw.headers.items()
+
+            http_headers = StatusAndHeaders('200 OK', headers_list, protocol='HTTP/1.0')
+
+            record = writer.create_warc_record(uri, 'response',
+                                        payload=r.raw,
+                                        http_headers=http_headers)
+
+            writer.write_record(record)
+    
+        # pylint: disable=no-member
+        app.logger.debug("attempting to release file lock")
+        warc_file_lock.release()
 
     return record_dir
 
@@ -120,8 +148,10 @@ def get_memento_content(uri, identifier):
 
     record_dir = fetch_web_resource(uri, identifier)
 
-    with open("{}/content.dat".format(record_dir)) as c:
-        content = c.read()
+    with open("{}/memento.warc.gz".format(record_dir)) as stream:
+        for record in ArchiveIterator(stream):
+            if record.rec_type == 'response':
+                content = record.raw_stream.read()
 
     return content
 
@@ -135,13 +165,13 @@ def get_memento_headers(uri, identifier):
     app.logger.info("getting memento headers for {}".format(uri))
 
     record_dir = fetch_web_resource(uri, identifier)
-    
-    # pylint: disable=no-member
-    app.logger.debug("attempting to open {}/headers.json".format(record_dir))
-    with open("{}/headers.json".format(record_dir)) as h:
-        app.logger.debug("fetching headers from file {}/headers.json".format(record_dir))
-        headers =  CaseInsensitiveDict( json.load(h) )
-        app.logger.debug("headers should be fetched: {}".format(headers))
+
+    with open("{}/memento.warc.gz".format(record_dir)) as stream:
+        for record in ArchiveIterator(stream):
+            if record.rec_type == 'response':
+                headers = record.http_headers
+                # there really should only be 1 WARC record
+                break
 
     return headers
 
@@ -286,8 +316,7 @@ surrogate_path2func = {
 
 @app.route('/')
 def front_page():
-    # return render_template('front_page.html')
-    return "Hello World!"
+    return render_template('index.html')
 
 @app.route('/services/surrogate/<path:subpath>', methods=['GET', 'HEAD'])
 def generate_surrogate_data(subpath):
@@ -330,9 +359,6 @@ def generate_surrogate_data(subpath):
     output = surrogate_path2func[item_property](uri, item_identifier)
 
     return json.dumps(output, indent=4)
-
-
-
     
 # @app.route('/socialcard/<path:uri>', methods=['GET', 'HEAD'])
 # def make_social_card(uri=None):
