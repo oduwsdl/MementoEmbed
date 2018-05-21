@@ -8,14 +8,16 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
 
         <style>
-            
-            #embedWorkStatus {
-                visibility: hidden;
-            }
 
             #mementoDataFailure,
             #mementoDataSuccess {
                 display: none;
+            }
+
+            #embedErrorStatus {
+                background-color: #ff0000;
+                color: #ffffff;
+                font-weight: bolder;
             }
 
         </style>
@@ -46,7 +48,15 @@
                 <div class="col-sm" style="text-align: center">
                     <hr />
                     <div id="embedWorkArea">
-                        <div id="embedWorkStatus">
+                        <div id="embedErrorStatus"></div>
+                        <div id="embedWorkStatus"></div>
+                        <div id="embedOutput"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                                <!--
                             <div class="row">
                                 <div class="col-sm"></div>
                                 <div class="col-sm" style="text-align: left">Memento Data Acquired</div>
@@ -57,25 +67,51 @@
                                 </div>
                                 <div class="col-sm"></div>
                             </div>
-
+                            <div class="row">
+                                <div class="col-sm">
+                                    <hr />
+                                </div>
+                            </div>
                         </div>
-                        <div id="embedOutput"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
+                        -->
 
         <script>
 
             workstatus = document.getElementById("embedWorkStatus");
             workarea = document.getElementById("embedWorkArea");
+            workerror = document.getElementById("embedErrorStatus");
+            workoutput = document.getElementById("embedOutput");
+
+            // $("copy_sc_code").click(function(){
+            //     $("textarea").select();
+            //     console.log("copying text in textarea...");
+            //     document.execCommand('copy');
+            // });
 
             // Thanks ArchiveNow: https://github.com/oduwsdl/archivenow
             function validateURL(textval) {
                 var urlregex = /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i;
                 return urlregex.test(textval);
+            }
+
+            function setWorking() {
+                workoutput.innerHTML = '<img src="/static/images/ajax-loader.gif" id="mementoDataWaiting">';
+            }
+
+            function setOutput(outputdata) {
+                workoutput.style.backgroundColor = "#ffffff";
+                workoutput.style.color = "#000000";
+                workerror.innerHTML = "";
+                workoutput.innerHTML = outputdata;
+            }
+
+            function setError(errordata) {
+                console.log("setting error to " + errordata);
+                workerror.style.backgroundColor = "#ff0000";
+                workerror.style.color = "#ffffff";
+                workerror.style.fontWeight = "bolder";
+                workoutput.innerHTML = "";
+                workerror.innerHTML = errordata;
             }
 
             function requestEmbed() {
@@ -85,15 +121,11 @@
                 uri = document.getElementById('uri_submitted').value;
 
                 if (validateURL(uri) == false) {
+                    console.log("validateURL failed...");
                     document.getElementById('uri_submitted').focus();
-                    workarea.innerHTML = '*Enter a correct URL*'
-                    workarea.style.backgroundColor = "#ff0000";
-                    workarea.style.color = "#ffffff";
+                    setError('*Enter a correct URL*');
                     return;
                 }
-
-                workstatus.style.visibility = "inherit";
-                document.getElementById("mementoDataWaiting").style.display = "inherit";
 
                 console.log("using URI " + uri);
 
@@ -108,46 +140,43 @@
                     url: oembed_data_svc,
                     success: function(json) {
                         console.log("we have success with json: " + json);
-                        document.getElementById("mementoDataWaiting").style.display = "none";
-                        document.getElementById("mementoDataSuccess").style.display = "inherit";
-                        document.getElementById("mementoDataFailure").style.display = "none";     
-
                         console.log("JSON['html'] is " + json['html']);
 
                         social_card_area = "";
                         social_card_area += '<div class="row"><div class="col-sm">';
                         social_card_area += '<h2>Social Card Generated for URL <br/><span style="font-size: 12px">' + uri + '</span></h2>';
                         social_card_area += '</div></div>';
+                        social_card_area += '<div class="row"><div class="col-sm"><hr /></div></div>';                        
                         social_card_area += '<div class="row">';
                         social_card_area += '<div class="col-sm">If you want to include this social card in your web page</div>';
                         social_card_area += '<div class="col-sm">copy the code below and paste it into your page HTML.</div>';
                         social_card_area += '</div>';
                         social_card_area += '<div class="row">';
                         social_card_area += '<div class="col-sm">' + json['html'] + '</div>';
-                        social_card_area += '<div class="col-sm"><textarea>' + json['html'] + '</textarea></div>';
+                        social_card_area += '<div class="col-sm"><textarea cols="50" rows="5" id="sc_code">';
+                        social_card_area += json['html'] + '</textarea>';
+                        // social_card_area += '<button id="copy_sc_code">Copy Text</button>';
+                        social_card_area += '</div>';
                         social_card_area += '</div>';
 
-                        document.getElementById("embedOutput").innerHTML = social_card_area;
+                        setOutput(social_card_area);
 
                         generate_cards();
                     },
                     error: function(data) {
                         console.log("we have failure with data: " + data);
+                        console.log("the status is " + data.status);
 
-                        document.getElementById("mementoDataWaiting").style.display = "none";
-                        document.getElementById("mementoDataSuccess").style.display = "none";
-                        document.getElementById("mementoDataFailure").style.display = "inherit";
-                        document.getElementById("embedOutput").style.backgroundColor = "#ff0000";
-                        document.getElementById("embedOutput").style.color = "#ffffff";
-                        document.getElementById("embedOutput").insertAdjacentHTML(
-                            "afterbegin", "*Failed to Acquire Memento Data*<br />"
-                        );
+                        if ( data.status == 404 ) {
+                            failuremessage = data.responseText;
+                        }
+
+                        setError(failuremessage);
                     }
                 });
             }
 
             function clearEmbed() {
-                workarea.style.opacity = 0;
                 document.getElementById('uri_submitted').clear;
             }
         </script>

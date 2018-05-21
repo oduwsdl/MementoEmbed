@@ -160,6 +160,7 @@ def fetch_web_resource_nonconcurrent(uri, identifier):
         )
         r = requests.get(uri, headers={'Accept-Encoding': 'identity'}, stream=True)
 
+        # TODO: raise an exception if not 200 so that we can throw a 501 later
         headers = r.headers
 
         app.logger.debug("headers returned: {}".format(headers))
@@ -543,25 +544,33 @@ def oembed_endpoint():
     urim = url
     identifier = quote(urim, safe="")
 
-    archive_name = identify_archive(urim)
-    archive_uri = get_archive_uri(urim)
-    archive_favicon_uri = get_archive_favicon(urim)
+    try:
+        archive_name = identify_archive(urim)
+        archive_uri = get_archive_uri(urim)
+        archive_favicon_uri = get_archive_favicon(urim)
+    except KeyError:
+        return "URI-M submitted belongs to an archive or site that is not supported by MementoEmbed", 404
 
     collection_uri = get_collection_uri(urim)
 
+    app.logger.debug("collection URI is {}".format(collection_uri))
+
     if collection_uri:
-        collection_id= identify_collection(urim)
+        collection_id = identify_collection(urim)
 
         record_dir = get_record_dir(identifier)
 
-        aic = aiu.ArchiveItCollection(
-            collection_id=collection_id,
-            logger=app.logger,
-            working_directory=record_dir
-            )
+        try:
+            aic = aiu.ArchiveItCollection(
+                collection_id=collection_id,
+                logger=app.logger,
+                working_directory=record_dir
+                )
 
-        archive_collection_name = aic.get_collection_name()
+            archive_collection_name = aic.get_collection_name()
 
+        except aiu.ArchiveItCollectionException:
+            return "Cannot determine information about archive collection", 500
 
     output = {}
 
@@ -575,16 +584,25 @@ def oembed_endpoint():
     surrogate_creation_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     app.logger.debug("oembed: acquiring memento headers and content for URI-M: {}".format(urim))
-    headers = get_headers(urim, identifier)
-    app.logger.debug("acquired memento headers")
 
-    content = get_content(urim, identifier)
-    app.logger.debug("acquired memento content")
+    try:
+        headers = get_headers(urim, identifier)
+        app.logger.debug("acquired memento headers")
+
+        content = get_content(urim, identifier)
+        app.logger.debug("acquired memento content")
+    except requests.exceptions.ConnectTimeout:
+        return "Connection timed out trying to load URI-M {}".format(urim), 504
+    except requests.exceptions.ConnectionError:
+        return "Requesting the URI-M {} produced a connection error".format(urim), 503
 
     urir = aiu.convert_LinkTimeMap_to_dict( headers['link'] )['original_uri']
 
     o = urlparse(urir)
     original_domain = o.netloc
+
+    # TODO: this is a convention, but not how one constructs a favicon
+    original_favicon_uri = "https://{}/favicon.ico".format(original_domain)
 
     s = Surrogate(
         uri=urim,
@@ -621,26 +639,6 @@ def oembed_endpoint():
         me_snippet = text_snippet
     ), remove_empty_space=True, 
     remove_optional_attribute_quotes=False )
-
-    # output["html"] = render_template(
-    #     "social_card.html",
-    #     urim = urim,
-    #     urir = urir,
-    #     image = striking_image,
-    #     archive_uri = archive_uri,
-    #     archive_favicon = archive_favicon_uri,
-    #     archive_collection_id = collection_id,
-    #     archive_collection_uri = collection_uri,
-    #     archive_collection_name = archive_collection_name,
-    #     archive_name = archive_name,
-    #     original_favicon = original_favicon_uri,
-    #     original_domain = original_domain,
-    #     original_link_status = original_link_status,
-    #     surrogate_creation_time = surrogate_creation_time,
-    #     memento_datetime = memento_datetime,
-    #     me_title = title,
-    #     me_snippet = text_snippet
-    # )
 
     output["width"] = 500
 

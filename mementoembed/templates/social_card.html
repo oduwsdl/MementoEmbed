@@ -3,7 +3,7 @@
     data-urir="{{ urir }}"
     data-surrogate-creation-time="{{ surrogate_creation_time }}"
 
-    {% if image != None %}
+    {% if image %}
     data-image="{{ image }}"
     {% endif %}
 
@@ -11,25 +11,25 @@
     data-archive-favicon="{{ archive_favicon }}"
     data-archive-uri="{{ archive_uri }}"
 
-    {% if collection_id != None %}
-    data-archive-collection-id="{{ collection_id }}"
+    {% if archive_collection_id %}
+    data-archive-collection-id="{{ archive_collection_id }}"
     data-archive-collection-uri="{{ archive_collection_uri }}"
     data-archive-collection-name="{{ archive_collection_name }}"
     {% endif %}
 
-    {% if original_favicon != None %}
+    {% if original_favicon %}
     data-original-favicon="{{ original_favicon }}"
     {% endif %}
 
-    {% if original_domain != None %}
+    {% if original_domain %}
     data-original-domain="{{ original_domain }}"
     {% endif %}
 
-    {% if original_link_status != None %}
+    {% if original_link_status %}
     data-original-link-status="{{ original_link_status }}"
     {% endif %}
 
-    {% if memento_datetime != None %}
+    {% if memento_datetime %}
     data-date="{{ memento_datetime }}"
     {% endif %}
 

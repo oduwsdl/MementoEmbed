@@ -13,7 +13,7 @@ function generate_cards() {
         if (element.dataset["processed"] == "true") {
             console.log("alredy processed element for " + element.dataset["urim"]);
         } else {
-            console.log("workiong on card " + element);
+            console.log("working on card " + element);
 
             console.log("processed: " + element.me_processed);
 
@@ -50,9 +50,18 @@ function generate_cards() {
                     belowtitleHTML += '<img src="' + archiveFavicon + '" alt="' + archiveName + '" width="16">&nbsp;&nbsp;';
                 }
 
+                
+
                 if ((collectionName != null) && (collectionURI != null)) {
+                    console.log("collection URI is " + collectionURI);
+                    console.log("collection name is " + collectionName);
                     belowtitleHTML += 'Member of <a href="' + collectionURI + '">' + archiveName + 
                         ' Collection '  + collectionName + '</a>';
+                } else {
+                    if ((archiveName) != null) {
+                        console.log("archive name is " + archiveName);
+                        belowtitleHTML += 'Preserved by <a href="' + archiveURI + '">' + archiveName + '</a>';
+                    }
                 }
 
                 if (linkStatus != null) {
@@ -107,6 +116,7 @@ function generate_cards() {
             for (var j = 0; j < me_textright.length; j++) {
 
                 console.log("working on snippet " + j + ": " + me_textright[j]);
+                console.log("really working...");
 
                 belowTextRight = '<div class="me-footer">';
 
@@ -123,6 +133,8 @@ function generate_cards() {
                 belowTextRight += '</div>';
 
                 me_textright[j].insertAdjacentHTML("afterend", belowTextRight);
+
+                console.log("done with snippet...");
 
             }
 
@@ -189,6 +201,8 @@ function generate_cards() {
         element.style.marginTop = "10px";
         element.style.paddingTop = "10px";
     });
+
+    console.log("social card generated...");
 }
 
 generate_cards();
