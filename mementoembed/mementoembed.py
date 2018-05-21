@@ -412,7 +412,8 @@ def oembed_endpoint():
         surrogate_creation_time = surrogate_creation_time,
         memento_datetime = memento_datetime,
         me_title = title,
-        me_snippet = text_snippet
+        me_snippet = text_snippet,
+        server_domain = request.url_root
     ), remove_empty_space=True, 
     remove_optional_attribute_quotes=False )
 
@@ -420,7 +421,7 @@ def oembed_endpoint():
 
     #TODO: fix this to the correct height!
     output["height"] = 200
-    
+
     response = make_response(json.dumps(output))
     response.headers['Content-Type'] = 'application/json'
 

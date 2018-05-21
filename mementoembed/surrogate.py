@@ -155,6 +155,7 @@ class Surrogate:
 
             for link in links:
                 if 'icon' in link['rel']:
+                    self.logger.debug("extracted favicon from HTML: {}".format(link['href']))
                     self.original_link_favicon_uri = urljoin(self.uri, link['href'])
                     break
 
@@ -174,11 +175,13 @@ class Surrogate:
                 if "mementos" in memento_info:
                     if "closest" in memento_info["mementos"]:
                         if "uri" in memento_info["mementos"]["closest"]:
-                            self.original_link_favicon_uri = memento_info["mementos"]["closest"]["uri"]
+                            self.original_link_favicon_uri = memento_info["mementos"]["closest"]["uri"][0]
 
             except Exception as e:
                 # it appears that MementoClient throws 
                 self.logger.info("got an exception while searching for the original favicon at {}: {}".format(candidate_favicon_uri, repr(e)))
+
+        self.logger.debug("discovered favicon at {}".format(self.original_link_favicon_uri))
 
         return self.original_link_favicon_uri
 
