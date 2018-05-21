@@ -1,0 +1,43 @@
+<blockquote class="mementoembed"
+    data-urim="{{ urim }}"
+    data-urir="{{ urir }}"
+    data-surrogate-creation-time="{{ surrogate_creation_time }}"
+
+    {% if image != None %}
+    data-image="{{ image }}"
+    {% endif %}
+
+    data-archive-name="{{ archive_name }}"
+    data-archive-favicon="{{ archive_favicon }}"
+    data-archive-uri="{{ archive_uri }}"
+
+    {% if collection_id != None %}
+    data-archive-collection-id="{{ collection_id }}"
+    data-archive-collection-uri="{{ archive_collection_uri }}"
+    data-archive-collection-name="{{ archive_collection_name }}"
+    {% endif %}
+
+    {% if original_favicon != None %}
+    data-original-favicon="{{ original_favicon }}"
+    {% endif %}
+
+    {% if original_domain != None %}
+    data-original-domain="{{ original_domain }}"
+    {% endif %}
+
+    {% if original_link_status != None %}
+    data-original-link-status="{{ original_link_status }}"
+    {% endif %}
+
+    {% if memento_datetime != None %}
+    data-date="{{ memento_datetime }}"
+    {% endif %}
+
+    style="width: 500px; font-size: 12px; border: 1px solid rgb(231, 231, 231);"
+    >
+    <div class="me-textright">
+    <p class="me-title"><a href="{{ urim }}">{{ me_title }}</a></p>
+    <p class="me-snippet">{{ me_snippet }}</p>
+    </div>
+</blockquote>
+<script async src="/static/js/mementoembed.js" charset="utf-8"></script>
