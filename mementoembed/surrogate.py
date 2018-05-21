@@ -4,10 +4,13 @@ import requests
 import tldextract
 import aiu
 
+from datetime import datetime
 from urllib.parse import urljoin, urlparse
+
 from PIL import ImageFile
 from bs4 import BeautifulSoup
 from readability import Document
+from memento_client import MementoClient
 
 p = re.compile(' +')
 
@@ -35,6 +38,8 @@ class Surrogate:
         self.urir = None
         self.original_domainname = None
         self.original_link_status_text = None
+        self.original_link_favicon_uri = None
+        self.memento_dt = None
 
     @property
     def text_snippet(self):
@@ -130,6 +135,15 @@ class Surrogate:
                 self.original_link_status_text = "Rotten"
 
         return self.original_link_status_text
+
+    @property
+    def memento_datetime(self):
+
+        if self.memento_dt == None:
+            self.memento_dt = datetime.strptime(
+                self.response_headers['memento-datetime'], "%a, %d %b %Y %H:%M:%S GMT")
+            
+        return self.memento_dt
 
     def _getMetadataDescription(self):
 

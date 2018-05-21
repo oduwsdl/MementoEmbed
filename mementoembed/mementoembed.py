@@ -388,8 +388,7 @@ def oembed_endpoint():
     striking_image = s.striking_image
 
     app.logger.debug("extracting memento-datetime from {}".format(urim))
-    memento_datetime = datetime.strptime(
-        headers['memento-datetime'], "%a, %d %b %Y %H:%M:%S GMT").strftime(
+    memento_datetime = s.memento_datetime.strftime(
         "%Y-%m-%dT%H:%M:%SZ"
     )
 
