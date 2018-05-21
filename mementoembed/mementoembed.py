@@ -45,55 +45,6 @@ def get_record_dir(identifier):
 
     return record_dir
 
-# def release_job_record(identifier):
-#     """
-#     Releases a record for identifier so that other processes
-#     can use it.
-#     """
-#     record_dir = get_record_dir(identifier)
-
-#     # pylint: disable=no-member
-#     app.logger.debug("using job record dir {}".format(record_dir))
-
-#     os.unlink("{}/LOCK".format(record_dir))
-
-#     # pylint: disable=no-member
-#     app.logger.debug("job record should be released")
-
-# def get_job_record(identifier):
-#     """
-#     Creates a record for identifier so that future work can be done.
-#     This also informs other processes that such a record occurs.
-#     """
-
-#     # pylint: disable=no-member
-#     app.logger.debug("getting job record for {}".format(identifier))
-
-#     record_dir = get_record_dir(identifier)
-
-#     # TODO: this needs a lock as well, if multiple processes rush to make the same dir
-#     if not os.path.exists(record_dir):
-#         os.makedirs(record_dir)
-
-#     time.sleep(1)
-
-#     while os.path.exists("{}/LOCK".format(record_dir)):
-#         # TODO: timeouts, what if a process never comes back?
-#         # pylint: disable=no-member
-#         app.logger.info("LOCK found, sleeping for 2 seconds")
-#         time.sleep(2)
-
-#     app.logger.debug("writing lock file for this record in directory {}".format(record_dir))
-#     with open("{}/LOCK".format(record_dir), 'w') as f:
-#         app.logger.debug("writing directly to lockfile at {}".format(f))
-#         f.write(str(datetime.now()))
-#         app.logger.debug("lockfile should be written to")
-
-#     # pylint: disable=no-member
-#     app.logger.debug("job record should be locked for {}".format(identifier))
-
-#     return record_dir
-
 def fetch_web_resource(uri, identifier):
     """
     Acquires a URI-M and saves it to a WARC.
@@ -239,197 +190,9 @@ def get_headers(uri, identifier):
 
     return iheaders
 
-# def get_uriminfo(urim, identifier):
-#     """
-#     Acquires information about a URI-M.
-#     """
-
-#     app.logger.info("getting URI-M information for {}".format(urim))
-
-#     output = {}
-#     output["data acquisition datetime"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-#     output["URI-M"] = urim
-
-#     try:
-#         output["archive name"] = identify_archive(urim)
-#         output["archive uri"] = get_archive_uri(urim)
-#         output["archive favicon URI"] = get_archive_favicon(urim)
-        
-#         collection_uri = get_collection_uri(urim)
-
-#         if collection_uri:
-#             output["archive collection uri"] = collection_uri
-#             output["archive collection ID"] = identify_collection(urim)
-
-#             record_dir = get_record_dir(identifier)
-
-#             aic = aiu.ArchiveItCollection(
-#                 collection_id=output["archive collection ID"],
-#                 logger=app.logger,
-#                 working_directory=record_dir
-#                 )
-
-#             output["archive collection name"] = aic.get_collection_name()
-
-#         app.logger.debug("acquiring memento headers for {}".format(urim))
-
-#         headers = get_memento_headers(urim, identifier)
-
-#         output["memento-datetime"] = datetime.strptime(
-#                 headers['memento-datetime'], "%a, %d %b %Y %H:%M:%S GMT").strftime(
-#                 "%Y-%m-%dT%H:%M:%SZ"
-#         )
-
-#         output["URI-R"] = aiu.convert_LinkTimeMap_to_dict( headers['link'] )['original_uri']
-        
-#     except Exception as e:
-#         output["error"] = repr(e)
-
-#     return output
-
-# def get_uririnfo(urim, identifier):
-#     """
-#     Acquires information about the archive for a memento.
-#     """
-
-#     # TODO: what information do you want from this?
-#     # * URI-R
-#     # * original favicon
-#     # * original link status
-#     # * original domain - done
-#     # * original link status check datetime - done
-
-#     output = {}
-
-#     output["data acquisition datetime"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-#     # TODO: what about archives that are not memento-compliant?
-#     headers = get_memento_headers(urim, identifier)
-#     output["URI-R"] = aiu.convert_LinkTimeMap_to_dict( headers['link'] )['original_uri']
-
-#     o = urlparse(output["URI-R"])
-#     output["original domain"] = o.netloc
-
-#     return output
-
-
-# def get_textdata(urim, identifier):
-#     """
-#     Processes memento for text data used in social card.
-#     """
-
-#     # TODO: what information do you want from this?
-#     # * title
-#     # * text snippet
-
-#     output = {}
-
-#     output["data acquisition datetime"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-#     content = get_memento_content(urim, identifier)
-#     headers = get_memento_headers(urim, identifier)
-
-#     s = Surrogate(
-#         uri=urim,
-#         content=content,
-#         response_headers=headers
-#     )
-
-#     output["title"] = s.title
-#     output["text snippet"] = s.text_snippet
-
-#     return output
-
-
-# def get_imagedata(urim, identifier):
-#     """
-#     Acquires information about the images within an memento.
-#     """
-
-#     # TODO: what information do you want from this?
-#     # * selected image
-#     # * other images
-
-#     output = {}
-
-#     output["data acquisition datetime"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-#     content = get_memento_content(urim, identifier)
-#     headers = get_memento_headers(urim, identifier)
-
-#     s = Surrogate(
-#         uri=urim,
-#         content=content,
-#         response_headers=headers
-#     )
-
-#     output["striking image"] = s.striking_image
-
-#     # TODO: rework, we really shouldn't be calling a "private" method
-#     s._find_all_images()
-#     output["all images"] = list( s.image_list.keys() )
-
-#     return output
-        
-# surrogate_path2func = {
-#     "uriminfo" : get_uriminfo,
-#     "uririnfo" : get_uririnfo,
-#     "textdata" : get_textdata,
-#     "imagedata" : get_imagedata
-# }
-
 @app.route('/')
 def front_page():
     return render_template('index.html')
-
-# @app.route('/services/surrogate/<path:subpath>', methods=['GET', 'HEAD'])
-# def generate_surrogate_data(subpath):
-
-#     # TODO: supply additional item properties in the Link header (see HATEOAS)
-#     # see https://stackoverflow.com/questions/25860304/how-do-i-set-response-headers-in-flask
-    
-#     # pylint: disable=no-member
-#     app.logger.info("generating surrogate data for subpath {}".format(subpath))
-
-#     subpath_items = subpath.split('/')
-
-#     try:
-#         item_identifier = subpath_items[0]
-
-#         # pylint: disable=no-member
-#         app.logger.debug("using item identifier {}".format(item_identifier))
-
-#         if item_identifier.lower() == "teapot":
-#             return "I am a Teapot", 418
-
-#         try:
-#             uri = base64.b64decode(item_identifier).decode('utf8')
-#             o = urlparse(uri)
-
-#             if o.scheme == '' or o.netloc == '':
-#                 return "bad URI received: {}".format(uri), 400
-
-#         except binascii.Error:
-#             return "bad identifier received: {}".format(item_identifier)
-
-#         item_property = subpath_items[1]
-
-#     except IndexError:
-#         return "Incorrect number of parameters in URL", 400
-
-#     # pylint: disable=no-member
-#     app.logger.debug("using URI {}".format(uri))
-
-#     output = surrogate_path2func[item_property](uri, item_identifier)
-
-#     return json.dumps(output, indent=4)
-    
-# @app.route('/socialcard/<path:uri>', methods=['GET', 'HEAD'])
-# def make_social_card(uri=None):
-#     # return render_template('social_card.html', urim=uri)
-#     return "Hello {}}!".format(uri)
-
-
 
 @app.route('/services/oembed', methods=['GET', 'HEAD'])
 def oembed_endpoint():
@@ -604,6 +367,18 @@ def oembed_endpoint():
     try:
         urir = aiu.convert_LinkTimeMap_to_dict( headers['link'] )['original_uri']
         app.logger.debug("extracted URI-R {} from Link header".format(urir))
+
+        try:
+            r = requests.get(urir)
+
+            if r.status_code == 200:
+                original_link_status = "Live"
+            else:
+                original_link_status = "Rotten"
+
+        except Exception:
+            original_link_status = "Rotten"
+
     except KeyError:
         return "The URI-M at {} does not appear to be Memento-compliant".format(urim), 404
 

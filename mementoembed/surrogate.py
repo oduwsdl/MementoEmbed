@@ -219,7 +219,7 @@ class Surrogate:
                                 self.logger.warn("request for image at URI {} exceeded an acceptable number of redirects, skipping...".format(imageuri))
 
                 else:
-                    self.logger.warn("domain of image at URI {} is a known advertising service, skipping...".format(imageuri, self.uri))
+                    self.logger.warn("domain of image at URI {} is a known advertising service, skipping...".format(imageuri))
 
     def _getLargestImage(self):
 
