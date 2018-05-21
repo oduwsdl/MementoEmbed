@@ -202,7 +202,7 @@ function generate_cards() {
         element.style.paddingTop = "10px";
     });
 
-    console.log("social card generated...");
+    console.log("all MementoEmbed social cards generated...");
 }
 
 generate_cards();

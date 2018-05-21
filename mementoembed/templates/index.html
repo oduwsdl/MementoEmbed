@@ -117,6 +117,7 @@
             function requestEmbed() {
 
                 console.log("requestEmbed called");
+                setWorking();
 
                 uri = document.getElementById('uri_submitted').value;
 
@@ -167,7 +168,9 @@
                         console.log("we have failure with data: " + data);
                         console.log("the status is " + data.status);
 
-                        if ( data.status == 404 ) {
+                        if (data.responseText == undefined) {
+                            failuremessage = "MementoEmbed failed to generate an error message"
+                        } else {
                             failuremessage = data.responseText;
                         }
 
@@ -178,6 +181,8 @@
 
             function clearEmbed() {
                 document.getElementById('uri_submitted').clear;
+                workoutput.innerHTML = "";
+                workerror.innerHTML = "";
             }
         </script>
     </body>

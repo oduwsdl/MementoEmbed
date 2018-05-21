@@ -1,6 +1,7 @@
 import sys
 import re
 import requests
+import tldextract
 
 from urllib.parse import urljoin
 from PIL import ImageFile
@@ -15,7 +16,7 @@ class Surrogate:
         related to content, uri, and response_headers.
     """
 
-    def __init__(self, uri, content, response_headers):
+    def __init__(self, uri, content, response_headers, logger=None):
 
         self.uri = uri
         self.content = content
@@ -28,9 +29,13 @@ class Surrogate:
         self.title_string = None
         self.image_list = None
         self.site_favicon_uri = None
+        self.logger = logger
 
     @property
     def text_snippet(self):
+
+        self.logger.info("selecting text snippet for {}".format(self.uri))
+
         if self.text_snippet_string == None or self.text_snippet_string == "":
 
             self.text_snippet_string = self._getMetadataDescription()
@@ -55,6 +60,8 @@ class Surrogate:
     @property
     def striking_image(self):
         
+        self.logger.info("selecting striking image for {}".format(self.uri))
+
         if self.striking_image_uri == None:
 
             self.striking_image_uri = self._getMetadataOGImage()
@@ -71,6 +78,8 @@ class Surrogate:
 
     @property
     def title(self):
+
+        self.logger.debug("selecting striking image for {}".format(self.uri))
 
         if self.title_string == None:
             self.title_string = self.soup.title.string
@@ -137,6 +146,8 @@ class Surrogate:
 
     def _getLede3Description(self):
 
+        self.logger.info("getting Lede3 description for URI {}".format(self.uri))
+
         description = None
 
         doc = Document(self.content)
@@ -159,20 +170,56 @@ class Surrogate:
         
     def _find_all_images(self):
 
+        adimagelist = [
+            'altfarm.mediaplex.com',
+            's0b.bluestreak.com',
+            'ad.doubleclick.net'
+        ]
+
         if self.image_list == None:
 
             self.image_list = {}
+
+            self.logger.debug("discovering all images at {}".format(self.uri))
 
             for imgtag in self.soup.find_all("img"):
 
                 imageuri = urljoin(self.uri, imgtag.get("src"))
 
-                if imageuri not in self.image_list:
-                    resp = requests.get(imageuri)
+                evalimage = True
 
-                    imagedata = resp.content
+                for addomain in adimagelist:
+                    if addomain in imageuri:
+                        evalimage = False
 
-                    self.image_list[imageuri] = imagedata
+                if evalimage == True:
+
+                    if "/ads/" in imageuri.lower():
+
+                        self.logger.warn("discovered string /ads/ in image uri {}, skipping...".format(imageuri))
+
+                    else:
+
+                        if imageuri not in self.image_list:
+
+                            self.logger.debug("examining embedded image at URI {} from resource {}".format(imageuri, self.uri))
+
+                            try:
+                                resp = requests.get(imageuri)
+
+                                self.logger.debug("got a response for image URI {}".format(imageuri))
+
+                                imagedata = resp.content
+
+                                self.image_list[imageuri] = imagedata
+
+                            except requests.exceptions.ConnectionError:
+                                self.logger.warn("connection error from image at URI {}, skipping...".format(imageuri))
+                            except requests.exceptions.TooManyRedirects:
+                                self.logger.warn("request for image at URI {} exceeded an acceptable number of redirects, skipping...".format(imageuri))
+
+                else:
+                    self.logger.warn("domain of image at URI {} is a known advertising service, skipping...".format(imageuri, self.uri))
 
     def _getLargestImage(self):
 
@@ -184,15 +231,27 @@ class Surrogate:
         for imageuri in self.image_list:
 
             p = ImageFile.Parser()
-            p.feed(self.image_list[imageuri])
 
-            width, height = p.image.size
+            if self.image_list[imageuri] == None:
 
-            imgsize = width * height
+                self.logger.warn("no data at image URI {}".format(imageuri))
 
-            if imgsize > maxsize:
-                maxsize = imgsize
-                maximageuri = imageuri
+            else:
+
+                p.feed(self.image_list[imageuri])
+
+                if p.image == None:
+
+                    self.logger.warn("processing image from URI {} produced no data, skipping...".format(imageuri))
+
+                else:
+                    width, height = p.image.size
+
+                    imgsize = width * height
+
+                    if imgsize > maxsize:
+                        maxsize = imgsize
+                        maximageuri = imageuri
 
         return maximageuri
 

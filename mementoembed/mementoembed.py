@@ -24,6 +24,9 @@ from .surrogate import Surrogate
 
 app = Flask(__name__)
 
+# user_agent_string = "MementoEmbed/0.0.1a0 See: https://github.com/shawnmjones/MementoEmbed"
+user_agent_string = "ODU WS-DL Researcher Shawn M. Jones <sjone@cs.odu.edu>"
+
 working_dir = "/app/mementoembed/working"
 
 # pylint: disable=no-member
@@ -158,7 +161,7 @@ def fetch_web_resource_nonconcurrent(uri, identifier):
         app.logger.info(
             "files for {} not found, downloading...".format(uri)
         )
-        r = requests.get(uri, headers={'Accept-Encoding': 'identity'}, stream=True)
+        r = requests.get(uri, headers={'Accept-Encoding': 'identity', 'User-Agent': user_agent_string}, stream=True)
 
         # TODO: raise an exception if not 200 so that we can throw a 501 later
         headers = r.headers
@@ -200,6 +203,8 @@ def get_content(uri, identifier):
     with open(content_file_path) as c:
         content = c.read()
 
+    app.logger.debug("returning content from {}".format(content_file_path))
+
     return content
 
 def get_headers(uri, identifier):
@@ -230,7 +235,7 @@ def get_headers(uri, identifier):
 
     iheaders = CaseInsensitiveDict(data=headers)
 
-    app.logger.debug("returning case-insensitive headers")
+    app.logger.debug("returning case-insensitive headers from {}".format(header_file_path))
 
     return iheaders
 
@@ -549,7 +554,7 @@ def oembed_endpoint():
         archive_uri = get_archive_uri(urim)
         archive_favicon_uri = get_archive_favicon(urim)
     except KeyError:
-        return "URI-M submitted belongs to an archive or site that is not supported by MementoEmbed", 404
+        return "URI-M {} belongs to an archive or site that is not supported by MementoEmbed".format(urim), 404
 
     collection_uri = get_collection_uri(urim)
 
@@ -596,29 +601,42 @@ def oembed_endpoint():
     except requests.exceptions.ConnectionError:
         return "Requesting the URI-M {} produced a connection error".format(urim), 503
 
-    urir = aiu.convert_LinkTimeMap_to_dict( headers['link'] )['original_uri']
+    try:
+        urir = aiu.convert_LinkTimeMap_to_dict( headers['link'] )['original_uri']
+        app.logger.debug("extracted URI-R {} from Link header".format(urir))
+    except KeyError:
+        return "The URI-M at {} does not appear to be Memento-compliant".format(urim), 404
 
     o = urlparse(urir)
     original_domain = o.netloc
+    app.logger.debug("extracted original domain of {}".format(original_domain))
 
-    # TODO: this is a convention, but not how one constructs a favicon
+    # TODO: this is a convention, but not how one discovers a favicon
     original_favicon_uri = "https://{}/favicon.ico".format(original_domain)
 
     s = Surrogate(
         uri=urim,
         content=content,
-        response_headers=headers
+        response_headers=headers,
+        logger=app.logger
     )
 
+    app.logger.debug("extracting title for {}".format(urim))
     title = s.title
+
+    app.logger.debug("extracting text snippet for {}".format(urim))
     text_snippet = s.text_snippet
+
+    app.logger.debug("extracting image for {}".format(urim))
     striking_image = s.striking_image
 
+    app.logger.debug("extracting memento-datetime from {}".format(urim))
     memento_datetime = datetime.strptime(
         headers['memento-datetime'], "%a, %d %b %Y %H:%M:%S GMT").strftime(
         "%Y-%m-%dT%H:%M:%SZ"
     )
 
+    app.logger.info("generating oEmbed output for {}".format(urim))
     output["html"] = htmlmin.minify( render_template(
         "social_card.html",
         urim = urim,
