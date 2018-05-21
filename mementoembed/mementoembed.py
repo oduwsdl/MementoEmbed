@@ -365,7 +365,7 @@ def oembed_endpoint():
         return "Requesting the URI-M {} produced a connection error".format(urim), 503
 
     # TODO: this is a convention, but not how one discovers a favicon
-    original_favicon_uri = "https://{}/favicon.ico".format(original_domain)
+    # original_favicon_uri = "https://{}/favicon.ico".format(original_domain)
 
     s = Surrogate(
         uri=urim,
@@ -391,6 +391,8 @@ def oembed_endpoint():
     memento_datetime = s.memento_datetime.strftime(
         "%Y-%m-%dT%H:%M:%SZ"
     )
+
+    original_favicon_uri = s.original_favicon
 
     app.logger.info("generating oEmbed output for {}".format(urim))
     output["html"] = htmlmin.minify( render_template(

@@ -145,6 +145,46 @@ class Surrogate:
             
         return self.memento_dt
 
+    @property
+    def original_favicon(self):
+
+        if self.original_link_favicon_uri == None:
+            self.logger.info("interrogating HTML of memento for favicon URI")
+
+            links = self.soup.find_all("link")
+
+            for link in links:
+                if 'icon' in link['rel']:
+                    self.original_link_favicon_uri = urljoin(self.uri, link['href'])
+                    break
+
+        if self.original_link_favicon_uri == None:
+            self.logger.info("querying web archive for original favicon at conventional URI")
+            o = urlparse(self.original_uri)
+            original_domain = o.netloc
+            original_scheme = o.scheme
+
+            candidate_favicon_uri = "{}://{}/favicon.ico".format(original_scheme, original_domain)
+
+            mc = MementoClient()
+
+            try:
+                memento_info = mc.get_memento_info(candidate_favicon_uri, self.memento_datetime)
+
+                if "mementos" in memento_info:
+                    if "closest" in memento_info["mementos"]:
+                        if "uri" in memento_info["mementos"]["closest"]:
+                            self.original_link_favicon_uri = memento_info["mementos"]["closest"]["uri"]
+
+            except Exception as e:
+                # it appears that MementoClient throws 
+                self.logger.info("got an exception while searching for the original favicon at {}: {}".format(candidate_favicon_uri, repr(e)))
+
+        return self.original_link_favicon_uri
+
+
+
+
     def _getMetadataDescription(self):
 
         description = None
