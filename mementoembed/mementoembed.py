@@ -364,28 +364,6 @@ def oembed_endpoint():
     except requests.exceptions.ConnectionError:
         return "Requesting the URI-M {} produced a connection error".format(urim), 503
 
-    try:
-        urir = aiu.convert_LinkTimeMap_to_dict( headers['link'] )['original_uri']
-        app.logger.debug("extracted URI-R {} from Link header".format(urir))
-
-        try:
-            r = requests.get(urir)
-
-            if r.status_code == 200:
-                original_link_status = "Live"
-            else:
-                original_link_status = "Rotten"
-
-        except Exception:
-            original_link_status = "Rotten"
-
-    except KeyError:
-        return "The URI-M at {} does not appear to be Memento-compliant".format(urim), 404
-
-    o = urlparse(urir)
-    original_domain = o.netloc
-    app.logger.debug("extracted original domain of {}".format(original_domain))
-
     # TODO: this is a convention, but not how one discovers a favicon
     original_favicon_uri = "https://{}/favicon.ico".format(original_domain)
 
@@ -395,6 +373,10 @@ def oembed_endpoint():
         response_headers=headers,
         logger=app.logger
     )
+
+    original_domain = s.original_domain
+    urir = s.original_uri
+    original_link_status = s.original_link_status
 
     app.logger.debug("extracting title for {}".format(urim))
     title = s.title

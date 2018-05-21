@@ -2,8 +2,9 @@ import sys
 import re
 import requests
 import tldextract
+import aiu
 
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 from PIL import ImageFile
 from bs4 import BeautifulSoup
 from readability import Document
@@ -30,6 +31,10 @@ class Surrogate:
         self.image_list = None
         self.site_favicon_uri = None
         self.logger = logger
+
+        self.urir = None
+        self.original_domainname = None
+        self.original_link_status_text = None
 
     @property
     def text_snippet(self):
@@ -86,13 +91,45 @@ class Surrogate:
 
         return self.title_string
 
-    # @property
-    # def site_favicon(self):
+    @property
+    def original_uri(self):
 
-    #     if self.site_favicon_uri == None:
-    #         self.site_favicon_uri = self._getSiteFavicon()
+        if self.urir == None:
+            self.urir = aiu.convert_LinkTimeMap_to_dict( self.response_headers['link'] )['original_uri']
 
-    #     return self.site_favicon_uri
+        return self.urir
+
+    @property
+    def original_domain(self):
+
+        if self.original_domainname == None:
+            if self.urir == None:
+                urir = self.original_uri
+
+            o = urlparse(urir)
+            original_domain = o.netloc
+
+            self.original_domainname = original_domain
+
+        return self.original_domainname
+
+    @property
+    def original_link_status(self):
+
+        if self.original_link_status_text == None:
+
+            try:
+                r = requests.get(self.urir)
+
+                if r.status_code == 200:
+                    self.original_link_status_text = "Live"
+                else:
+                    self.original_link_status_text = "Rotten"
+
+            except Exception:
+                self.original_link_status_text = "Rotten"
+
+        return self.original_link_status_text
 
     def _getMetadataDescription(self):
 
@@ -254,11 +291,3 @@ class Surrogate:
                         maximageuri = imageuri
 
         return maximageuri
-
-    # def _getOriginalStatus(self):
-        
-
-    # def _getSiteFavicon(self):
-
-    #     # self.response_headers["Link"]
-    #     return None
