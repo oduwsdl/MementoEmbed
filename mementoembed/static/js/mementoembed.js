@@ -1,21 +1,15 @@
 
 function generate_cards() {
+
     var me_cards = [].slice.call(document.querySelectorAll('[class^=mementoembed]'));
 
-    console.log("me_cards length: " + me_cards.length);
-
     for (var i = 0; i < me_cards.length; i++) {
-
-    // me_cards.forEach(element => {
 
         element = me_cards[i];
 
         if (element.dataset["processed"] == "true") {
             console.log("alredy processed element for " + element.dataset["urim"]);
         } else {
-            console.log("working on card " + element);
-
-            console.log("processed: " + element.me_processed);
 
             urim = element.dataset["urim"];
             urir = element.dataset["urir"];
@@ -38,11 +32,7 @@ function generate_cards() {
 
             me_titles = element.getElementsByClassName("me-title");
 
-            console.log("me_titles length:  " + me_titles.length);
-
             for (var j = 0; j < me_titles.length; j++) {
-
-                console.log("working on title " + j + ": " + me_titles[j]);
 
                 belowtitleHTML = '<div class="me-belowtitle">';
 
@@ -50,17 +40,15 @@ function generate_cards() {
                     belowtitleHTML += '<img src="' + archiveFavicon + '" alt="' + archiveName + '" width="16">&nbsp;&nbsp;';
                 }
 
-                
-
                 if ((collectionName != null) && (collectionURI != null)) {
                     console.log("collection URI is " + collectionURI);
                     console.log("collection name is " + collectionName);
-                    belowtitleHTML += 'Member of <a href="' + collectionURI + '">' + archiveName + 
+                    belowtitleHTML += 'Member of <a class="me-archive-link" style="text-decoration:none" href="' + collectionURI + '">' + archiveName + 
                         ' Collection '  + collectionName + '</a>';
                 } else {
                     if ((archiveName) != null) {
                         console.log("archive name is " + archiveName);
-                        belowtitleHTML += 'Preserved by <a href="' + archiveURI + '">' + archiveName + '</a>';
+                        belowtitleHTML += 'Preserved by <a class="me-archive-link" href="' + archiveURI + '">' + archiveName + '</a>';
                     }
                 }
 
@@ -80,7 +68,7 @@ function generate_cards() {
                         linkstatusmsg += '</span>';                    
 
                         if (urir != null) {
-                            belowtitleHTML += '<a href="' + urir + '">' + linkstatusmsg + '</a>';
+                            belowtitleHTML += '<a style="text-decoration:none" href="' + urir + '">' + linkstatusmsg + '</a>';
                         }
 
                     }
@@ -90,21 +78,18 @@ function generate_cards() {
                 }
 
                 belowtitleHTML += '</div>';
-                
-                console.log("inserting HTML afterend: " + belowtitleHTML);
 
                 me_titles[j].insertAdjacentHTML("afterend", belowtitleHTML);
 
                 me_titles[j].style.textAlign = "left";
-                me_titles[j].style.color = "rgb(09, 116, 283)";
+                me_titles[j].style.color = "rgb(9, 116, 283)";
                 me_titles[j].style.fontFamily = '"Museo Sans", "Helvetica Neue", sans-serif';
                 me_titles[j].style.fontSize = "14px";
                 me_titles[j].style.fontWeight = "700";
                 me_titles[j].style.lineHeight = "19.6px";
-                me_titles[j].style.textAlign = "left";
-                me_titles[j].style.textDecorationColor = "rgb(0, 116, 183)";
-                me_titles[j].style.textDecorationLine = "none";
-                me_titles[j].style.textDecorationStyle = "solid";
+                // me_titles[j].style.textDecorationColor = "rgb(9, 116, 183)";
+                // me_titles[j].style.textDecorationLine = "none";
+                // me_titles[j].style.textDecoration = "none";
                 me_titles[j].style.padding = "0px";
                 me_titles[j].style.margin = "0px";
                 me_titles[j].style.marginBottom = "1px";
@@ -115,9 +100,6 @@ function generate_cards() {
 
             for (var j = 0; j < me_textright.length; j++) {
 
-                console.log("working on snippet " + j + ": " + me_textright[j]);
-                console.log("really working...");
-
                 belowTextRight = '<div class="me-footer">';
 
                 if (originalFavicon != null) {
@@ -127,7 +109,7 @@ function generate_cards() {
                 if ((pubDate != null) && (domain != null)) {
                     uPubDate = pubDate.toUpperCase();
                     uDomain = domain.toUpperCase();
-                    belowTextRight += '<a href="' + urim + '">' + uDomain + '&nbsp;&nbsp;@&nbsp;&nbsp;' + uPubDate + '</a>';                
+                    belowTextRight += '<a class="me-pubdate" href="' + urim + '">' + uDomain + '&nbsp;&nbsp;@&nbsp;&nbsp;' + uPubDate + '</a>';                
                 }
 
                 belowTextRight += '</div>';
@@ -201,6 +183,49 @@ function generate_cards() {
         element.style.marginTop = "10px";
         element.style.paddingTop = "10px";
     });
+
+    var me_title_links = [].slice.call(document.querySelectorAll('[class~=me-title-link]'));
+
+    me_title_links.forEach(element =>{
+        element.style.textDecoration = "none";
+        element.style.color = "rgb(9, 116, 283)";
+    })
+
+    var me_pubdate_links = [].slice.call(document.querySelectorAll('[class~=me-pubdate]'));
+
+    me_pubdate_links.forEach(element =>{
+        element.style.textDecoration = "none";
+        element.style.color = "rgb(9, 116, 283)";
+    })
+
+    var me_archive_links = [].slice.call(document.querySelectorAll('[class~=me-archive-link]'));
+    
+    me_archive_links.forEach(element =>{
+        element.style.textDecoration = "none";
+        element.style.color = "rgb(9, 116, 283)";
+    })
+
+    // me_title_links = element.getElementsByClassName("me-title-link");
+
+    // for (var j = 0; i < me.me_title_links; j++) {
+    //     me_title_links[j].style.textDecoration = "none";
+    //     me_title_links[j].style.textAlign = "left";
+    //     me_title_links[j].style.color = "rgb(9, 116, 283)";
+    //     me_title_links[j].style.fontFamily = '"Museo Sans", "Helvetica Neue", sans-serif';
+    //     me_title_links[j].style.fontSize = "14px";
+    //     me_title_links[j].style.fontWeight = "700";
+    //     me_title_links[j].style.lineHeight = "19.6px";
+    //     me_title_links[j].style.padding = "0px";
+    //     me_title_links[j].style.margin = "0px";
+    //     me_title_links[j].style.marginBottom = "1px";
+    // }
+
+    // var links = document.getElementsByTagName("a");
+
+    // for (var j = 0; links.length; j++) {
+    //     console.log("working on link " + links[j]);
+    //     links[j].style.textDecoration = "none";
+    // }
 
     console.log("all MementoEmbed social cards generated...");
 }

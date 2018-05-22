@@ -394,6 +394,9 @@ def oembed_endpoint():
 
     original_favicon_uri = s.original_favicon
 
+    urlroot = request.url_root
+    urlroot = urlroot if urlroot[-1] != '/' else urlroot[0:-1]
+
     app.logger.info("generating oEmbed output for {}".format(urim))
     output["html"] = htmlmin.minify( render_template(
         "social_card.html",
@@ -413,7 +416,7 @@ def oembed_endpoint():
         memento_datetime = memento_datetime,
         me_title = title,
         me_snippet = text_snippet,
-        server_domain = request.url_root
+        server_domain = urlroot
     ), remove_empty_space=True, 
     remove_optional_attribute_quotes=False )
 
