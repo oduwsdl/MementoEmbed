@@ -23,6 +23,10 @@ archive_collection_uri_patterns = [
     "(http://wayback.archive-it.org/[0-9]*)/[0-9]{14}/.*",
 ]
 
+archive_collection_uri_prefixes = {
+    "Archive-It": "https://archive-it.org/collections/{}"
+}
+
 
 def identify_archive(urim):
     """
@@ -65,15 +69,11 @@ def get_collection_uri(urim):
     If no collection can be determined from the URI-M, it returns None.
     """
 
-    collection_uri = None
+    collection_id = identify_collection(urim)
 
-    for pattern in archive_collection_uri_patterns:
-        m = re.match(pattern, urim)
+    archive_name = identify_archive(urim)
 
-        if m:
-            collection_uri = m.group(1)
-
-    return collection_uri
+    return archive_collection_uri_prefixes[archive_name].format(collection_id)
 
 def get_archive_favicon(urim):
     """
