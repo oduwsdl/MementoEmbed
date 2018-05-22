@@ -73,7 +73,12 @@ def get_collection_uri(urim):
 
     archive_name = identify_archive(urim)
 
-    return archive_collection_uri_prefixes[archive_name].format(collection_id)
+    try:
+        collection_uri = archive_collection_uri_prefixes[archive_name].format(collection_id)
+    except KeyError:
+        collection_uri = None
+
+    return collection_uri
 
 def get_archive_favicon(urim):
     """

@@ -425,7 +425,7 @@ def oembed_endpoint():
     #TODO: fix this to the correct height!
     output["height"] = 200
 
-    response = make_response(json.dumps(output))
+    response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
 
     app.logger.info("returning output as application/json...")
