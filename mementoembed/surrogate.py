@@ -84,12 +84,14 @@ class Surrogate:
 
                     self.striking_image_uri = self._getLargestImage()
 
+        self.logger.info("selected image at URI-M {}".format(self.striking_image_uri))
+
         return self.striking_image_uri
 
     @property
     def title(self):
 
-        self.logger.debug("selecting striking image for {}".format(self.uri))
+        self.logger.debug("selecting title for {}".format(self.uri))
 
         if self.title_string == None:
             self.title_string = self.soup.title.string
@@ -346,5 +348,7 @@ class Surrogate:
                     if imgsize > maxsize:
                         maxsize = imgsize
                         maximageuri = imageuri
+
+        self.logger.debug("sending back image at URI-M {}".format(maximageuri))
 
         return maximageuri

@@ -58,13 +58,13 @@ function generate_cards() {
                     if (linkStatus == "Rotten") {
                         
                         belowtitleHTML += '<span style="color: #a8201a;">'
-                        belowtitleHTML += "Live web resource is Unavailable";
+                        belowtitleHTML += "Live web resource is unavailable";
                         belowtitleHTML += '</span>';
 
 
                     } else {
                         linkstatusmsg = '<span style="color: #143642;">'
-                        linkstatusmsg += "Live web resource is Available";
+                        linkstatusmsg += "Live web resource is available";
                         linkstatusmsg += '</span>';                    
 
                         if (urir != null) {
@@ -128,9 +128,6 @@ function generate_cards() {
     var me_images = [].slice.call(document.querySelectorAll('[class^=me-image]'));
 
     me_images.forEach(element => {
-        element.style.borderColor = "rgb(221, 221, 221)";
-        element.style.borderStyle = "solid";
-        element.style.borderWidth = "1px";
         element.style.color = "rgb(51, 51, 51)";
         element.style.display = "inline";
         element.style.float = "left";

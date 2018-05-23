@@ -156,7 +156,26 @@ class MementoSurrogate:
         
             self.content = response.text
 
+            self.logger.debug("content size is {}".format(len(self.content)))
+
             self.soup = BeautifulSoup(self.content, "html5lib")
+
+            # for Internet Memory Foundation sites, the real content is inside an iframe
+            twp = self.soup.find(id='theWebpage')
+
+            if twp:
+                if twp.name == 'iframe':
+                    self.logger.debug("discovered an IMF web site, making adjustments...")
+                    real_urim = twp.get('src')
+
+                    self.logger.debug("fetching actual memento content at {}".format(real_urim))
+                    real_response = self.session.get(real_urim)
+
+                    # replace the content downloaded, but keep the headers
+                    self.content = real_response.text
+                    self.soup = BeautifulSoup(self.content, "html5lib")
+
+                    self.logger.debug("content size is now {}".format(len(self.content)))
 
             self.response_headers = response.headers
 
@@ -194,8 +213,8 @@ class MementoSurrogate:
 
             self.text_snippet_string = self._getLede3Description()
 
-        if len(self.text_snippet_string) > 297:
-            return "{}...".format(self.text_snippet_string[0:297])
+        if len(self.text_snippet_string) > 197:
+            return "{}...".format(self.text_snippet_string[0:197])
         else:
             return self.text_snippet_string
 
@@ -405,7 +424,20 @@ class MementoSurrogate:
                 self.logger.info("got an exception while searching for the original favicon at {}: {}".format(candidate_favicon_uri, repr(e)))
                 self.original_link_favicon_uri = None
 
-        # 3. try to construct the favicon URI and look for it on the live web
+        # 3. request the home page of the site on the live web and look for favicon in its HTML
+        if self.original_link_favicon_uri == None:
+            live_site_uri = "{}://{}".format(self.original_scheme, self.original_domain)
+
+            r = self.session.get(live_site_uri)
+
+            candidate_favicon_uri_from_live = get_favicon_from_html(r.text)
+
+            if candidate_favicon_uri_from_live:
+
+                if candidate_favicon_uri_from_live[0:4] != 'http':
+                    self.original_link_favicon_uri = urljoin(live_site_uri, candidate_favicon_uri_from_live)
+
+        # 4. try to construct the favicon URI and look for it on the live web
         if self.original_link_favicon_uri == None:
 
             r = self.session.get(candidate_favicon_uri)
@@ -415,8 +447,8 @@ class MementoSurrogate:
                 # this is some protection against soft-404s
                 if 'image/' in r.headers['content-type']:
                     self.original_link_favicon_uri = candidate_favicon_uri
-
-        # 4. if all else fails, fall back to the Google favicon service
+        
+        # 5. if all else fails, fall back to the Google favicon service
         if self.original_link_favicon_uri == None:
 
             self.original_link_favicon_uri = get_favicon_from_google_service(self.session, self.urim)
@@ -695,6 +727,8 @@ class MementoSurrogate:
             for imgtag in self.soup.find_all("img"):
 
                 imageuri = urljoin(self.urim, imgtag.get("src"))
+
+                self.logger.debug("evaluating image at URI {}".format(imageuri))
 
                 evalimage = True
 
