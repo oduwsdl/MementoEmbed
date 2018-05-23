@@ -36,7 +36,7 @@ function generate_cards() {
 
                 belowtitleHTML = '<div class="me-belowtitle">';
 
-                if ((archiveFavicon != null) && (archiveName != null)) {
+                if (archiveFavicon != null) {
                     belowtitleHTML += '<img src="' + archiveFavicon + '" alt="' + archiveName + '" width="16">&nbsp;&nbsp;';
                 }
 
