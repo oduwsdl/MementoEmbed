@@ -8,7 +8,11 @@
     {% endif %}
 
     data-archive-name="{{ archive_name }}"
+
+    {% if archive_favicon %}
     data-archive-favicon="{{ archive_favicon }}"
+    {% endif %}
+
     data-archive-uri="{{ archive_uri }}"
 
     {% if archive_collection_id %}
