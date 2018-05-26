@@ -1,0 +1,24 @@
+{
+    "urim": "https://web.archive.org/web/20180515130056/http://www.cs.odu.edu/~mln/",
+    "expected results": {
+        "text_snippet": "About Me... I joined the Computer Science department at Old Dominion University in 2002. I worked at NASA Langley Research Center from 1991-2002. Through a NASA fellowship, I spent the 2000-2001 ac...",
+        "striking_image": "https://web.archive.org/web/20180515130056im_/http://www.cs.odu.edu/~mln/images/mln-ad-100x130.jpg",
+        "title": "Home:: Michael L. Nelson, Old Dominion University",
+        "original_uri": "http://www.cs.odu.edu/~mln/",
+        "timegate": "https://web.archive.org/web/http://www.cs.odu.edu/~mln/",
+        "original_domain": "www.cs.odu.edu",
+        "original_scheme": "http",
+        "original_link_status": "Live",
+        "memento_datetime": "2018-05-15T13:00:56Z",
+        "original_favicon": "http://www.cs.odu.edu/favicon.ico",
+        "archive_favicon": "https://archive.org/favicon.ico",
+        "archive_scheme": "https",
+        "archive_domain": "archive.org",
+        "archive_uri": "https://archive.org",
+        "archive_name": "Internet Archive",
+        "collection_uri": null,
+        "collection_name": null,
+        "collection_id": null
+    },
+    "testing comments": "Internet Archive URI"
+}

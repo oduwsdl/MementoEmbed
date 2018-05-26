@@ -1,0 +1,24 @@
+{
+    "urim": "http://collection.europarchive.org/nli/20110311033514/http://flexispy.com/",
+    "expected results": {
+        "text_snippet": "Home Features Phones Demo Support Community Reseller Affiliates About Us Cart Is Someone Keeping Secrets from You? Reveal All with the Worlds Most Powerful Spyphone Download FlexiSPY spyphone softw...",
+        "striking_image": "http://collection.europarchive.org/nli/content/20110311033514/http://flexispy.com/images/logos/flexispy-logo.jpg",
+        "title": "[ARCHIVED CONTENT] Catch Cheating Spouses with FlexiSPY - Spy Phone, GPS Tracker, Location Tracking, Remote Listening for Mobile / Cell Phones",
+        "original_uri": "http://flexispy.com/",
+        "timegate": "http://collection.europarchive.org/nli/timegate/http://flexispy.com/",
+        "original_domain": "flexispy.com",
+        "original_scheme": "http",
+        "original_link_status": "Live",
+        "memento_datetime": "2011-03-11T03:35:14Z",
+        "original_favicon": "http://collection.europarchive.org/nli/20110311033514/http://flexispy.com/images/flex.ico",
+        "archive_favicon": "http://europarchive.org/favicon.ico",
+        "archive_scheme": "http",
+        "archive_domain": "europarchive.org",
+        "archive_uri": "http://europarchive.org",
+        "archive_name": "EUROPARCHIVE.ORG",
+        "collection_uri": null,
+        "collection_name": null,
+        "collection_id": null
+    },
+    "testing comments": "europarchive.org URI-M, which uses a frameset to display the memento"
+}

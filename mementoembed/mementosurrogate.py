@@ -213,6 +213,10 @@ class MementoSurrogate:
 
             self.text_snippet_string = self._getLede3Description()
 
+        # self.text_snippet_string = self.text_snippet_string.strip().replace('\n', ' ').replace('\r', ' ')
+
+        self.text_snippet_string = " ".join(self.text_snippet_string.split())
+
         if len(self.text_snippet_string) > 197:
             return "{}...".format(self.text_snippet_string[0:197])
         else:
@@ -263,7 +267,10 @@ class MementoSurrogate:
         if self.title_string == None:
 
             try:
-                self.title_string = self.soup.title.string
+                title = self.soup.title.string
+
+                self.title_string = " ".join(title.split())
+
             except AttributeError:
                 self.logger.warn("No title detected in HTML for page, falling back to default statement")
                 self.title.string = "NO TITLE DETECTED"

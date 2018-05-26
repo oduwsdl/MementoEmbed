@@ -1,0 +1,24 @@
+{
+    "urim" : "http://wayback.archive-it.org/all/20090803010417/http://www.flexispy.com/",
+    "expected results": {
+        "text_snippet": "Home Features Phones News Demo Support Reseller Affiliates About Us Cart Is Someone Keeping Secrets from You? Reveal All with the Worlds Most Powerful Spyphone Download FlexiSPY spyphone software d...",
+        "striking_image": "http://wayback.archive-it.org/all/20090803010417/http:/www.flexispy.com/images/logo_flexispy.gif",
+        "title": "Catch Cheating Spouses with FlexiSPY - Spy Phone, GPS Tracker, Location Tracking, Remote Listening for Mobile / Cell Phones",
+        "original_uri": "http://www.flexispy.com/",
+        "timegate": "http://wayback.archive-it.org/all/http://www.flexispy.com/",
+        "original_domain": "www.flexispy.com",
+        "original_scheme": "http",
+        "original_link_status": "Live",
+        "memento_datetime": "2009-08-03T01:04:17Z",
+        "original_favicon": "http://wayback.archive-it.org/all/20090803010417/http:/www.flexispy.com/images/flex.ico",
+        "archive_favicon": "http://archive-it.org/favicon.ico",
+        "archive_scheme": "http",
+        "archive_domain": "archive-it.org",
+        "archive_uri": "http://archive-it.org",
+        "archive_name": "Archive-It",
+        "collection_uri": null,
+        "collection_name": null,
+        "collection_id": null
+    },
+    "testing comments": "the title returned has a newline, this also tests that the system does not detect a collection for this /all/ URI at Archive-It"
+}
