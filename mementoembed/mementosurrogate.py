@@ -742,6 +742,14 @@ class MementoSurrogate:
                 for addomain in adimagelist:
                     if addomain in imageuri:
                         evalimage = False
+                        break
+
+                if imgtag.get('class'):
+
+                    for c in imgtag.get('class'):
+                        if 'sprite' in c:
+                            evalimage = False
+                            break
 
                 if evalimage == True:
 

@@ -1,0 +1,25 @@
+{
+    "http://wayback.archive-it.org/2950/20120508033201/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/" : {
+        "expected results": {
+            "striking_image": "http://media.salon.com/2012/05/occupy_la-150x150.jpg",
+            "title": "Did May Day succeed? - Salon.com",
+            "original_uri": "http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/",
+            "timegate": "http://wayback.archive-it.org/2950/http://www.salon.com/2012/05/02/did_may_day_succeed/singleton/",
+            "original_domain": "www.salon.com",
+            "original_scheme": "http",
+            "original_link_status": "Rotten",
+            "memento_datetime": "2012-05-08T03:32:01Z",
+            "original_favicon": "http://wayback.archive-it.org/2950/20120508033201im_/http://www.salon.com/favicon.ico",
+            "archive_favicon": "http://archive-it.org/favicon.ico",
+            "archive_scheme": "http",
+            "archive_domain": "archive-it.org",
+            "archive_uri": "http://archive-it.org",
+            "archive_name": "Archive-It",
+            "collection_uri": "https://archive-it.org/collections/2950",
+            "collection_name": "Occupy Movement 2011/2012",
+            "collection_id": "2950",
+            "text_snippet": "Yesterday’s Occupy reboot mobilized a diverse group of people, but reverted to familiar tactics in the end"
+        }
+    }
+}
+

@@ -1,0 +1,23 @@
+{
+    "urim" : "http://perma-archives.org/warc/20180501135244/https://www.flexispy.com/",
+    "expected results": {
+            "text_snippet": "FlexiSPY is the only monitoring software for Mobile, PC and Mac offering Call Interception, Ambient Listening, Phone Call and VoIP Recording as well as all the traditional spy features you would ex...",
+            "striking_image": "http://perma-archives.org/warc/20180501135249im_/https://www.flexispy.com/common/images/buy-now/installation-service.png",
+            "title": "FlexiSPY™ Unique Monitoring Software For Mobiles & Computers",
+            "original_uri": "https://www.flexispy.com/",
+            "timegate": "http://perma-archives.org/warc/https://www.flexispy.com/",
+            "original_domain": "www.flexispy.com",
+            "original_scheme": "https",
+            "original_link_status": "Live",
+            "memento_datetime": "2018-05-01T13:52:44Z",
+            "original_favicon": "https://www.flexispy.com/favicon.ico",
+            "archive_favicon": null,
+            "archive_scheme": "http",
+            "archive_domain": "perma-archives.org",
+            "archive_uri": "http://perma-archives.org",
+            "archive_name": "PERMA-ARCHIVES.ORG",
+            "collection_uri": null,
+            "collection_name": null,
+            "collection_id": null
+    }
+}
