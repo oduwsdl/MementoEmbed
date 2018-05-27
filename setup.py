@@ -9,10 +9,17 @@ setup(
         'flask',
         'bs4',
         'html5lib',
-        'archivenow',
         'requests',
         'readability-lxml',
-        'Pillow'
+        'Pillow',
+        'tldextract',
+        'httpcache',
+        'lockfile',
+        'memento_client',
+        'htmlmin',
+        'dicttoxml',
+        'cachecontrol',
+        'filelock'
     ],
     scripts=['bin/fetch_surrogate_data'],
     test_suite="tests"
