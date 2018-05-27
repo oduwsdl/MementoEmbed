@@ -1,0 +1,23 @@
+{
+    "urim" : "https://web.archive.org/web/20050601025530/www.nytimes.com",
+    "expected results": {
+            "text_snippet": "Find breaking news, multimedia, reviews & opinion on Washington, business, sports, movies, travel, books, jobs, education, real estate, cars & more.",
+            "striking_image": "https://web.archive.org/web/20050601025530im_/http://graphics8.nytimes.com/images/2005/05/31/national/dt.184.4.jpg",
+            "title": "The New York Times - Breaking News, World News & Multimedia",
+            "original_uri": "http://nytimes.com:80/",
+            "timegate": "https://web.archive.org/web/http://nytimes.com:80/",
+            "original_domain": "www.nytimes.com",
+            "original_scheme": "http",
+            "original_link_status": "Live",
+            "memento_datetime": "2005-06-01T02:55:30Z",
+            "original_favicon": "http://nytimes.com/favicon.ico",
+            "archive_favicon": "https://archive.org/favicon.ico",
+            "archive_scheme": "https",
+            "archive_domain": "archive.org",
+            "archive_uri": "https://archive.org",
+            "archive_name": "Internet Archive",
+            "collection_uri": null,
+            "collection_name": null,
+            "collection_id": null
+    }
+}
