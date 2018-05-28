@@ -106,7 +106,16 @@ class MementoSurrogate:
         related to content, uri, and response_headers.
     """
 
-    def __init__(self, urim, session=requests.session(), working_directory="/tmp/mementosurrogate", logger=None):
+    def __init__(self, urim, session=requests.session(), img_pattern_blocklist=[], working_directory="/tmp/mementosurrogate", logger=None):
+        """
+            This constructor requires the `urim` argument.
+
+            Optional arguments:
+            * `session` - a requests session object (useful for testing or specifying an external cache)
+            * `img_pattern_blocklist` - a Python list containing a series of patterns to use when discarding images
+            * `working_directory` - the directory to use on disk when writing out or reading files
+            * `logger` - a Python logging object
+        """
 
         self.surrogate_creation_time = None
         self.surrogate_creation_time = self.creation_time
@@ -144,6 +153,8 @@ class MementoSurrogate:
 
         self.session = session
         self.working_directory = working_directory
+
+        self.img_pattern_blocklist = img_pattern_blocklist
         
 
     def fetch_memento(self):
