@@ -20,12 +20,82 @@ __all__ = [
 
 user_agent_string = "ODU WS-DL Researcher Shawn M. Jones <sjone@cs.odu.edu>"
 
+def load_adservers_list(filename):
+
+    patterns = []
+
+    # TODO: figure out how to actually parse this file
+    with open(filename) as f:
+
+        for line in f:
+
+            line = line.strip()
+
+            if line[0:2] == '/\\':
+                continue
+
+            if line[0] == '!':
+                continue
+                
+            if line[0:2] == '||':
+                line = line[2:]
+
+            line = line[0:line.find('^')]
+            line = line[0:line.find('$')]
+            line = line[0:line.find('*')]
+
+            patterns.append(line)
+
+    return patterns
+
+def load_adpatterns_list(filename):
+
+    patterns = []
+
+    # TODO: figure out how to actually parse this file
+    with open(filename) as f:
+
+        for line in f:
+
+            line = line.strip()
+
+            if line[0:2] == '/\\':
+                continue
+
+            if line[0] == '!':
+                continue
+                
+            if line[0:2] == '||':
+                line = line[2:]
+
+            line = line[0:line.find('^')]
+            line = line[0:line.find('$')]
+            line = line[0:line.find('*')]
+
+            patterns.append(line)
+
+    return patterns
+
 def create_app():
 
     app = Flask(__name__, instance_relative_config=True)
 
     # pylint: disable=no-member
     app.logger.info("loading Flask app for {}".format(app.name))
+
+    image_domain_ignore_patterns = load_adservers_list(
+        "{}/resources/easylist_adservers.txt".format(
+            os.path.dirname(os.path.realpath(__file__))
+        )
+    )
+
+    image_path_ignore_patterns = load_adpatterns_list(
+        "{}/resources/easylist_adservers.txt".format(
+            os.path.dirname(os.path.realpath(__file__))
+        )
+    )
+
+    image_uri_ignore_patterns = image_domain_ignore_patterns + image_path_ignore_patterns
 
     #pylint: disable=unused-variable
     @app.route('/', methods=['GET', 'HEAD'])
@@ -62,6 +132,7 @@ def create_app():
             s = MementoSurrogate(
                 urim=urim,
                 session=session,
+                img_pattern_blocklist=image_uri_ignore_patterns,
                 logger=app.logger
             )
 
