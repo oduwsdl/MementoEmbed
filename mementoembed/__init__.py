@@ -191,6 +191,12 @@ def create_app():
                 urim = urim
                 ), 400
 
+        except requests.ConnectionError:
+            app.logger.warning("There was a problem reaching the archive holding this memento.")
+            return "There was a problem reaching the archive holding the memento at {}".format(
+                urim
+            ), 503
+
         return response
 
     return app

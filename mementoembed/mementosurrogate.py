@@ -3,6 +3,7 @@ import re
 import base64
 
 import requests
+from requests_futures.sessions import FuturesSession
 import tldextract
 import aiu
 
@@ -12,6 +13,7 @@ from urllib.parse import urljoin, urlparse
 from PIL import ImageFile
 from bs4 import BeautifulSoup
 from readability import Document
+from justext import justext, get_stoplist
 from memento_client import MementoClient
 
 p = re.compile(' +')
@@ -106,7 +108,9 @@ class MementoSurrogate:
         related to content, uri, and response_headers.
     """
 
-    def __init__(self, urim, session=requests.session(), img_pattern_blocklist=[], working_directory="/tmp/mementosurrogate", logger=None):
+    def __init__(self, urim, session=requests.session(), img_pattern_blocklist=[], 
+        user_agent_string="Mozilla/5.0 (Windows NT 6.1; rv:27.3) Gecko/20130101 Firefox/27.3", 
+        working_directory="/tmp/mementosurrogate", logger=None):
         """
             This constructor requires the `urim` argument.
 
@@ -155,6 +159,9 @@ class MementoSurrogate:
         self.working_directory = working_directory
 
         self.img_pattern_blocklist = img_pattern_blocklist
+        self.user_agent_string = user_agent_string
+
+        self.newcontent = None
         
 
     def fetch_memento(self):
@@ -163,7 +170,7 @@ class MementoSurrogate:
 
             self.logger.debug("attempting to fetch memento at {}".format(self.urim))
 
-            response = self.session.get(self.urim)
+            response = self.session.get(self.urim, headers={'User-Agent': self.user_agent_string})
         
             self.content = response.text
 
@@ -172,21 +179,37 @@ class MementoSurrogate:
             self.soup = BeautifulSoup(self.content, "html5lib")
 
             # for Internet Memory Foundation sites, the real content is inside an iframe
-            twp = self.soup.find(id='theWebpage')
+            twp = self.soup.find("iframe", {"id": "theWebpage"})
 
             if twp:
-                if twp.name == 'iframe':
-                    self.logger.debug("discovered an IMF web site, making adjustments...")
-                    real_urim = twp.get('src')
+                self.logger.warning("discovered an IMF web site, making adjustments...")
+                real_urim = twp.get('src')
 
-                    self.logger.debug("fetching actual memento content at {}".format(real_urim))
-                    real_response = self.session.get(real_urim)
+                self.logger.debug("fetching actual memento content at {}".format(real_urim))
+                real_response = self.session.get(real_urim, headers={'User-Agent': self.user_agent_string})
 
-                    # replace the content downloaded, but keep the headers
-                    self.content = real_response.text
-                    self.soup = BeautifulSoup(self.content, "html5lib")
+                # replace the content downloaded, but keep the headers
+                # self.newcontent = repr(real_response)
+                self.content = real_response.text
+                # self.soup = BeautifulSoup(self.newcontent, "html5lib")
+                self.soup = BeautifulSoup(self.content, "html5lib")
 
-                    self.logger.debug("content size is now {}".format(len(self.content)))
+                # self.logger.debug("content size is now {}".format(len(self.newcontent)))
+                self.logger.debug("content size is now {}".format(len(self.content)))
+
+            # for archive.is, the real content is inside of a div with an id of SOLID
+            # solid = self.soup.find("div", {'id': 'SOLID'})
+
+            # if solid:
+            #     self.logger.warning("discovered an archive.is web site, making adjustments...")
+                
+            #     # self.newcontent = repr(solid)
+            #     self.content = repr(solid)
+            #     # self.soup = BeautifulSoup(self.newcontent, "html5lib")
+            #     self.soup = BeautifulSoup(self.content, "html5lib")
+
+            #     # self.logger.debug("content size is now {}".format(len(self.newcontent)))
+            #     self.logger.debug("content size is now {}".format(len(self.content)))
 
             self.response_headers = response.headers
 
@@ -354,7 +377,7 @@ class MementoSurrogate:
         if self.original_link_status_text == None:
 
             try:
-                r = self.session.get(self.original_uri)
+                r = self.session.get(self.original_uri, headers={'User-Agent': self.user_agent_string})
 
                 if r.status_code == 200:
                     self.original_link_status_text = "Live"
@@ -428,7 +451,7 @@ class MementoSurrogate:
                         if "uri" in memento_info["mementos"]["closest"]:
                             candidate_memento_favicon_uri = memento_info["mementos"]["closest"]["uri"][0]
 
-                            r = self.session.get(self.original_link_favicon_uri)
+                            r = self.session.get(self.original_link_favicon_uri, headers={'User-Agent': self.user_agent_string})
 
                             if r.status_code == 200:
 
@@ -446,7 +469,7 @@ class MementoSurrogate:
         if self.original_link_favicon_uri == None:
             live_site_uri = "{}://{}".format(self.original_scheme, self.original_domain)
 
-            r = self.session.get(live_site_uri)
+            r = self.session.get(live_site_uri, headers={'User-Agent': self.user_agent_string})
 
             candidate_favicon_uri_from_live = get_favicon_from_html(r.text)
 
@@ -458,7 +481,7 @@ class MementoSurrogate:
         # 4. try to construct the favicon URI and look for it on the live web
         if self.original_link_favicon_uri == None:
 
-            r = self.session.get(candidate_favicon_uri)
+            r = self.session.get(candidate_favicon_uri, headers={'User-Agent': self.user_agent_string})
 
             if r.status_code == 200:
 
@@ -488,7 +511,7 @@ class MementoSurrogate:
             
             self.logger.debug("attempting to acquire the archive favicon URI from HTML")
 
-            r = self.session.get(self.archive_uri)
+            r = self.session.get(self.archive_uri, headers={'User-Agent': self.user_agent_string})
 
             self.archive_favicon_uri = get_favicon_from_html(r.text)
 
@@ -499,7 +522,7 @@ class MementoSurrogate:
 
             candidate_favicon_uri = "{}://{}/favicon.ico".format(self.archive_scheme, self.archive_domain)
 
-            r = self.session.get(candidate_favicon_uri)
+            r = self.session.get(candidate_favicon_uri, headers={'User-Agent': self.user_agent_string})
 
             if r.status_code == 200:
 
@@ -722,19 +745,34 @@ class MementoSurrogate:
                 maxpara = d[para]['elem']
                 maxscore = d[para]['content_score']
 
-        allparatext = maxpara.text_content().replace('\n', ' ').replace('\r', ' ').strip()
-        description = p.sub(' ', allparatext)
+        if maxpara:
+            allparatext = maxpara.text_content().replace('\n', ' ').replace('\r', ' ').strip()
+            description = p.sub(' ', allparatext)
+        else:
+            paragraphs = justext(self.content, get_stoplist("English"))
+
+            allparatext = ""
+            
+            for paragraph in paragraphs:
+
+                if not paragraph.is_boilerplat:
+
+                    allparatext += " {}".format(paragraph.text)
+
+            if allparatext == "":
+
+                for paragraph in paragraphs:
+
+                    allparatext += "{}".format(paragraph.text)
+            
+            if allparatext != "":
+                description = allparatext.strip()
+            else:
+                description = self.soup.get_text()
 
         return description
         
     def _find_all_images(self):
-
-        # TODO: use a real advertising domain list
-        adimagelist = [
-            'altfarm.mediaplex.com',
-            's0b.bluestreak.com',
-            'ad.doubleclick.net'
-        ]
 
         if self.image_list == None:
 
@@ -750,10 +788,11 @@ class MementoSurrogate:
 
                 evalimage = True
 
-                for addomain in adimagelist:
-                    if addomain in imageuri:
+                for pattern in self.img_pattern_blocklist:
+                    # TODO: support globbing?
+                    if pattern in imageuri:
                         evalimage = False
-                        break
+                        self.logger.warn("ignoring image at {}".format(imageuri))
 
                 if imgtag.get('class'):
 
@@ -764,41 +803,48 @@ class MementoSurrogate:
 
                 if evalimage == True:
 
-                    if "/ads/" in imageuri.lower():
+                    # if "/ads/" in imageuri.lower():
 
-                        self.logger.warn("discovered string /ads/ in image uri {}, skipping...".format(imageuri))
+                    #     self.logger.warn("discovered string /ads/ in image uri {}, skipping...".format(imageuri))
 
-                    else:
+                    # else:
 
-                        if imageuri not in self.image_list:
+                    if imageuri not in self.image_list:
 
-                            self.logger.debug("examining embedded image at URI {} from resource {}".format(imageuri, self.urim))
+                        self.logger.debug("examining embedded image at URI {} from resource {}".format(imageuri, self.urim))
 
-                            try:
+                        try:
 
-                                if imageuri[0:5] == 'data:':
+                            if imageuri[0:5] == 'data:':
 
-                                    if 'base64' in imageuri:
-                                        imagedata = imageuri.split(',')[1]
-                                        imagedata = base64.b64decode(imagedata)
-                                    else:
-                                        self.logger.warn("no supported decoding scheme for image at {}, skipping...".format(imageuri))
-                                        continue
-
+                                if 'base64' in imageuri:
+                                    imagedata = imageuri.split(',')[1]
+                                    imagedata = base64.b64decode(imagedata)
                                 else:
+                                    self.logger.warn("no supported decoding scheme for image at {}, skipping...".format(imageuri))
+                                    continue
 
-                                    resp = self.session.get(imageuri)
+                            else:
 
-                                    self.logger.debug("got a response for image URI {}".format(imageuri))
+                                resp = self.session.get(imageuri, headers={'User-Agent': self.user_agent_string})
 
-                                    imagedata = resp.content
+                                self.logger.debug("got a response for image URI {}".format(imageuri))
 
-                                self.image_list[imageuri] = imagedata
+                                imagedata = resp.content
 
-                            except requests.exceptions.ConnectionError:
-                                self.logger.warn("connection error from image at URI {}, skipping...".format(imageuri))
-                            except requests.exceptions.TooManyRedirects:
-                                self.logger.warn("request for image at URI {} exceeded an acceptable number of redirects, skipping...".format(imageuri))
+                            self.image_list[imageuri] = imagedata
+
+                        except requests.exceptions.ConnectionError:
+                            self.logger.warn("connection error from image at URI {}, skipping...".format(imageuri))
+                        except requests.exceptions.TooManyRedirects:
+                            self.logger.warn("request for image at URI {} exceeded an acceptable number of redirects, skipping...".format(imageuri))
+
+                self.logger.debug("we have {} images in the list so far".format(len(self.image_list)))
+
+                # just do the first 10
+                if len(self.image_list) > 15:
+                    self.logger.debug("we have {} images, returning...".format(len(self.image_list)))
+                    break
 
                 else:
                     self.logger.warn("domain of image at URI {} is a known advertising service, skipping...".format(imageuri))

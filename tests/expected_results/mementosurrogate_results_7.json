@@ -2,7 +2,7 @@
     "urim" : "https://web.archive.org/web/20050601025530/www.nytimes.com",
     "expected results": {
             "text_snippet": "Find breaking news, multimedia, reviews & opinion on Washington, business, sports, movies, travel, books, jobs, education, real estate, cars & more.",
-            "striking_image": "https://web.archive.org/web/20050601025530im_/http://graphics8.nytimes.com/images/2005/05/31/national/dt.184.4.jpg",
+            "striking_image": "https://web.archive.org/web/20050601025530im_/http://graphics8.nytimes.com/images/section/homepage/NYT_home_banner.gif",
             "title": "The New York Times - Breaking News, World News & Multimedia",
             "original_uri": "http://nytimes.com:80/",
             "timegate": "https://web.archive.org/web/http://nytimes.com:80/",

@@ -1,0 +1,23 @@
+{
+    "urim" : "http://archive.is/20130508132946/http://flexispy.com/",
+    "expected results": {
+            "text_snippet": null,
+            "striking_image": null,
+            "title": null,
+            "original_uri": null,
+            "timegate": null,
+            "original_domain": null,
+            "original_scheme": null,
+            "original_link_status": null,
+            "memento_datetime": null,
+            "original_favicon": null,
+            "archive_favicon": null,
+            "archive_scheme": null,
+            "archive_domain": null,
+            "archive_uri": null,
+            "archive_name": null,
+            "collection_uri": null,
+            "collection_name": null,
+            "collection_id": null
+    }
+}
