@@ -11,11 +11,12 @@ from cachecontrol.caches.file_cache import FileCache
 
 from .mementosurrogate import MementoSurrogate, NotMementoException, \
     MementoConnectionTimeout, MementoImageConnectionError, \
-    MementoImageConnectionTimeout
+    MementoImageConnectionTimeout, MementoContentParseError
 
 __all__ = [
     "MementoSurrogate", "NotMementoException", "MementoConnectionTimeout",
-    "MementoImageConnectionError", "MementoImageConnectionTimeout"
+    "MementoImageConnectionError", "MementoImageConnectionTimeout",
+    "MementoContentParseError"
     ]
 
 user_agent_string = "ODU WS-DL Researcher Shawn M. Jones <sjone@cs.odu.edu>"
@@ -191,8 +192,12 @@ def create_app():
                 urim = urim
                 ), 400
 
+        except MementoContentParseError:
+            app.logger.error("There was a problem parsing the memento at {}".format(urim))
+            return "There was a problem parsing the memento at {}".format(urim), 500
+
         except requests.ConnectionError:
-            app.logger.warning("There was a problem reaching the archive holding this memento.")
+            app.logger.error("There was a problem reaching the archive holding this memento.")
             return "There was a problem reaching the archive holding the memento at {}".format(
                 urim
             ), 503

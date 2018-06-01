@@ -101,6 +101,10 @@ class MementoImageConnectionTimeout(Exception):
     # TODO: raise this exception, it should generate a 504
     pass
 
+class MementoContentParseError(Exception):
+    """ Something went wrong parsing the Memento Content """
+    pass
+
 
 class MementoSurrogate:
     """
@@ -177,6 +181,39 @@ class MementoSurrogate:
             self.logger.debug("content size is {}".format(len(self.content)))
 
             self.soup = BeautifulSoup(self.content, "html5lib")
+
+            metatags = self.soup.find_all("meta")
+
+            for tag in metatags:
+
+                if tag.get("http-equiv") == "refresh":
+
+                    self.logger.warning("discovered a meta-tag refresh in memento at {}".format(self.urim))
+                    
+                    if tag.get("content"):    
+
+                        try:
+
+                            url = [i.strip() for i in tag.get("content").split(';')][1]
+                            url = url.split('=')[1]
+                            url = url.strip('"')
+                            redirect_url = url.strip("'")
+
+                            self.logger.debug("discovered new URI at {}, fetching".format(redirect_url))
+
+                            real_response = self.session.get(redirect_url, 
+                                headers={'User-Agent': self.user_agent_string})
+                            
+                            self.content = real_response.text
+                            self.soup = BeautifulSoup(self.content, "html5lib")
+
+                            self.logger.debug("content size is now {}".format(len(self.content)))
+
+                        except Exception as e:
+                            self.logger.error("error in processing memento at {}: {}".format(self.urim, e))
+                            raise MementoContentParseError(
+                                "Could not parse content for memento at {}".format(self.urim)
+                            )
 
             # for Internet Memory Foundation sites, the real content is inside an iframe
             twp = self.soup.find("iframe", {"id": "theWebpage"})
