@@ -16,7 +16,7 @@ RUN pip install .
 
 EXPOSE 5550
 
-ENV FLASK_APP=mementoembed/mementoembed.py
+ENV FLASK_APP=mementoembed
 
 CMD ["flask", "run", "--host", "0.0.0.0", "--port", "5550"]
 
