@@ -2,9 +2,11 @@
 
 A tool to create [oEmbed](https://oembed.com/)-compatible embeddable cards for mementoes to summarize archival collections.
 
+**⚠️ NOTE: This tool is still in its early prototyping stage!**
+
 ## Run Using Docker
 
-Download the coad and build an image as follwoing:
+Download the code and build an image as follwoing:
 
 ```
 $ git clone https://github.com/oduwsdl/MementoEmbed.git
