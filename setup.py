@@ -15,6 +15,7 @@ setup(
         'tldextract',
         'httpcache',
         'lockfile',
+        'justext',
         'memento_client',
         'htmlmin',
         'dicttoxml',
