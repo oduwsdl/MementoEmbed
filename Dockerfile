@@ -1,12 +1,12 @@
-FROM python:3.6.4-stretch
+FROM python:3.6-stretch
 
 # the flask documentation recommends WSGI server waitress for use
 RUN pip install waitress
 
 # TODO: publish archiveit_utilities so that we don't need to do this
-RUN git clone https://github.com/shawnmjones/archiveit_utilities.git
-
-RUN cd archiveit_utilities && pip install .
+RUN git clone https://github.com/shawnmjones/archiveit_utilities.git /tmp/archiveit_utilities \
+    && pip install /tmp/archiveit_utilities \
+    && rm -rf /tmp/archiveit_utilities
 
 WORKDIR /app
 
