@@ -1,6 +1,6 @@
 # MementoEmbed
 
-A tool to create [oEmbed](https://oembed.com/)-compatible embeddable cards for mementos to summarize archival collections.
+A tool to create [oEmbed](https://oembed.com/)-compatible embeddable surrogates for archived web pages (mementos).
 
 **⚠️ NOTE: This tool is still in its early prototyping stage!**
 
