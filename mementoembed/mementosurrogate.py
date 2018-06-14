@@ -782,7 +782,7 @@ class MementoSurrogate:
                 maxpara = d[para]['elem']
                 maxscore = d[para]['content_score']
 
-        if maxpara:
+        if maxpara is not None:
             allparatext = maxpara.text_content().replace('\n', ' ').replace('\r', ' ').strip()
             description = p.sub(' ', allparatext)
         else:
