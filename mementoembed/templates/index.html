@@ -39,7 +39,7 @@
                     <form action="#">
                     <input type="text" id="uri_submitted" class="form-control form-control-lg" size="100" placeholder="Type URL here">
                     <br />
-                    <button type="submit" class="btn btn-primary" onclick="requestEmbed();">Create a Social Card</button>
+                    <button type="button" class="btn btn-primary" onclick="requestEmbed();">Create a Social Card</button>
                     <button type="reset" class="btn btn-secondary" onclick="clearEmbed();">Clear URL</button>
                     </form>
                 </div>
@@ -56,37 +56,12 @@
             </div>
         </div>
 
-                                <!--
-                            <div class="row">
-                                <div class="col-sm"></div>
-                                <div class="col-sm" style="text-align: left">Memento Data Acquired</div>
-                                <div class="col-sm">
-                                    <img src="/static/images/ajax-loader.gif" id="mementoDataWaiting">
-                                    <div id="mementoDataSuccess">✅</div>
-                                    <div id="mementoDataFailure">❌</div>
-                                </div>
-                                <div class="col-sm"></div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm">
-                                    <hr />
-                                </div>
-                            </div>
-                        </div>
-                        -->
-
         <script>
 
             workstatus = document.getElementById("embedWorkStatus");
             workarea = document.getElementById("embedWorkArea");
             workerror = document.getElementById("embedErrorStatus");
             workoutput = document.getElementById("embedOutput");
-
-            // $("copy_sc_code").click(function(){
-            //     $("textarea").select();
-            //     console.log("copying text in textarea...");
-            //     document.execCommand('copy');
-            // });
 
             // Thanks ArchiveNow: https://github.com/oduwsdl/archivenow
             function validateURL(textval) {
@@ -128,6 +103,8 @@
                     return;
                 }
 
+                console.log("URI is coming from " + window.location.href);
+
                 console.log("using URI " + uri);
 
                 encoded_uri = encodeURI(uri)
@@ -164,15 +141,20 @@
 
                         generate_cards();
                     },
-                    error: function(data) {
+                    error: function(data, textStatus, errorThrown) {
                         console.log("we have failure with data: " + data);
-                        console.log("the status is " + data.status);
+                        console.log("error: " + textStatus);
+                        console.log("the HTTP status is " + data.status + " " + data.statusText);
+                        console.log("response headers: " + data.getAllResponseHeaders());
+                        console.log("response text: " + data.responseText);
 
                         if (data.responseText == undefined) {
                             failuremessage = "MementoEmbed failed to generate an error message"
                         } else {
                             failuremessage = data.responseText;
                         }
+
+                        console.log("failure message: " + failuremessage);
 
                         setError(failuremessage);
                     }
