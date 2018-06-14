@@ -39,8 +39,8 @@
                     <form action="#">
                     <input type="text" id="uri_submitted" class="form-control form-control-lg" size="100" placeholder="Type URL here">
                     <br />
-                    <button type="button" class="btn btn-primary" onclick="requestEmbed();">Create a Social Card</button>
-                    <button type="reset" class="btn btn-secondary" onclick="clearEmbed();">Clear URL</button>
+                    <button id="createSocialCard" type="button" class="btn btn-primary">Create a Social Card</button>
+                    <button id="clearURL" type="reset" class="btn btn-secondary">Clear URL</button>
                     </form>
                 </div>
             </div>
@@ -89,7 +89,8 @@
                 workerror.innerHTML = errordata;
             }
 
-            function requestEmbed() {
+            // function requestEmbed() {
+            $( "#createSocialCard" ).bind( "click" , function() {
 
                 console.log("requestEmbed called");
                 setWorking();
@@ -159,13 +160,14 @@
                         setError(failuremessage);
                     }
                 });
-            }
+            });
 
-            function clearEmbed() {
+            // function clearEmbed() {
+            $( "#clearURL" ).bind( "click" , function() {
                 document.getElementById('uri_submitted').clear;
                 workoutput.innerHTML = "";
                 workerror.innerHTML = "";
-            }
+            });
         </script>
     </body>
 </html>
