@@ -7,6 +7,7 @@ import glob
 import subprocess
 import calendar
 import time
+import tarfile
 
 import requests
 import chardet
@@ -53,14 +54,11 @@ class TestMementoSurrogate(unittest.TestCase):
 
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
-            # shutil.copy()
-
+            subprocess.call("{}/deploycache.sh".format(thisdir))
 
     @classmethod
     def tearDownClass(cls):
-
-        # subprocess.call( [ "{}/savecache.sh".format(thisdir) ] )
-        pass
+        subprocess.call( [ "{}/savecache.sh".format(thisdir) ] )
 
     def test_surrogate(self):
 
