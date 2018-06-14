@@ -3,7 +3,7 @@ import re
 import base64
 
 import requests
-from requests_futures.sessions import FuturesSession
+# from requests_futures.sessions import FuturesSession
 import tldextract
 import aiu
 
