@@ -87,3 +87,5 @@ class TestMementoSurrogate(unittest.TestCase):
 
                 # 4. profit!
                 self.assertEqual(result, expected_results[method], "method {} failed".format(method))
+
+            sess.close()
