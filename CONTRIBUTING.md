@@ -32,6 +32,20 @@ We will consider all feature requests (especially those with a PR). We apologize
 
 Cosmetic changes that do not add anything substantial to the execution of MementoEmbed will generally not be accepted. Our currently focus for MementoEmbed is functionality. It takes a lot of work and contributions by the community to ensure that more than 20 years of archived web pages can be represented cleanly.
 
+**Do you want to build the source?**
+
+We try to take full advantage of the capabilities of `pip`. To install locally, clone the source repository, change into the directory containing the source and type:
+```
+pip install .
+```
+
+**Do you want to run the automated tests?**
+
+Automated testing is always under development and optimization, so the conditions may change, but executing the automated tests will always be as easy as changing the root directory of the source code and typing:
+```
+python ./setup.py test
+```
+
 **Do you have questions about the source code or the project in general?**
 
 Contact: sjone@cs.odu.edu
