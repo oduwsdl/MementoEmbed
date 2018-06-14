@@ -253,6 +253,30 @@ class MementoSurrogate:
             if not MementoClient.is_memento(self.urim, response=response):
                 raise NotMementoException("URI {} has no memento headers".format(self.urim))
 
+    def is_uri_good(self, uri):
+        """
+            Simple function to verify that content exists at `uri` based on HTTP.
+        """
+
+        if uri is not None:
+
+            try:
+                r = self.session.get(uri)
+            except Exception as e:
+                self.logger.error("error while testing uri {}: {}".format(uri, e))
+                return False
+
+            good = False
+
+            if r.status_code == 200:
+                good = True
+
+            return good
+
+        else:
+            return False
+
+
     @property
     def text_snippet(self):
         """
@@ -463,6 +487,9 @@ class MementoSurrogate:
                 # TODO: what if the favicon discovered this way is not a memento? - we use datetime negotiation
                 self.logger.debug("using favicon discovered by interrogating HTML: {}".format(self.original_link_favicon_uri))
 
+                if not self.is_uri_good(self.original_link_favicon_uri):
+                    self.original_link_favicon_uri = None
+
         # 2. try to construct the favicon URI and look for it in the archive
         candidate_favicon_uri = "{}://{}/favicon.ico".format(
                 self.original_scheme, self.original_domain)
@@ -515,6 +542,9 @@ class MementoSurrogate:
                 if candidate_favicon_uri_from_live[0:4] != 'http':
                     self.original_link_favicon_uri = urljoin(live_site_uri, candidate_favicon_uri_from_live)
 
+                if not self.is_uri_good(self.original_link_favicon_uri):
+                    self.original_link_favicon_uri = None
+
         # 4. try to construct the favicon URI and look for it on the live web
         if self.original_link_favicon_uri == None:
 
@@ -525,11 +555,17 @@ class MementoSurrogate:
                 # this is some protection against soft-404s
                 if 'image/' in r.headers['content-type']:
                     self.original_link_favicon_uri = candidate_favicon_uri
+
+                if not self.is_uri_good(self.original_link_favicon_uri):
+                    self.original_link_favicon_uri = None
         
         # 5. if all else fails, fall back to the Google favicon service
         if self.original_link_favicon_uri == None:
 
             self.original_link_favicon_uri = get_favicon_from_google_service(self.session, self.urim)
+
+            if not self.is_uri_good(self.original_link_favicon_uri):
+                self.original_link_favicon_uri = None
 
         self.logger.debug("discovered memento favicon at {}".format(self.original_link_favicon_uri))
 
@@ -552,6 +588,9 @@ class MementoSurrogate:
 
             self.archive_favicon_uri = get_favicon_from_html(r.text)
 
+            if not self.is_uri_good(self.original_link_favicon_uri):
+                self.original_link_favicon_uri = None
+
         # 2. try to construct the favicon URI and look for it on the live web
         if self.archive_favicon_uri == None:
 
@@ -567,6 +606,9 @@ class MementoSurrogate:
                 if 'image/' in r.headers['content-type']:
                     self.archive_favicon_uri = candidate_favicon_uri
 
+                if not self.is_uri_good(self.original_link_favicon_uri):
+                    self.original_link_favicon_uri = None
+
         # 3. if all else fails, fall back to the Google favicon service
         if self.archive_favicon_uri == None:
 
@@ -574,6 +616,9 @@ class MementoSurrogate:
 
             self.archive_favicon_uri = get_favicon_from_google_service(
                 self.session, self.archive_uri)
+
+            if not self.is_uri_good(self.original_link_favicon_uri):
+                self.original_link_favicon_uri = None
 
         self.logger.debug("discovered archive favicon at {}".format(self.archive_favicon_uri))
 
@@ -840,12 +885,6 @@ class MementoSurrogate:
 
                 if evalimage == True:
 
-                    # if "/ads/" in imageuri.lower():
-
-                    #     self.logger.warning("discovered string /ads/ in image uri {}, skipping...".format(imageuri))
-
-                    # else:
-
                     if imageuri not in self.image_list:
 
                         self.logger.debug("examining embedded image at URI {} from resource {}".format(imageuri, self.urim))
@@ -878,7 +917,7 @@ class MementoSurrogate:
 
                 self.logger.debug("we have {} images in the list so far".format(len(self.image_list)))
 
-                # just do the first 10
+                # just do the first 15
                 if len(self.image_list) > 15:
                     self.logger.debug("we have {} images, returning...".format(len(self.image_list)))
                     break
