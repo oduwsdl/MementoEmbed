@@ -8,5 +8,7 @@ script:
   - pip install /tmp/archiveit_utilities
   - rm -rf /tmp/archiveit_utilities
   - pip install .
+  - chmod 0755 tests/deploycache.sh
+  - chmod 0755 tests/savecache.sh
   - python setup.py test
   - python setup.py sdist bdist
