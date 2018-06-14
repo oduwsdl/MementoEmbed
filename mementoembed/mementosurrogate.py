@@ -343,7 +343,7 @@ class MementoSurrogate:
                 self.title_string = " ".join(title.split())
 
             except AttributeError:
-                self.logger.warn("No title detected in HTML for page, falling back to default statement")
+                self.logger.warning("No title detected in HTML for page, falling back to default statement")
                 self.title.string = "NO TITLE DETECTED"
 
         return self.title_string
@@ -829,7 +829,7 @@ class MementoSurrogate:
                     # TODO: support globbing?
                     if pattern in imageuri:
                         evalimage = False
-                        self.logger.warn("ignoring image at {}".format(imageuri))
+                        self.logger.warning("ignoring image at {}".format(imageuri))
 
                 if imgtag.get('class'):
 
@@ -842,7 +842,7 @@ class MementoSurrogate:
 
                     # if "/ads/" in imageuri.lower():
 
-                    #     self.logger.warn("discovered string /ads/ in image uri {}, skipping...".format(imageuri))
+                    #     self.logger.warning("discovered string /ads/ in image uri {}, skipping...".format(imageuri))
 
                     # else:
 
@@ -858,7 +858,7 @@ class MementoSurrogate:
                                     imagedata = imageuri.split(',')[1]
                                     imagedata = base64.b64decode(imagedata)
                                 else:
-                                    self.logger.warn("no supported decoding scheme for image at {}, skipping...".format(imageuri))
+                                    self.logger.warning("no supported decoding scheme for image at {}, skipping...".format(imageuri))
                                     continue
 
                             else:
@@ -872,9 +872,9 @@ class MementoSurrogate:
                             self.image_list[imageuri] = imagedata
 
                         except requests.exceptions.ConnectionError:
-                            self.logger.warn("connection error from image at URI {}, skipping...".format(imageuri))
+                            self.logger.warning("connection error from image at URI {}, skipping...".format(imageuri))
                         except requests.exceptions.TooManyRedirects:
-                            self.logger.warn("request for image at URI {} exceeded an acceptable number of redirects, skipping...".format(imageuri))
+                            self.logger.warning("request for image at URI {} exceeded an acceptable number of redirects, skipping...".format(imageuri))
 
                 self.logger.debug("we have {} images in the list so far".format(len(self.image_list)))
 
@@ -884,7 +884,7 @@ class MementoSurrogate:
                     break
 
                 else:
-                    self.logger.warn("domain of image at URI {} is a known advertising service, skipping...".format(imageuri))
+                    self.logger.warning("domain of image at URI {} is a known advertising service, skipping...".format(imageuri))
 
     def _getLargestImage(self):
 
@@ -899,7 +899,7 @@ class MementoSurrogate:
 
             if self.image_list[imageuri] == None:
 
-                self.logger.warn("no data at image URI {}".format(imageuri))
+                self.logger.warning("no data at image URI {}".format(imageuri))
 
             else:
 
@@ -907,7 +907,7 @@ class MementoSurrogate:
 
                 if p.image == None:
 
-                    self.logger.warn("processing image from URI {} produced no data, skipping...".format(imageuri))
+                    self.logger.warning("processing image from URI {} produced no data, skipping...".format(imageuri))
 
                 else:
                     width, height = p.image.size
