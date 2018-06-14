@@ -1,18 +1,66 @@
 import os
+import shutil
 import json
 import unittest
 import logging
 import glob
+import subprocess
+import calendar
+import time
 
 import requests
 import chardet
 
+from datetime import datetime, timedelta
+from email.utils import formatdate
+
 from cachecontrol import CacheControl
+from cachecontrol.heuristics import BaseHeuristic
 from cachecontrol.caches.file_cache import FileCache
 
 from mementoembed import MementoSurrogate
 
+working_dir = "/tmp/mementoembed/{}".format(
+    os.path.basename(os.path.realpath(__file__))
+)
+
+thisdir = os.path.dirname(os.path.realpath(__file__))
+
+class AlwaysUseCacheWhenPossibleHeuristic(BaseHeuristic):
+
+    def update_headers(self, response):
+
+        # expires = datetime.now() + timedelta(weeks=1)
+
+        return {
+            # 'expires': formatdate(calendar.timegm(expires.timetuple())),
+            'expires': formatdate(calendar.timegm(
+                time.struct_time(tm_year=3000, tm_mon=1, tm_mday=1, tm_hour=0, tm_min=0, tm_sec=0)
+                )
+                ),
+            'cache-control' : 'public'
+        }
+
+    def warning(self, response):
+
+        msg = 'Automatically cached! Response is Stale.'
+        return '110 - "%s"' % msg
+
 class TestMementoSurrogate(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+
+        if not os.path.exists(working_dir):
+            os.makedirs(working_dir)
+            # shutil.copy()
+
+
+    @classmethod
+    def tearDownClass(cls):
+
+        # subprocess.call( [ "{}/savecache.sh".format(thisdir) ] )
+        pass
 
     def test_surrogate(self):
 
@@ -25,13 +73,6 @@ class TestMementoSurrogate(unittest.TestCase):
         )
 
         # 1. load the data for known responses for testing
-
-        working_dir = "/tmp/mementoembed/{}".format(
-            os.path.basename(__file__)
-        )
-
-        if not os.path.exists(working_dir):
-            os.makedirs(working_dir)
 
         testingdir = "{}".format(
             os.path.dirname(os.path.realpath(__file__))
@@ -63,7 +104,7 @@ class TestMementoSurrogate(unittest.TestCase):
             print("caching dir is now {}".format(cachingdir))
 
             forever_cache = FileCache(cachingdir, forever=True)
-            sess = CacheControl(requests.Session(), forever_cache)
+            sess = CacheControl(requests.Session(), forever_cache) #, heuristic=AlwaysUseCacheWhenPossibleHeuristic)
 
             # 3. run the code, test the results against expected results
 
