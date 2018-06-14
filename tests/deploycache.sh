@@ -7,7 +7,7 @@ if [ ! -d /tmp/mementoembed ]; then
     mkdir -p /tmp/mementoembed
 fi
 
-cp testingcache.tar.bz2 /tmp/mementoembed/
+cp ${DIR}/testingcache.tar.bz2 /tmp/mementoembed/
 
 cd /tmp/mementoembed/
 tar xvfj testingcache.tar.bz2

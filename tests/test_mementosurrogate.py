@@ -54,7 +54,7 @@ class TestMementoSurrogate(unittest.TestCase):
 
         if not os.path.exists(working_dir):
             os.makedirs(working_dir)
-            subprocess.call("{}/deploycache.sh".format(thisdir))
+            subprocess.call( [ "{}/deploycache.sh".format(thisdir) ] )
 
     @classmethod
     def tearDownClass(cls):
