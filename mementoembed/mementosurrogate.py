@@ -912,11 +912,28 @@ class MementoSurrogate:
             future_sessions = {}
 
             for imageuri in self.image_list[start:start + 10]:
-                future_sessions[imageuri] = future_session.get(imageuri)
+
+                self.logger.debug("adding URI: {}".format(imageuri))
+
+                future_sessions.setdefault(imageuri, {})
+
+                if imageuri[0:5] == 'data:':
+                    
+                    future_sessions[imageuri]["type"] = "data"
+                    imagedata = imageuri.split(',')[1]
+                    imagedata = base64.b64decode(imagedata)
+                    future_sessions[imageuri]["content"] = imagedata
+                else:
+                    future_sessions[imageuri]["type"] = "net"
+                    future_sessions[imageuri]["obj"] = future_session.get(imageuri)
+
+                self.logger.debug("length of future sessions: {}".format(len(future_sessions.keys())))
 
             completed_images = []
             maxsize = 0
             maximageuri = None
+
+            self.logger.debug("Beginning processing of {} images".format(len(future_sessions.keys())))
 
             # for session in futures_sessions:
             while (len(completed_images) < len(future_sessions.keys())):
@@ -924,69 +941,96 @@ class MementoSurrogate:
                 # self.logger.debug("length of completed images: {}".format(len(completed_images)))
                 # self.logger.debug("length of future sessions: {}".format(len(future_sessions.keys())))
 
+                imagecontent = None
+
                 imageuri = random.choice(
                     list(set(future_sessions.keys()) - set(completed_images))
                 )
+
+                self.logger.debug("chosen image uri of type {} for evaluation: {}".format(
+                    future_sessions[imageuri]['type'], imageuri))
+
+                if future_sessions[imageuri]['type'] == "data":
+                    
+                    imagecontent = future_sessions[imageuri]["content"]
+                    completed_images.append(imageuri)
                 
-                if future_sessions[imageuri].done():
+                else:
+
+                    # self.logger.debug("determining if HTTP session is done")
+
+                    if future_sessions[imageuri]["obj"].done():
+
+                        # self.logger.debug("HTTP session is done, acquiring content")
+
+                        try:
+
+                            response = future_sessions[imageuri]["obj"].result()
+
+                            if response.status_code == 200:
+
+                                self.logger.debug("HTTP status is 200")
+
+                                if len(response.content) > 0:
+
+                                    self.logger.debug("we have content")
+
+                                    imagecontent = response.content
+
+                        except ConnectionError as e:
+
+                            self.logger.warning(
+                                "While acquiring image at URI-M {}, a connection error occurred: {}, skipping".format(
+                                    imageuri, e)
+                                    )
+
+                        except TooManyRedirects as e:
+
+                            self.logger.warning(
+                                "While acquiring image at URI-M {}, too many redirects were encountered: {}, skipping".format(
+                                    imageuri, e)
+                                    )
+                        finally:
+                            completed_images.append(imageuri)
+
+
+                if imagecontent is not None:
+
+                    # self.logger.debug("processing content for URI {}".format(imageuri))
+
+                    p = ImageFile.Parser()
+                    p.feed( imagecontent )
+                    p.close()
+
+                    width, height = p.image.size
+
+                    self.logger.debug("{} ; width: {}, height: {}, size: {}, ratio: {}".format(
+                        imageuri, width, height, width * height, width / height
+                    ))
 
                     try:
 
-                        response = future_sessions[imageuri].result()
+                        # we want colorful images - this also gets rid of spacers and some nav elements
+                        # colorcount = p.image.getcolors()
+                        blankcount = p.image.histogram().count(0)
 
-                        if response.status_code == 200:
+                        self.logger.debug("{}: blank count: {}".format(
+                            imageuri, blankcount))
+                        
+                        if blankcount < 180:
+                            # if len(colorcount) > 1:
 
-                            if len(response.content) > 0:
+                            # we only want images that will fit within the card
+                            if (width / height) < 1.5:
 
-                                p = ImageFile.Parser()
-                                p.feed( response.content )
-                                p.close()
+                                imgsize = width * height
+                                
+                                if imgsize > maxsize:
+                                    maxsize = imgsize
+                                    maximageuri = imageuri
 
-                                width, height = p.image.size
-
-                                self.logger.debug("{} ; width: {}, height: {}, size: {}, ratio: {}".format(
-                                    imageuri, width, height, width * height, width / height
-                                ))
-
-                                try:
-
-                                    # we want colorful images - this also gets rid of spacers and some nav elements
-                                    # colorcount = p.image.getcolors()
-                                    blankcount = p.image.histogram().count(0)
-
-                                    self.logger.debug("{}: blank count: {}".format(
-                                        imageuri, blankcount))
-                                    
-                                    if blankcount < 180:
-                                        # if len(colorcount) > 1:
-
-                                        # we only want images that will fit within the card
-                                        if (width / height) < 1.5:
-
-                                            imgsize = width * height
-                                            
-                                            if imgsize > maxsize:
-                                                maxsize = imgsize
-                                                maximageuri = imageuri
-
-                                except TypeError:
-                                    self.logger.warning("image could not be processed at URI {}".format(imageuri))
-
-                    except ConnectionError as e:
-
-                        self.logger.warning(
-                            "While acquiring image at URI-M {}, a connection error occurred: {}, skipping".format(
-                                imageuri, e)
-                                )
-
-                    except TooManyRedirects as e:
-                        self.logger.warning(
-                            "While acquiring image at URI-M {}, too many redirects were encountered: {}, skipping".format(
-                                imageuri, e)
-                                )
-
-                    finally:
-                        completed_images.append(imageuri)
+                    except TypeError:
+                        self.logger.warning("image could not be processed at URI {}".format(imageuri))
 
         self.logger.debug("returing striking image candidate at: {}".format(maximageuri))
 
