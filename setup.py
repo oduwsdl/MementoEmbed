@@ -20,7 +20,8 @@ setup(
         'htmlmin',
         'dicttoxml',
         'cachecontrol',
-        'filelock'
+        'filelock',
+        'requests_futures'
     ],
     scripts=['bin/fetch_surrogate_data'],
     test_suite="tests"

@@ -1,9 +1,12 @@
 import sys
 import re
 import base64
+import random
 
 import requests
-# from requests_futures.sessions import FuturesSession
+from requests.exceptions import ConnectionError, TooManyRedirects
+from concurrent.futures import ThreadPoolExecutor
+from requests_futures.sessions import FuturesSession
 import tldextract
 import aiu
 
@@ -341,7 +344,7 @@ class MementoSurrogate:
 
         if self.striking_image_uri == None or self.striking_image_uri == "":
 
-            self.striking_image_uri = self._getLargestImage()
+            self.striking_image_uri = self._getBestImage()
 
         self.logger.info("selected image at URI-M {}".format(self.striking_image_uri))
 
@@ -853,6 +856,142 @@ class MementoSurrogate:
                 description = self.soup.get_text()
 
         return description
+
+    def _getBestImage(self):
+
+        # return self._getLargestImage()
+
+        if self.image_list == None:
+
+            self.image_list = []
+            
+            for imgtag in self.soup.find_all("img"):
+
+                imageuri = urljoin(self.urim, imgtag.get("src"))
+                evalImage = True
+
+                for pattern in self.img_pattern_blocklist:
+                    # TODO: support globbing?
+                    if pattern in imageuri:
+                        evalImage = False
+                        self.logger.warning("ignoring image at {}".format(imageuri))
+                        break
+
+                self.logger.debug("examining image URI {}".format(imageuri))
+
+                if 'spacer' in imageuri:
+                    evalImage = False
+
+                if '/ads/' in imageuri.lower():
+                    evalImage = False
+
+                if imgtag.get('class'):
+
+                    for c in imgtag.get('class'):
+                        if 'sprite' in c:
+                            evalImage = False
+                            break
+
+                if evalImage == True:
+
+                    self.image_list.append(imageuri)
+
+        maximageuri = None
+        start = 0
+
+        while maximageuri is None:
+
+            start += 10
+
+            if start > len(self.image_list):
+                break
+
+            future_session = FuturesSession(session=self.session, 
+                executor=ThreadPoolExecutor(max_workers=2))
+
+            future_sessions = {}
+
+            for imageuri in self.image_list[start:start + 10]:
+                future_sessions[imageuri] = future_session.get(imageuri)
+
+            completed_images = []
+            maxsize = 0
+            maximageuri = None
+
+            # for session in futures_sessions:
+            while (len(completed_images) < len(future_sessions.keys())):
+
+                # self.logger.debug("length of completed images: {}".format(len(completed_images)))
+                # self.logger.debug("length of future sessions: {}".format(len(future_sessions.keys())))
+
+                imageuri = random.choice(
+                    list(set(future_sessions.keys()) - set(completed_images))
+                )
+                
+                if future_sessions[imageuri].done():
+
+                    try:
+
+                        response = future_sessions[imageuri].result()
+
+                        if response.status_code == 200:
+
+                            if len(response.content) > 0:
+
+                                p = ImageFile.Parser()
+                                p.feed( response.content )
+                                p.close()
+
+                                width, height = p.image.size
+
+                                self.logger.debug("{} ; width: {}, height: {}, size: {}, ratio: {}".format(
+                                    imageuri, width, height, width * height, width / height
+                                ))
+
+                                try:
+
+                                    # we want colorful images - this also gets rid of spacers and some nav elements
+                                    # colorcount = p.image.getcolors()
+                                    blankcount = p.image.histogram().count(0)
+
+                                    self.logger.debug("{}: blank count: {}".format(
+                                        imageuri, blankcount))
+                                    
+                                    if blankcount < 180:
+                                        # if len(colorcount) > 1:
+
+                                        # we only want images that will fit within the card
+                                        if (width / height) < 1.5:
+
+                                            imgsize = width * height
+                                            
+                                            if imgsize > maxsize:
+                                                maxsize = imgsize
+                                                maximageuri = imageuri
+
+                                except TypeError:
+                                    self.logger.warning("image could not be processed at URI {}".format(imageuri))
+
+                    except ConnectionError as e:
+
+                        self.logger.warning(
+                            "While acquiring image at URI-M {}, a connection error occurred: {}, skipping".format(
+                                imageuri, e)
+                                )
+
+                    except TooManyRedirects as e:
+                        self.logger.warning(
+                            "While acquiring image at URI-M {}, too many redirects were encountered: {}, skipping".format(
+                                imageuri, e)
+                                )
+
+                    finally:
+                        completed_images.append(imageuri)
+
+        self.logger.debug("returing striking image candidate at: {}".format(maximageuri))
+
+        return maximageuri
+                    
         
     def _find_all_images(self):
 
