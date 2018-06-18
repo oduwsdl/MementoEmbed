@@ -104,8 +104,6 @@
                     return;
                 }
 
-                console.log("URI is coming from " + window.location.href);
-
                 console.log("using URI " + uri);
 
                 encoded_uri = encodeURI(uri)
@@ -149,13 +147,20 @@
                         console.log("response headers: " + data.getAllResponseHeaders());
                         console.log("response text: " + data.responseText);
 
-                        if (data.responseText == undefined) {
-                            failuremessage = "MementoEmbed failed to generate an error message"
+                        if (data.status == 0) {
+                            console.log("failed to connect to oEmbed endpoint");
+                            document.getElementById('uri_submitted').focus();
+                            failuremessage = '*The MementoEmbed Service is Down!*';
                         } else {
-                            failuremessage = data.responseText;
-                        }
 
-                        console.log("failure message: " + failuremessage);
+                            if (data.responseText === undefined) {
+                                failuremessage = "MementoEmbed failed to generate an error message"
+                            } else {
+                                failuremessage = data.responseText;
+                            }
+
+                            console.log("failure message: " + failuremessage);
+                        }
 
                         setError(failuremessage);
                     }
