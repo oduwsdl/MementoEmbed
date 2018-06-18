@@ -840,7 +840,7 @@ class MementoSurrogate:
             
             for paragraph in paragraphs:
 
-                if not paragraph.is_boilerplat:
+                if not paragraph.is_boilerplate:
 
                     allparatext += " {}".format(paragraph.text)
 
@@ -875,12 +875,12 @@ class MementoSurrogate:
 
             if imageuri[0:5] != 'data:':
 
-                for pattern in self.img_pattern_blocklist:
-                    # TODO: support globbing?
-                    if pattern in imageuri:
-                        evalImage = False
-                        self.logger.warning("ignoring image at {}".format(imageuri))
-                        break
+                # for pattern in self.img_pattern_blocklist:
+                #     # TODO: support globbing?
+                #     if pattern in imageuri:
+                #         evalImage = False
+                #         self.logger.warning("ignoring image at {} because it contained pattern {}".format(imageuri, pattern))
+                #         break
 
                 if 'spacer' in imageuri:
                     evalImage = False
