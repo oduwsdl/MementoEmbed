@@ -26,7 +26,11 @@ function generate_cards() {
             domain = element.dataset["originalDomain"];
             linkStatus = element.dataset["originalLinkStatus"];
             
-            meImageHTML = '<div class="me-image"><img style="max-width: 96px; max-height: 96px;" src="'+ image + '" /></div>';
+            meImageHTML = '';
+
+            if (image != null) {
+                meImageHTML += '<div class="me-image"><img style="max-width: 96px; max-height: 96px;" src="'+ image + '" /></div>';
+            }            
 
             element.insertAdjacentHTML("afterbegin", meImageHTML);
 
