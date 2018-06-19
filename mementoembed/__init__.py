@@ -187,20 +187,31 @@ def create_app():
             app.logger.info("returning output as application/json...")
 
         except NotMementoException:
-            return render_template(
-                'make_your_own_memento.html',
-                urim = urim
-                ), 400
+            return json.dumps({
+                "content":
+                    render_template(
+                    'make_your_own_memento.html',
+                    urim = urim
+                    ),
+                "error":
+                    "Not a memento"
+                }), 400
 
         except MementoContentParseError:
             app.logger.error("There was a problem parsing the memento at {}".format(urim))
-            return "There was a problem parsing the memento at {}".format(urim), 500
+            return json.dumps({
+                "content": "There was a problem parsing the memento at {}".format(urim),
+                "error": "Could not parse memento"
+             }), 500
 
         except requests.ConnectionError:
             app.logger.error("There was a problem reaching the archive holding this memento.")
-            return "There was a problem reaching the archive holding the memento at {}".format(
+            return ({
+                "content": "There was a problem reaching the archive holding the memento at {}".format(
                 urim
-            ), 503
+                ),
+                "error": "Connection Error"
+            }), 503
 
         return response
 

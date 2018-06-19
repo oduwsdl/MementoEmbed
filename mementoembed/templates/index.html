@@ -146,23 +146,40 @@
                         console.log("the HTTP status is " + data.status + " " + data.statusText);
                         console.log("response headers: " + data.getAllResponseHeaders());
                         console.log("response text: " + data.responseText);
+                        
+                        responseJSON = jQuery.parseJSON(data.responseText);
 
                         if (data.status == 0) {
                             console.log("failed to connect to oEmbed endpoint");
                             document.getElementById('uri_submitted').focus();
-                            failuremessage = '*The MementoEmbed Service is Down!*';
+                            message = '*The MementoEmbed Service is Down!*';
                         } else {
 
                             if (data.responseText === undefined) {
-                                failuremessage = "MementoEmbed failed to generate an error message"
+                                message = "MementoEmbed failed to generate an error message"
+                                error = true;
                             } else {
-                                failuremessage = data.responseText;
+
+                                if (responseJSON['error'] == "Not a memento") {
+                                    message = responseJSON['content'];
+                                    output = true;
+                                    error = false;
+                                } else {
+                                    // message = data.responseText;
+                                    message = responseJSON['content']
+                                }
+
                             }
 
-                            console.log("failure message: " + failuremessage);
+                            console.log("failure message: " + message);
                         }
 
-                        setError(failuremessage);
+                        if ( error == true ) {
+                            setError(message);
+                        } else {
+                            setOutput(message);
+                        }
+                        
                     }
                 });
             });
