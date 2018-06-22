@@ -6,12 +6,14 @@ import io
 
 import aiu
 
+from datetime import datetime
+
 from bs4 import BeautifulSoup
 from bs4 import Comment
 
-wayback_pattern = re.compile('/[0-9]{14}/')
+wayback_pattern = re.compile('(/[0-9]{14})/')
 
-def raw_content_factory(urim, http_cache):
+def memento_resource_factory(urim, http_cache):
 
     response = http_cache.get(urim)
 
@@ -56,7 +58,10 @@ class MementoResource:
     def memento_datetime(self):
         # TODO: make this a datetime object
         if self.memento_dt is None:
-            self.memento_dt = self.response.headers['memento-datetime']
+            self.memento_dt = datetime.strptime(
+                self.response.headers['memento-datetime'], 
+                "%a, %d %b %Y %H:%M:%S GMT"
+            )
         
         return self.memento_dt
 
@@ -100,7 +105,7 @@ class ArchiveIsMemento(MementoResource):
 
         content = z.read('index.html')
 
-        return repr(content)
+        return content
 
 
 class IMFMemento(MementoResource):

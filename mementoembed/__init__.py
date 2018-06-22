@@ -13,6 +13,8 @@ from .mementosurrogate import MementoSurrogate, NotMementoException, \
     MementoConnectionTimeout, MementoImageConnectionError, \
     MementoImageConnectionTimeout, MementoContentParseError
 
+from .cache import HTTPCache, DictCacheModel
+
 __all__ = [
     "MementoSurrogate", "NotMementoException", "MementoConnectionTimeout",
     "MementoImageConnectionError", "MementoImageConnectionTimeout",
@@ -120,20 +122,22 @@ def create_app():
         app.logger.debug("received url {}".format(urim))
         app.logger.debug("format: {}".format(responseformat))
 
-        if os.environ.get('FLASK_ENV'):
-            if 'development' in os.environ.get('FLASK_ENV').lower():
-                session = CacheControl(requests.session(), cache=FileCache('.web_cache', forever=True))
-            else:
-                session = CacheControl(requests.session(), cache=FileCache('.web_cache'))    
-        else:
-            session = CacheControl(requests.session(), cache=FileCache('.web_cache'))
+        # if os.environ.get('FLASK_ENV'):
+        #     if 'development' in os.environ.get('FLASK_ENV').lower():
+        #         session = CacheControl(requests.session(), cache=FileCache('.web_cache', forever=True))
+        #     else:
+        #         session = CacheControl(requests.session(), cache=FileCache('.web_cache'))    
+        # else:
+        #     session = CacheControl(requests.session(), cache=FileCache('.web_cache'))
+
+        cachemodel = DictCacheModel()
+        httpcache = HTTPCache(cachemodel, requests.session())
 
         try:
             
             s = MementoSurrogate(
-                urim=urim,
-                session=session,
-                img_pattern_blocklist=image_uri_ignore_patterns,
+                urim,
+                httpcache,
                 logger=app.logger
             )
 
