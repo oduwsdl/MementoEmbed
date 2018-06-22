@@ -88,6 +88,12 @@ class HTTPCache:
     def get_multiple(self, urilist):
         return get_multiple_http_responses_from_cache_model(self.cache_model, urilist, session=self.session)
 
+    def head(self, uri):
+        return get_http_response_from_cache_model(self.cache_model, uri, session=self.session)
+
+    def close(self):
+        self.session.close
+
 class RedisCacheModel:
     """
         A cache model that uses the redis database.

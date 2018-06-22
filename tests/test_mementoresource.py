@@ -44,6 +44,7 @@ class TestMementoResource(unittest.TestCase):
 
         urim = "http://myarchive.org/memento/http://example.com/something"
         expected_urig = "http://myarchive.org/timegate/http://example.com/something"
+        expected_original_uri = "http://example.com/something"
 
         expected_content = """
         <html>
@@ -60,11 +61,11 @@ class TestMementoResource(unittest.TestCase):
                 mock_response(
                     headers = {
                         'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
-                        'link': """<http://example.com/something>; rel="original", 
+                        'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
                             <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
                             <{}>; rel="memento"
-                            """.format(expected_urig, urim)
+                            """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
                     status=200
@@ -84,6 +85,7 @@ class TestMementoResource(unittest.TestCase):
 
         self.assertEquals(mr.memento_datetime, expected_mdt)
         self.assertEquals(mr.timegate, expected_urig)
+        self.assertEquals(mr.original_uri, expected_original_uri)
         self.assertEquals(mr.content, expected_content)
         self.assertEquals(mr.raw_content, expected_content)
 
@@ -92,6 +94,7 @@ class TestMementoResource(unittest.TestCase):
         urim = "http://myarchive.org/memento/20080202062913/http://example.com/something"
         raw_urim = "http://myarchive.org/memento/20080202062913id_/http://example.com/something"
         expected_urig = "http://myarchive.org/timegate/http://example.com/something"
+        expected_original_uri = "http://example.com/something"
 
         expected_content = """
         <html>
@@ -119,11 +122,11 @@ class TestMementoResource(unittest.TestCase):
                 mock_response(
                     headers = {
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
-                        'link': """<http://example.com/something>; rel="original", 
+                        'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
                             <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
                             <{}>; rel="memento"
-                            """.format(expected_urig, urim)
+                            """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
                     status=200
@@ -149,6 +152,7 @@ class TestMementoResource(unittest.TestCase):
 
         self.assertEquals(mr.memento_datetime, expected_mdt)
         self.assertEquals(mr.timegate, expected_urig)
+        self.assertEquals(mr.original_uri, expected_original_uri)
         self.assertEquals(mr.content, expected_content)
         self.assertEquals(mr.raw_content, expected_raw_content)
 
@@ -157,6 +161,7 @@ class TestMementoResource(unittest.TestCase):
         urim = "http://myarchive.org/memento/notraw/http://example.com/something"
         raw_urim = "http://myarchive.org/memento/raw/http://example.com/something"
         expected_urig = "http://myarchive.org/timegate/http://example.com/something"
+        expected_original_uri = "http://example.com/something"
 
         expected_content = """
         <html>
@@ -184,11 +189,11 @@ class TestMementoResource(unittest.TestCase):
                 mock_response(
                     headers = {
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
-                        'link': """<http://example.com/something>; rel="original", 
+                        'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
                             <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
                             <{}>; rel="memento"
-                            """.format(expected_urig, urim)
+                            """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
                     status=200
@@ -214,6 +219,7 @@ class TestMementoResource(unittest.TestCase):
 
         self.assertEquals(mr.memento_datetime, expected_mdt)
         self.assertEquals(mr.timegate, expected_urig)
+        self.assertEquals(mr.original_uri, expected_original_uri)
         self.assertEquals(mr.content, expected_content)
         self.assertEquals(mr.raw_content, expected_raw_content)
 
@@ -221,8 +227,9 @@ class TestMementoResource(unittest.TestCase):
 
         urim = "http://archive.is/abcd1234"
         zipurim = "http://archive.is/download/abcd1234.zip"
-
+        expected_original_uri = "http://example.com/something"
         expected_urig = "http://myarchive.org/timegate/http://example.com/something"
+        
 
         expected_raw_content = """
         <html>
@@ -259,11 +266,11 @@ class TestMementoResource(unittest.TestCase):
                 mock_response(
                     headers = {
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
-                        'link': """<http://example.com/something>; rel="original", 
+                        'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
                             <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
                             <{}>; rel="memento"
-                            """.format(expected_urig, urim)
+                            """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
                     status=200
@@ -292,5 +299,6 @@ class TestMementoResource(unittest.TestCase):
 
         self.assertEquals(mr.memento_datetime, expected_mdt)
         self.assertEquals(mr.timegate, expected_urig)
+        self.assertEquals(mr.original_uri, expected_original_uri)
         self.assertEquals(mr.content, expected_content)
         self.assertEquals(mr.raw_content, bytes(expected_raw_content.encode('utf-8')))
