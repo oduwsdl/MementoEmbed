@@ -19,11 +19,42 @@ __all__ = [
     "MementoContentParseError"
     ]
 
+class MementoEmbedException(Exception):
+    pass
+
+def process_config(config):
+
+    print(config)
+
+    appconfig = {}
+
+    if 'CACHEMODEL' in config:
+
+        if config['CACHEMODEL'] == 'Redis':
+
+            appconfig['cache_model'] = RedisCacheModel(db=0, host="localhost", port=6379)
+
+        elif config['CACHEMODEL'] == 'Dict':
+
+            appconfig['cache_mode'] = DictCacheModel()
+
+        else:
+            raise MementoEmbedException("Unsupported cache model {}".format(config['CACHEMODEL']))
+
+    else:
+        raise MementoEmbedException("No cache model specified in configuration")
+
+    return appconfig
+
+
 def create_app():
 
     app = Flask(__name__, instance_relative_config=True)
 
+    app.config.from_object('config.default')
     app.config.from_pyfile('application.cfg', silent=True)
+
+    appconfig = process_config(app.config)
 
     # pylint: disable=no-member
     app.logger.info("loading Flask app for {}".format(app.name))
@@ -50,7 +81,8 @@ def create_app():
         app.logger.debug("received url {}".format(urim))
         app.logger.debug("format: {}".format(responseformat))
 
-        cachemodel = DictCacheModel()
+        cachemodel = appconfig['cache_model']
+        # cachemodel = DictCacheModel()
         # cachemodel = RedisCacheModel(db=0, host="localhost", port=6379)
         httpcache = HTTPCache(cachemodel, requests.session())
 

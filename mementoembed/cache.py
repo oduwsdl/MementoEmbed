@@ -1,3 +1,4 @@
+import pickle
 import concurrent.futures
 
 import redis
@@ -117,14 +118,28 @@ class RedisCacheModel:
         """
             Get the value of `key` from the Redis database.
         """
-        return self.rconn.get(key)
+        
+        try:
+            value = pickle.loads(self.rconn.get(key))
+        except TypeError:
+            value = self.rconn.get(key)
+        
+        return value
 
     def set(self, key, value):
         """
             Set a key in the redis database.
             The key expires after `redis_expiration` seconds.
         """
-        self.rconn.set(key)
+
+        print("SETTING")
+
+        print("value is of type {}".format(type(value)))
+
+        if type(value) != str:
+            value = pickle.dumps(value)
+
+        self.rconn.set(key, value)
         self.rconn.expire(key, redis_expiration)
 
 class DictCacheModel:
