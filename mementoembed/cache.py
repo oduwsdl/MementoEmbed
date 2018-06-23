@@ -19,7 +19,7 @@ cachecontrol library to reliably cache responses.
 class MementoSurrogateCacheConnectionFailure(Exception):
     pass
 
-def get_http_response_from_cache_model(cache_model, uri, session=requests.session()):
+def get_http_response_from_cache_model(cache_model, uri, session=requests.session(), headers=None):
     """
         Function for checking the cache for a uri response object.
 
@@ -33,7 +33,16 @@ def get_http_response_from_cache_model(cache_model, uri, session=requests.sessio
 
         try:
 
-            response = session.get(uri, headers={'user-agent': __useragent__})
+            req_headers = {
+                'user-agent': __useragent__
+            }
+
+            if headers is not None:
+                
+                for key in headers:
+                    req_headers[key] = headers[key]
+
+            response = session.get(uri, headers=req_headers)
             cache_model.set(uri, response)
 
         except ConnectionError:
@@ -86,7 +95,7 @@ class HTTPCache:
 
         self.logger = logger or logging.getLogger(__name__)
 
-    def get(self, uri):
+    def get(self, uri, headers=None):
 
         self.logger.debug("searching cache before requesting URI {}".format(uri))
         

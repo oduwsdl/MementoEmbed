@@ -100,7 +100,7 @@ class TestArchiveResource(unittest.TestCase):
                 ),
             expected_favicon:
                 mock_response(
-                    headers = {},
+                    headers = { 'content-type': 'image/x-testing'},
                     content = "",
                     status=200
                 )
@@ -140,9 +140,7 @@ class TestArchiveResource(unittest.TestCase):
                 ),
             expected_favicon:
                 mock_response(
-                    headers = {
-                        'content-type': 'image/x-testing'
-                    },
+                    headers = { 'content-type': 'image/x-testing'},
                     content = "",
                     status=200
                 )
@@ -190,7 +188,7 @@ class TestArchiveResource(unittest.TestCase):
                 ),
             expected_favicon:
                 mock_response(
-                    headers = {},
+                    headers = { 'content-type': 'image/x-testing'},
                     content = "",
                     status=200
                 )
@@ -272,7 +270,7 @@ class TestArchiveResource(unittest.TestCase):
                 ),
             expected_favicon:
                 mock_response(
-                    headers = {},
+                    headers = { 'content-type': 'image/x-testing'},
                     content = "",
                     status=200
                 )

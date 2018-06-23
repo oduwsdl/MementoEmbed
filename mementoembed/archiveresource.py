@@ -9,7 +9,7 @@ import aiu
 from urllib.parse import urlparse, urljoin
 
 from .favicon import get_favicon_from_google_service, \
-    get_favicon_from_html
+    get_favicon_from_html, find_conventional_favicon_on_live_web
 
 archive_collection_patterns = [
     "http://wayback.archive-it.org/([0-9]*)/[0-9]{14}/.*",
@@ -134,18 +134,7 @@ class ArchiveResource:
 
             self.logger.debug("attempting to use the conventional favicon URI to find the archive favicon URI")
 
-            candidate_favicon_uri = "{}://{}/favicon.ico".format(self.scheme, self.domain)
-
-            r = self.httpcache.get(candidate_favicon_uri)
-
-            if r.status_code == 200:
-
-                # this is some protection against soft-404s
-                if 'image/' in r.headers['content-type']:
-                    self.archive_favicon_uri = candidate_favicon_uri
-
-                if not self.httpcache.is_uri_good(self.archive_favicon_uri):
-                    self.archive_favicon_uri = None
+            self.archive_favicon_uri = find_conventional_favicon_on_live_web(self.scheme, self.domain, self.httpcache)
 
         self.logger.debug("archive favicon after step 2: {}".format(self.archive_favicon_uri))
 
@@ -156,13 +145,6 @@ class ArchiveResource:
 
             self.archive_favicon_uri = get_favicon_from_google_service(
                 self.httpcache, self.uri)
-
-            self.logger.debug("during step 3, the archive favicon is: {}".format(self.archive_favicon_uri))
-
-            if self.archive_favicon_uri is not None:
-
-                if not self.httpcache.is_uri_good(self.archive_favicon_uri):
-                    self.archive_favicon_uri = None
 
         self.logger.debug("discovered archive favicon at {}".format(self.archive_favicon_uri))
 

@@ -24,7 +24,7 @@ class mock_httpcache:
     def __init__(self, cachedict):
         self.cachedict = cachedict
 
-    def get(self, uri):
+    def get(self, uri, headers=None):
         return self.cachedict[uri]
 
     def is_uri_good(self, uri):
@@ -142,6 +142,7 @@ class TestOriginalResource(unittest.TestCase):
         expected_urig = "http://myarchive.org/timegate/http://example.com/something"
         expected_original_uri = "http://example.com/something"
         expected_favicon = "http://myarchive.org/memento/http://example.com/content/favicon.ico"
+        original_favicon = "http://example.com/content/favicon.ico"
 
         expected_content = """
         <html>
@@ -152,7 +153,7 @@ class TestOriginalResource(unittest.TestCase):
             <body>
                 Is this good text?
             </body>
-        </html>""".format(expected_favicon)
+        </html>""".format(original_favicon)
 
         cachedict = {
             urim:
@@ -174,9 +175,15 @@ class TestOriginalResource(unittest.TestCase):
                     text = "",
                     status=200
                 ),
+            "http://myarchive.org/timegate/http://example.com/content/favicon.ico":
+                mock_response(
+                    headers = {"location": expected_favicon},
+                    text = "",
+                    status = 302
+                ),
             expected_favicon:
                 mock_response(
-                    headers = {},
+                    headers = {'content-type': 'image/'},
                     text = "",
                     status=200
                 )
