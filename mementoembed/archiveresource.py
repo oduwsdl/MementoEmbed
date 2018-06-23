@@ -22,8 +22,12 @@ archive_collection_uri_prefixes = {
 archive_names = {
     "archive-it.org": "Archive-It",
     "archive.org": "Internet Archive",
-    "webcitation.org": "WebCite",
     "archive.is": "archive.today"
+}
+
+home_uri_list = {
+    "archive-it.org": "https://archive-it.org",
+    "archive.org": "https://archive.org"
 }
 
 class ArchiveResource:
@@ -68,22 +72,39 @@ class ArchiveResource:
         """
 
         if self.memento_archive_domain == None:
-            self.memento_archive_domain = tldextract.extract(self.uri).registered_domain
+            # self.memento_archive_domain = tldextract.extract(self.uri).registered_domain
+            o = urlparse(self.uri)
+            self.memento_archive_domain = o.netloc
 
         return self.memento_archive_domain
+
+    @property
+    def registered_domain(self):
+        return tldextract.extract(self.uri).registered_domain
+
+    @property
+    def home_uri(self):
+
+        home_uri = self.uri
+
+        if self.registered_domain in home_uri_list:
+            home_uri = home_uri_list[self.registered_domain]
+
+        return home_uri
+
 
     @property
     def name(self):
 
         if self.memento_archive_name == None:
 
-            if self.domain in archive_names:
+            if self.registered_domain in archive_names:
 
-                self.memento_archive_name = archive_names[self.domain]
+                self.memento_archive_name = archive_names[self.registered_domain]
 
             else:
 
-                self.memento_archive_name = self.domain.upper()
+                self.memento_archive_name = self.registered_domain.upper()
         
         return self.memento_archive_name
 
@@ -154,9 +175,9 @@ class ArchiveResource:
 
         if self.memento_archive_uri == None:
             o = urlparse(self.urim)
-            domain = tldextract.extract(self.urim).registered_domain
+            # domain = tldextract.extract(self.urim).registered_domain
 
-            self.memento_archive_uri = "{}://{}".format(o.scheme, domain)
+            self.memento_archive_uri = "{}://{}".format(o.scheme, o.netloc)
 
         return self.memento_archive_uri
 

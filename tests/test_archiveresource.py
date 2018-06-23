@@ -70,9 +70,10 @@ class TestArchiveResource(unittest.TestCase):
 
         x = ArchiveResource(urim, httpcache, working_directory)
         self.assertEquals(x.scheme, "http")
-        self.assertEquals(x.domain, "archive-it.org")
+        self.assertEquals(x.domain, "wayback.archive-it.org")
         self.assertEquals(x.name, "Archive-It")
-        self.assertEquals(x.uri, "http://archive-it.org")
+        self.assertEquals(x.uri, "http://wayback.archive-it.org")
+        self.assertEquals(x.home_uri, "https://archive-it.org")
 
         self.assertEquals(x.collection_id, "5728")
         self.assertEquals(x.collection_uri, "https://archive-it.org/collections/5728")

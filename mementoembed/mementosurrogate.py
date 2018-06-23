@@ -87,7 +87,7 @@ class MementoSurrogate:
 
     @property
     def archive_uri(self):
-        return self.archive.uri
+        return self.archive.home_uri
 
     @property
     def archive_name(self):

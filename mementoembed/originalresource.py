@@ -22,7 +22,10 @@ class OriginalResource:
 
     @property
     def domain(self):
-        return extract(self.uri).registered_domain
+        # return extract(self.uri).registered_domain
+        o = urlparse(self.uri)
+
+        return o.netloc
         
     @property
     def uri(self):
