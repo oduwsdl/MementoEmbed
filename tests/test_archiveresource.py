@@ -251,3 +251,37 @@ class TestArchiveResource(unittest.TestCase):
         x = ArchiveResource(urim, httpcache, working_directory)
 
         self.assertEquals(x.favicon, expected_favicon)
+
+    def test_favicon_from_html_relative_uri(self):
+
+        expected_favicon = "http://myarchive.org/content/favicon.ico"
+
+        cachedict = {
+            "http://myarchive.org":
+                mock_response(
+                    headers={},
+                    content="""<html>
+                    <head>
+                        <title>Is this a good title?</title>
+                        <link rel="icon" href="content/favicon.ico">
+                    </head>
+                    <body>Is this all there is to content?</body>
+                    </html>""",
+                    status=200
+                ),
+            expected_favicon:
+                mock_response(
+                    headers = {},
+                    content = "",
+                    status=200
+                )
+        }
+
+        httpcache = mock_httpcache(cachedict)
+        working_directory = "/tmp/{}".format(os.path.basename(__file__))
+
+        urim = "http://myarchive.org/20160518000858/http://example.com/somecontent"
+
+        x = ArchiveResource(urim, httpcache, working_directory)
+
+        self.assertEquals(x.favicon, expected_favicon)

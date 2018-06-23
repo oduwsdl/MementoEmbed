@@ -6,7 +6,7 @@ import requests
 import tldextract
 import aiu
 
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 from .favicon import get_favicon_from_google_service, \
     get_favicon_from_html
@@ -101,7 +101,7 @@ class ArchiveResource:
 
             r = self.httpcache.get(self.uri)
 
-            self.archive_favicon_uri = get_favicon_from_html(r.text)
+            self.archive_favicon_uri = urljoin(self.uri, get_favicon_from_html(r.text))
 
             if not self.httpcache.is_uri_good(self.archive_favicon_uri):
                 self.archive_favicon_uri = None
