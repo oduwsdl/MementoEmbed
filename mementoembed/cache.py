@@ -31,7 +31,7 @@ def get_http_response_from_cache_model(cache_model, uri, session=requests.sessio
 
         try:
 
-            response = session.get(uri)
+            response = session.get(uri, headers={'user-agent': __useragent__})
             cache_model.set(uri, response)
 
         except ConnectionError:

@@ -1,3 +1,4 @@
+import os
 import unittest
 import zipfile
 import io
@@ -7,13 +8,21 @@ from datetime import datetime
 from mementoembed.mementoresource import MementoResource, WaybackMemento, \
     IMFMemento, ArchiveIsMemento, memento_resource_factory
 
+testdir = os.path.dirname(os.path.realpath(__file__))
+
 class mock_response:
 
     def __init__(self, headers, text, status, content=None):
         self.headers = headers
         self.text = text
+        
         if content is None:
-            self.content = bytes(text.encode('utf-8'))
+
+            if type(content) == str:
+                self.content = bytes(text.encode('utf-8'))
+            else:
+                self.content = content
+
         else:
             self.content = content
 
@@ -302,3 +311,68 @@ class TestMementoResource(unittest.TestCase):
         self.assertEquals(mr.original_uri, expected_original_uri)
         self.assertEquals(mr.content, expected_content)
         self.assertEquals(mr.raw_content, bytes(expected_raw_content.encode('utf-8')))
+
+
+    def test_archiveiscase_datetime_in_uri(self):
+
+        urim = "http://archive.is/20130508132946/http://flexispy.com/"
+        zipurim = "http://archive.is/download/pSSpa.zip"
+        expected_original_uri = "http://flexispy.com/"
+        expected_urig = "http://archive.is/timegate/http://flexispy.com/"
+
+        with open("{}/samples/archive.is-1.html".format(testdir), 'rb') as f:
+            expected_content = f.read()
+
+        with open("{}/samples/archive.is-1.raw.zip".format(testdir), 'rb') as f:
+            zip_content = f.read()
+
+            zf = zipfile.ZipFile(f)
+            expected_raw_content = zf.read("index.html")
+
+        cachedict = {
+            urim:
+                mock_response(
+                    headers = {
+                        'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, urim)
+                    },
+                    text = expected_content,
+                    status=200
+                ),
+            "http://archive.is/20130508132946id_/http://flexispy.com/":
+                mock_response(
+                    headers = {},
+                    text= "",
+                    status=404
+                ),
+            zipurim:
+                mock_response(
+                    headers = {},
+                    text = "",
+                    content = zip_content,
+                    status=200
+                )
+        }
+
+        mh = mock_httpcache(cachedict)
+
+        mr = memento_resource_factory(urim, mh)
+
+        expected_mdt = datetime.strptime(
+            "Sat, 02 Feb 2008 06:29:13 GMT", 
+            "%a, %d %b %Y %H:%M:%S GMT"
+        )
+
+        self.maxDiff = None
+
+        self.assertEquals(type(mr), ArchiveIsMemento)
+
+        self.assertEquals(mr.memento_datetime, expected_mdt)
+        self.assertEquals(mr.timegate, expected_urig)
+        self.assertEquals(mr.original_uri, expected_original_uri)
+        self.assertEquals(mr.content, expected_content)
+        self.assertEquals(mr.raw_content, expected_raw_content)

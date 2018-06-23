@@ -113,6 +113,11 @@ class TestTextProcessing(unittest.TestCase):
 
         self.assertEquals(extract_title(htmlcontent), expectedtitle)
 
+    def test_title_garbage_input(self):
+
+        garbage = b'<html></html>r\x8d\xe0\x95z\xc5\xf1'
+
+        self.assertEquals(extract_title(garbage), "")
 
     def test_snippet_twitter(self):
 

@@ -24,7 +24,7 @@ class TestCache(unittest.TestCase):
 
         class mock_session:
 
-            def get(self, uri):
+            def get(self, uri, **args):
 
                 if uri[-1] == 'b':
                     raise MementoSurrogateCacheConnectionFailure("testing")

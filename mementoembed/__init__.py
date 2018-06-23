@@ -6,14 +6,12 @@ import dicttoxml
 import requests
 
 from flask import Flask, request, render_template, make_response
-from cachecontrol import CacheControl
-from cachecontrol.caches.file_cache import FileCache
 
 from .mementosurrogate import MementoSurrogate, NotMementoException, \
     MementoConnectionTimeout, MementoImageConnectionError, \
     MementoImageConnectionTimeout, MementoContentParseError
 
-from .cache import HTTPCache, DictCacheModel
+from .cache import HTTPCache, DictCacheModel, RedisCacheModel
 
 __all__ = [
     "MementoSurrogate", "NotMementoException", "MementoConnectionTimeout",
@@ -86,19 +84,19 @@ def create_app():
     # pylint: disable=no-member
     app.logger.info("loading Flask app for {}".format(app.name))
 
-    image_domain_ignore_patterns = load_adservers_list(
-        "{}/resources/easylist_adservers.txt".format(
-            os.path.dirname(os.path.realpath(__file__))
-        )
-    )
+    # image_domain_ignore_patterns = load_adservers_list(
+    #     "{}/resources/easylist_adservers.txt".format(
+    #         os.path.dirname(os.path.realpath(__file__))
+    #     )
+    # )
 
-    image_path_ignore_patterns = load_adpatterns_list(
-        "{}/resources/easylist_adservers.txt".format(
-            os.path.dirname(os.path.realpath(__file__))
-        )
-    )
+    # image_path_ignore_patterns = load_adpatterns_list(
+    #     "{}/resources/easylist_adservers.txt".format(
+    #         os.path.dirname(os.path.realpath(__file__))
+    #     )
+    # )
 
-    image_uri_ignore_patterns = image_domain_ignore_patterns + image_path_ignore_patterns
+    # image_uri_ignore_patterns = image_domain_ignore_patterns + image_path_ignore_patterns
 
     #pylint: disable=unused-variable
     @app.route('/', methods=['GET', 'HEAD'])
@@ -122,15 +120,8 @@ def create_app():
         app.logger.debug("received url {}".format(urim))
         app.logger.debug("format: {}".format(responseformat))
 
-        # if os.environ.get('FLASK_ENV'):
-        #     if 'development' in os.environ.get('FLASK_ENV').lower():
-        #         session = CacheControl(requests.session(), cache=FileCache('.web_cache', forever=True))
-        #     else:
-        #         session = CacheControl(requests.session(), cache=FileCache('.web_cache'))    
-        # else:
-        #     session = CacheControl(requests.session(), cache=FileCache('.web_cache'))
-
         cachemodel = DictCacheModel()
+        # cachemodel = RedisCacheModel(db=0, host="localhost", port=6379)
         httpcache = HTTPCache(cachemodel, requests.session())
 
         try:

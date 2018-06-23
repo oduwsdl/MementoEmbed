@@ -1,8 +1,11 @@
 import re
+import logging
 
 from bs4 import BeautifulSoup
 from readability import Document
 from justext import justext, get_stoplist
+
+logger = logging.getLogger(__name__)
 
 p = re.compile(' +')
 
@@ -95,6 +98,7 @@ def extract_text_snippet(htmlcontent):
 def extract_title(htmlcontent):
 
     soup = BeautifulSoup(htmlcontent, 'html5lib')
+
     title = None
 
     titledict = {}
@@ -126,8 +130,14 @@ def extract_title(htmlcontent):
     if title is None:
         # 3. extract the title from the title tag
 
-        title = soup.title.string
+        try:
+            title = soup.title.text
+        except AttributeError:
+            logger.warning("Could not extract title from input")
+            title = ""
 
     title = " ".join(title.split())
+
+    logger.debug("extracted title of {}".format(title))
 
     return title

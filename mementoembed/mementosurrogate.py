@@ -43,9 +43,9 @@ class MementoSurrogate:
         self.httpcache = httpcache
         self.logger = logger
 
-        self.memento = memento_resource_factory(self.urim, self.httpcache)
+        self.memento = memento_resource_factory(self.urim, self.httpcache, logger=self.logger)
 
-        self.originalresource = OriginalResource(self.memento, self.httpcache)
+        self.originalresource = OriginalResource(self.memento, self.httpcache, logger=self.logger)
 
         self.archive = ArchiveResource(self.urim, self.httpcache, working_directory, logger=self.logger)
 

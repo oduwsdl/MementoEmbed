@@ -1,6 +1,6 @@
-
 import os
 import re
+import logging
 import zipfile
 import io
 
@@ -9,11 +9,10 @@ import aiu
 from datetime import datetime
 
 from bs4 import BeautifulSoup
-from bs4 import Comment
 
 wayback_pattern = re.compile('(/[0-9]{14})/')
 
-def memento_resource_factory(urim, http_cache):
+def memento_resource_factory(urim, http_cache, logger=None):
 
     response = http_cache.get(urim)
 
@@ -30,20 +29,22 @@ def memento_resource_factory(urim, http_cache):
         resp = http_cache.get(candidate_raw_urim)
 
         if resp.status_code == 200:
-            return WaybackMemento(http_cache, urim)
+            return WaybackMemento(http_cache, urim, logger=logger)
 
-    elif soup.find("iframe", {"id": "theWebpage"}):
-        return IMFMemento(http_cache, urim)
+    if soup.find("iframe", {"id": "theWebpage"}):
+        return IMFMemento(http_cache, urim, logger=logger)
     
-    elif soup.find("div", {'id': 'SOLID'}):
-        return ArchiveIsMemento(http_cache, urim)
+    if soup.find("div", {'id': 'SOLID'}):
+        return ArchiveIsMemento(http_cache, urim, logger=logger)
 
-    else:
-        return MementoResource(http_cache, urim)
+    # fall through to the base class
+    return MementoResource(http_cache, urim)
 
 class MementoResource:
 
-    def __init__(self, http_cache, urim):
+    def __init__(self, http_cache, urim, logger=None):
+
+        self.logger = logger or logging.getLogger(__name__)
 
         self.http_cache = http_cache
         self.urim = urim
@@ -52,11 +53,11 @@ class MementoResource:
 
         self.urir = None
         self.urig = None
-        self.memento_dt = None
+        self.memento_dt = None     
 
     @property
     def memento_datetime(self):
-        # TODO: make this a datetime object
+        
         if self.memento_dt is None:
             self.memento_dt = datetime.strptime(
                 self.response.headers['memento-datetime'], 
@@ -96,14 +97,32 @@ class ArchiveIsMemento(MementoResource):
         # http://archive.is/download/30uIj.zip
         # The user-agent matters, if it is not "approved", the resulting zipfile will be corrupt
 
-        bname = os.path.basename(self.urim)
-        self.compressed_memento_urim = "http://archive.is/download/{}.zip".format(bname)
+        if wayback_pattern.search(self.urim):
+            
+            soup = BeautifulSoup(self.content, "html5lib")
+
+            anchors = soup.find_all('a')
+
+            for a in anchors:
+                if a.text == 'download .zip':
+                    self.compressed_memento_urim = a['href']
+                    break
+
+        else:
+
+            bname = os.path.basename(self.urim)
+            self.compressed_memento_urim = "http://archive.is/download/{}.zip".format(bname)
+
+        self.logger.info("using compressed memento URI-M of {}".format(self.compressed_memento_urim))
 
         response = self.http_cache.get(self.compressed_memento_urim)
 
         z = zipfile.ZipFile(io.BytesIO(response.content))
 
         content = z.read('index.html')
+
+        self.logger.debug( "from Archive.is type of raw content: {}".format( type(content) ) )
+        self.logger.debug("size of raw content: {}".format( len(content) ) )
 
         return content
 
@@ -126,6 +145,7 @@ class IMFMemento(MementoResource):
         response = self.http_cache.get(self.raw_urim)
 
         return response.text
+
 
 class WaybackMemento(MementoResource):
 
