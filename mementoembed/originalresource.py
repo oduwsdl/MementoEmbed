@@ -72,6 +72,8 @@ class OriginalResource:
                     self.memento.memento_datetime,
                     session=self.http_cache)
 
+                self.logger.debug("got back memento_info of {}".format(memento_info))
+
                 if "mementos" in memento_info:
 
                     if "closest" in memento_info["mementos"]:
@@ -126,7 +128,7 @@ class OriginalResource:
         # 5. if all else fails, fall back to the Google favicon service
         if self.original_link_favicon_uri == None:
 
-            self.original_link_favicon_uri = get_favicon_from_google_service(self.http_cache, self.urim)
+            self.original_link_favicon_uri = get_favicon_from_google_service(self.http_cache, self.uri)
 
             if not self.http_cache.is_uri_good(self.original_link_favicon_uri):
                 self.original_link_favicon_uri = None
