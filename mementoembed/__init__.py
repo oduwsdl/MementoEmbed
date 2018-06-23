@@ -82,9 +82,7 @@ def create_app():
         app.logger.debug("format: {}".format(responseformat))
 
         cachemodel = appconfig['cache_model']
-        # cachemodel = DictCacheModel()
-        # cachemodel = RedisCacheModel(db=0, host="localhost", port=6379)
-        httpcache = HTTPCache(cachemodel, requests.session())
+        httpcache = HTTPCache(cachemodel, requests.session(), logger=app.logger)
 
         try:
             

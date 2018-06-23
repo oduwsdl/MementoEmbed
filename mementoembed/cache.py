@@ -1,10 +1,11 @@
 import pickle
 import concurrent.futures
+import logging
 
 import redis
 import requests
 
-from requests.exceptions import ConnectionError, TooManyRedirects
+from requests.exceptions import ConnectionError, TooManyRedirects, MissingSchema
 
 from .version import __useragent__
 
@@ -41,6 +42,9 @@ def get_http_response_from_cache_model(cache_model, uri, session=requests.sessio
         except TooManyRedirects:
             raise MementoSurrogateCacheConnectionFailure("Too many redirects encountered for URI {}".format(uri))
 
+        except MissingSchema:
+            raise MementoSurrogateCacheConnectionFailure("Missing schema in URI {}".format(uri))
+
     return response
 
 def get_multiple_http_responses_from_cache_model(cache_model, urilist, session=requests.session()):
@@ -68,7 +72,7 @@ def get_multiple_http_responses_from_cache_model(cache_model, urilist, session=r
 
 class HTTPCache:
 
-    def __init__(self, cache_model, session):
+    def __init__(self, cache_model, session, logger=None):
         """
         This constructor establishes an HTTP cache with
         `cache_model` as the object that stores the cache.
@@ -80,20 +84,47 @@ class HTTPCache:
         self.cache_model = cache_model
         self.session = session
 
+        self.logger = logger or logging.getLogger(__name__)
+
     def get(self, uri):
-        return get_http_response_from_cache_model(self.cache_model, uri, session=self.session)
+
+        self.logger.debug("searching cache before requesting URI {}".format(uri))
+        
+        try:
+            response = get_http_response_from_cache_model(self.cache_model, uri, session=self.session)
+        except MementoSurrogateCacheConnectionFailure:
+            self.logger.warning("Failed to download URI {}".format(uri))
+            # give an empty Response object so that other things work
+            response = requests.models.Response()
+
+        return response
 
     def is_uri_good(self, uri):
-        pass
+        
+        good = False
+
+        try:
+
+            response = self.get(uri)
+
+            if response.status_code == 200:
+                good = True
+
+        except MementoSurrogateCacheConnectionFailure:
+            self.logger.warning("Failed to check this URI is good {}".format(uri))
+
+        return good
 
     def get_multiple(self, urilist):
+        # TODO: log failures
         return get_multiple_http_responses_from_cache_model(self.cache_model, urilist, session=self.session)
 
     def head(self, uri):
+        # TODO: log failures
         return get_http_response_from_cache_model(self.cache_model, uri, session=self.session)
 
     def close(self):
-        self.session.close
+        self.session.close()
 
 class RedisCacheModel:
     """
@@ -131,10 +162,6 @@ class RedisCacheModel:
             Set a key in the redis database.
             The key expires after `redis_expiration` seconds.
         """
-
-        print("SETTING")
-
-        print("value is of type {}".format(type(value)))
 
         if type(value) != str:
             value = pickle.dumps(value)
