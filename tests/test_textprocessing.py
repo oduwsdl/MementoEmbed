@@ -194,5 +194,20 @@ class TestTextProcessing(unittest.TestCase):
 
         self.assertEquals(extract_text_snippet(htmlcontent), expectedsnippet)
 
+    def test_snippet_toolong(self):
+
+        reallylongstring = "a" * 200
+        expectedsnippet = reallylongstring[0:197]
+
+        htmlcontent = """<html>
+        <head>
+            <title>notatitle</title>
+        </head>
+        <body>{}</body>
+        </html>""".format(reallylongstring)
+
+        self.assertEquals(extract_text_snippet(htmlcontent), expectedsnippet)
+
+
 
 

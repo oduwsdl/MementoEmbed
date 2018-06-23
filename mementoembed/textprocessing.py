@@ -89,7 +89,7 @@ def extract_text_snippet(htmlcontent):
     if snippet is None:
         snippet = get_lede3_description(htmlcontent)
 
-    return snippet
+    return snippet[0:197]
 
 
 def extract_title(htmlcontent):

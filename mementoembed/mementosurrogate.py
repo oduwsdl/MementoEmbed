@@ -98,13 +98,13 @@ class MementoSurrogate:
         return self.archive.favicon
 
     @property
-    def archive_collection_id(self):
+    def collection_id(self):
         return self.archive.collection_id
 
     @property
-    def archive_collection_name(self):
+    def collection_name(self):
         return self.archive.collection_name
 
     @property
-    def archive_collection_uri(self):
+    def collection_uri(self):
         return self.archive.collection_uri
