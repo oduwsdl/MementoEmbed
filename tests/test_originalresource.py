@@ -84,9 +84,9 @@ class TestOriginalResource(unittest.TestCase):
 
         ores = OriginalResource(mr, mh)
 
-        self.assertEquals(ores.domain, "example.com")
-        self.assertEquals(ores.uri, "http://example.com/something")
-        self.assertEquals(ores.link_status, "Rotten")
+        self.assertEqual(ores.domain, "example.com")
+        self.assertEqual(ores.uri, "http://example.com/something")
+        self.assertEqual(ores.link_status, "Rotten")
 
     def test_simplecase_live_resource(self):
 
@@ -132,9 +132,9 @@ class TestOriginalResource(unittest.TestCase):
 
         ores = OriginalResource(mr, mh)
 
-        self.assertEquals(ores.domain, "example.com")
-        self.assertEquals(ores.uri, "http://example.com/something")
-        self.assertEquals(ores.link_status, "Live")
+        self.assertEqual(ores.domain, "example.com")
+        self.assertEqual(ores.uri, "http://example.com/something")
+        self.assertEqual(ores.link_status, "Live")
 
     def test_favicon_from_html(self):
 
@@ -196,9 +196,9 @@ class TestOriginalResource(unittest.TestCase):
 
         ores = OriginalResource(mr, mh)
 
-        self.assertEquals(ores.domain, "example.com")
-        self.assertEquals(ores.uri, "http://example.com/something")
-        self.assertEquals(ores.link_status, "Live")
-        self.assertEquals(ores.favicon, expected_favicon)
+        self.assertEqual(ores.domain, "example.com")
+        self.assertEqual(ores.uri, "http://example.com/something")
+        self.assertEqual(ores.link_status, "Live")
+        self.assertEqual(ores.favicon, expected_favicon)
 
     # TODO: test the other favicon search states

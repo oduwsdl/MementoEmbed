@@ -42,10 +42,10 @@ class TestArchiveResource(unittest.TestCase):
 
         x = ArchiveResource(urim, httpcache, working_directory)
 
-        self.assertEquals(x.scheme, "https")
-        self.assertEquals(x.domain, "myarchive.org")
-        self.assertEquals(x.name, "MYARCHIVE.ORG")
-        self.assertEquals(x.uri, "https://myarchive.org")
+        self.assertEqual(x.scheme, "https")
+        self.assertEqual(x.domain, "myarchive.org")
+        self.assertEqual(x.name, "MYARCHIVE.ORG")
+        self.assertEqual(x.uri, "https://myarchive.org")
 
         if os.path.exists(working_directory):
             shutil.rmtree(working_directory)
@@ -69,15 +69,15 @@ class TestArchiveResource(unittest.TestCase):
         zipref.close()
 
         x = ArchiveResource(urim, httpcache, working_directory)
-        self.assertEquals(x.scheme, "http")
-        self.assertEquals(x.domain, "wayback.archive-it.org")
-        self.assertEquals(x.name, "Archive-It")
-        self.assertEquals(x.uri, "http://wayback.archive-it.org")
-        self.assertEquals(x.home_uri, "https://archive-it.org")
+        self.assertEqual(x.scheme, "http")
+        self.assertEqual(x.domain, "wayback.archive-it.org")
+        self.assertEqual(x.name, "Archive-It")
+        self.assertEqual(x.uri, "http://wayback.archive-it.org")
+        self.assertEqual(x.home_uri, "https://archive-it.org")
 
-        self.assertEquals(x.collection_id, "5728")
-        self.assertEquals(x.collection_uri, "https://archive-it.org/collections/5728")
-        self.assertEquals(x.collection_name, "Social Media")
+        self.assertEqual(x.collection_id, "5728")
+        self.assertEqual(x.collection_uri, "https://archive-it.org/collections/5728")
+        self.assertEqual(x.collection_name, "Social Media")
 
         shutil.rmtree(working_directory)
         
@@ -113,7 +113,7 @@ class TestArchiveResource(unittest.TestCase):
 
         x = ArchiveResource(urim, httpcache, working_directory)
 
-        self.assertEquals(x.favicon, expected_favicon)
+        self.assertEqual(x.favicon, expected_favicon)
 
     def test_404_favicon_from_html_so_constructed_favicon_uri(self):
 
@@ -153,7 +153,7 @@ class TestArchiveResource(unittest.TestCase):
 
         x = ArchiveResource(urim, httpcache, working_directory)
 
-        self.assertEquals(x.favicon, expected_favicon)
+        self.assertEqual(x.favicon, expected_favicon)
 
     def test_404_favicon_from_constructed_favicon_uri_so_google_service(self):
 
@@ -201,7 +201,7 @@ class TestArchiveResource(unittest.TestCase):
 
         x = ArchiveResource(urim, httpcache, working_directory)
 
-        self.assertEquals(x.favicon, expected_favicon)
+        self.assertEqual(x.favicon, expected_favicon)
 
     def test_no_good_favicon(self):
 
@@ -249,7 +249,7 @@ class TestArchiveResource(unittest.TestCase):
 
         x = ArchiveResource(urim, httpcache, working_directory)
 
-        self.assertEquals(x.favicon, expected_favicon)
+        self.assertEqual(x.favicon, expected_favicon)
 
     def test_favicon_from_html_relative_uri(self):
 
@@ -283,4 +283,4 @@ class TestArchiveResource(unittest.TestCase):
 
         x = ArchiveResource(urim, httpcache, working_directory)
 
-        self.assertEquals(x.favicon, expected_favicon)
+        self.assertEqual(x.favicon, expected_favicon)

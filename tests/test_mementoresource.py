@@ -90,13 +90,13 @@ class TestMementoResource(unittest.TestCase):
             "%a, %d %b %Y %H:%M:%S GMT"
         )
 
-        self.assertEquals(type(mr), MementoResource)
+        self.assertEqual(type(mr), MementoResource)
 
-        self.assertEquals(mr.memento_datetime, expected_mdt)
-        self.assertEquals(mr.timegate, expected_urig)
-        self.assertEquals(mr.original_uri, expected_original_uri)
-        self.assertEquals(mr.content, expected_content)
-        self.assertEquals(mr.raw_content, expected_content)
+        self.assertEqual(mr.memento_datetime, expected_mdt)
+        self.assertEqual(mr.timegate, expected_urig)
+        self.assertEqual(mr.original_uri, expected_original_uri)
+        self.assertEqual(mr.content, expected_content)
+        self.assertEqual(mr.raw_content, expected_content)
 
     def test_waybackcase(self):
 
@@ -157,13 +157,13 @@ class TestMementoResource(unittest.TestCase):
             "%a, %d %b %Y %H:%M:%S GMT"
         )
 
-        self.assertEquals(type(mr), WaybackMemento)
+        self.assertEqual(type(mr), WaybackMemento)
 
-        self.assertEquals(mr.memento_datetime, expected_mdt)
-        self.assertEquals(mr.timegate, expected_urig)
-        self.assertEquals(mr.original_uri, expected_original_uri)
-        self.assertEquals(mr.content, expected_content)
-        self.assertEquals(mr.raw_content, expected_raw_content)
+        self.assertEqual(mr.memento_datetime, expected_mdt)
+        self.assertEqual(mr.timegate, expected_urig)
+        self.assertEqual(mr.original_uri, expected_original_uri)
+        self.assertEqual(mr.content, expected_content)
+        self.assertEqual(mr.raw_content, expected_raw_content)
 
     def test_imfcase(self):
 
@@ -224,13 +224,13 @@ class TestMementoResource(unittest.TestCase):
             "%a, %d %b %Y %H:%M:%S GMT"
         )
 
-        self.assertEquals(type(mr), IMFMemento)
+        self.assertEqual(type(mr), IMFMemento)
 
-        self.assertEquals(mr.memento_datetime, expected_mdt)
-        self.assertEquals(mr.timegate, expected_urig)
-        self.assertEquals(mr.original_uri, expected_original_uri)
-        self.assertEquals(mr.content, expected_content)
-        self.assertEquals(mr.raw_content, expected_raw_content)
+        self.assertEqual(mr.memento_datetime, expected_mdt)
+        self.assertEqual(mr.timegate, expected_urig)
+        self.assertEqual(mr.original_uri, expected_original_uri)
+        self.assertEqual(mr.content, expected_content)
+        self.assertEqual(mr.raw_content, expected_raw_content)
 
     def test_archiveiscase(self):
 
@@ -304,13 +304,13 @@ class TestMementoResource(unittest.TestCase):
 
         self.maxDiff = None
 
-        self.assertEquals(type(mr), ArchiveIsMemento)
+        self.assertEqual(type(mr), ArchiveIsMemento)
 
-        self.assertEquals(mr.memento_datetime, expected_mdt)
-        self.assertEquals(mr.timegate, expected_urig)
-        self.assertEquals(mr.original_uri, expected_original_uri)
-        self.assertEquals(mr.content, expected_content)
-        self.assertEquals(mr.raw_content, bytes(expected_raw_content.encode('utf-8')))
+        self.assertEqual(mr.memento_datetime, expected_mdt)
+        self.assertEqual(mr.timegate, expected_urig)
+        self.assertEqual(mr.original_uri, expected_original_uri)
+        self.assertEqual(mr.content, expected_content)
+        self.assertEqual(mr.raw_content, bytes(expected_raw_content.encode('utf-8')))
 
 
     def test_archiveiscase_datetime_in_uri(self):
@@ -369,10 +369,10 @@ class TestMementoResource(unittest.TestCase):
 
         self.maxDiff = None
 
-        self.assertEquals(type(mr), ArchiveIsMemento)
+        self.assertEqual(type(mr), ArchiveIsMemento)
 
-        self.assertEquals(mr.memento_datetime, expected_mdt)
-        self.assertEquals(mr.timegate, expected_urig)
-        self.assertEquals(mr.original_uri, expected_original_uri)
-        self.assertEquals(mr.content, expected_content)
-        self.assertEquals(mr.raw_content, expected_raw_content)
+        self.assertEqual(mr.memento_datetime, expected_mdt)
+        self.assertEqual(mr.timegate, expected_urig)
+        self.assertEqual(mr.original_uri, expected_original_uri)
+        self.assertEqual(mr.content, expected_content)
+        self.assertEqual(mr.raw_content, expected_raw_content)

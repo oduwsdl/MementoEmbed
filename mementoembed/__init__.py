@@ -24,8 +24,6 @@ class MementoEmbedException(Exception):
 
 def process_config(config):
 
-    print(config)
-
     appconfig = {}
 
     if 'CACHEMODEL' in config:

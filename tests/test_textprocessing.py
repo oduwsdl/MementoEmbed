@@ -10,7 +10,7 @@ class TestTextProcessing(unittest.TestCase):
 
         htmlcontent = "<html><head><title>{}</title></head><body>This is some body text.</body></html>".format(expectedtitle)
 
-        self.assertEquals(extract_title(htmlcontent), expectedtitle)
+        self.assertEqual(extract_title(htmlcontent), expectedtitle)
 
     def test_title_multiline(self):
 
@@ -19,7 +19,7 @@ class TestTextProcessing(unittest.TestCase):
 
         htmlcontent = "<html><head><title>{}</title></head><body>This is some body text.</body></html>".format(multilinetitle)
 
-        self.assertEquals(extract_title(htmlcontent), expectedtitle)
+        self.assertEqual(extract_title(htmlcontent), expectedtitle)
 
     def test_title_multispace(self):
 
@@ -28,7 +28,7 @@ class TestTextProcessing(unittest.TestCase):
 
         htmlcontent = "<html><head><title>{}</title></head><body>This is some body text.</body></html>".format(multispacetitle)
 
-        self.assertEquals(extract_title(htmlcontent), expectedtitle)
+        self.assertEqual(extract_title(htmlcontent), expectedtitle)
 
     def test_title_twitter_metatag(self):
 
@@ -42,7 +42,7 @@ class TestTextProcessing(unittest.TestCase):
         <body>This is some body text.</body>
         </html>""".format(expectedtitle)
 
-        self.assertEquals(extract_title(htmlcontent), expectedtitle)
+        self.assertEqual(extract_title(htmlcontent), expectedtitle)
 
     def test_title_ogp_metatag(self):
 
@@ -56,7 +56,7 @@ class TestTextProcessing(unittest.TestCase):
         <body>This is some body text.</body>
         </html>""".format(expectedtitle)
 
-        self.assertEquals(extract_title(htmlcontent), expectedtitle)
+        self.assertEqual(extract_title(htmlcontent), expectedtitle)
 
     def test_title_misused_ogp_metatag(self):
         """
@@ -74,7 +74,7 @@ class TestTextProcessing(unittest.TestCase):
         <body>This is some body text.</body>
         </html>""".format(expectedtitle)
 
-        self.assertEquals(extract_title(htmlcontent), expectedtitle)
+        self.assertEqual(extract_title(htmlcontent), expectedtitle)
 
 
     def test_title_misused_twitter_metatag(self):
@@ -93,7 +93,7 @@ class TestTextProcessing(unittest.TestCase):
         <body>This is some body text.</body>
         </html>""".format(expectedtitle)
 
-        self.assertEquals(extract_title(htmlcontent), expectedtitle)
+        self.assertEqual(extract_title(htmlcontent), expectedtitle)
 
     def test_title_property_preference(self):
         """
@@ -111,13 +111,13 @@ class TestTextProcessing(unittest.TestCase):
         <body>This is some body text.</body>
         </html>""".format(expectedtitle)
 
-        self.assertEquals(extract_title(htmlcontent), expectedtitle)
+        self.assertEqual(extract_title(htmlcontent), expectedtitle)
 
     def test_title_garbage_input(self):
 
         garbage = b'<html></html>r\x8d\xe0\x95z\xc5\xf1'
 
-        self.assertEquals(extract_title(garbage), "")
+        self.assertEqual(extract_title(garbage), "")
 
     def test_snippet_twitter(self):
 
@@ -132,7 +132,7 @@ class TestTextProcessing(unittest.TestCase):
         </html>".format(expectedsnippet)
         """.format(expectedsnippet)
 
-        self.assertEquals(extract_text_snippet(htmlcontent), expectedsnippet)
+        self.assertEqual(extract_text_snippet(htmlcontent), expectedsnippet)
 
     def test_snippet_ogp(self):
 
@@ -147,7 +147,7 @@ class TestTextProcessing(unittest.TestCase):
         </html>".format(expectedsnippet)
         """.format(expectedsnippet)
 
-        self.assertEquals(extract_text_snippet(htmlcontent), expectedsnippet)
+        self.assertEqual(extract_text_snippet(htmlcontent), expectedsnippet)
 
     def test_snippet_preference(self):
         """
@@ -165,7 +165,7 @@ class TestTextProcessing(unittest.TestCase):
         <body>not a description</body>
         </html>""".format(expectedsnippet)
 
-        self.assertEquals(extract_text_snippet(htmlcontent), expectedsnippet)
+        self.assertEqual(extract_text_snippet(htmlcontent), expectedsnippet)
 
     def test_snippet_nometa(self):
         """
@@ -181,7 +181,7 @@ class TestTextProcessing(unittest.TestCase):
         <body>{}</body>
         </html>""".format(expectedsnippet)
 
-        self.assertEquals(extract_text_snippet(htmlcontent), expectedsnippet)
+        self.assertEqual(extract_text_snippet(htmlcontent), expectedsnippet)
 
     def test_snippet_nocontent(self):
         """
@@ -197,7 +197,7 @@ class TestTextProcessing(unittest.TestCase):
         <body><object src="some_flash_stuff"></object></body>
         </html>"""
 
-        self.assertEquals(extract_text_snippet(htmlcontent), expectedsnippet)
+        self.assertEqual(extract_text_snippet(htmlcontent), expectedsnippet)
 
     def test_snippet_toolong(self):
 
@@ -211,7 +211,7 @@ class TestTextProcessing(unittest.TestCase):
         <body>{}</body>
         </html>""".format(reallylongstring)
 
-        self.assertEquals(extract_text_snippet(htmlcontent), expectedsnippet)
+        self.assertEqual(extract_text_snippet(htmlcontent), expectedsnippet)
 
 
 
