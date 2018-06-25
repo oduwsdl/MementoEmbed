@@ -14,6 +14,8 @@ wayback_pattern = re.compile('(/[0-9]{14})/')
 
 def memento_resource_factory(urim, http_cache, logger=None):
 
+    logger = logger or logging.getLogger(__name__)
+
     response = http_cache.get(urim)
 
     content = response.text
@@ -30,6 +32,8 @@ def memento_resource_factory(urim, http_cache, logger=None):
 
         if tag.get("http-equiv") == "refresh":
 
+            logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
+
             if tag.get("content"):
 
                 url = [i.strip() for i in tag.get("content").split(';')][1]
@@ -38,6 +42,8 @@ def memento_resource_factory(urim, http_cache, logger=None):
                 redirect_url = url.strip("'")
                 urim = redirect_url
 
+                logger.info("acquiring redirected URI-M {}".format(urim))
+
                 resp = http_cache.get(urim)
 
                 if resp.status_code == 200:
@@ -45,17 +51,21 @@ def memento_resource_factory(urim, http_cache, logger=None):
 
     # maybe we search for /[0-9]{14}/ in the URI and then try id_
     if wayback_pattern.search(urim):
+        logger.info("URI-M {} matches the wayback pattern".format(urim))
         candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
 
         resp = http_cache.get(candidate_raw_urim)
 
         if resp.status_code == 200:
+            logger.info("memento at {} is a Wayback memento".format(urim))
             return WaybackMemento(http_cache, urim, logger=logger, given_uri=given_urim)
 
     if soup.find("iframe", {"id": "theWebpage"}):
+        logger.info("memento at {} is an IMF memento".format(urim))
         return IMFMemento(http_cache, urim, logger=logger, given_uri=given_urim)
     
     if soup.find("div", {'id': 'SOLID'}):
+        logger.info("memento at {} is an Archive.is memento".format(urim))
         return ArchiveIsMemento(http_cache, urim, logger=logger, given_uri=given_urim)
 
     # fall through to the base class
