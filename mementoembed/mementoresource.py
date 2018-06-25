@@ -186,6 +186,8 @@ class WaybackMemento(MementoResource):
 
         self.raw_urim = wayback_pattern.sub(r'\1id_/', self.urim)
 
+        self.logger.info("using raw URI-M {}".format(self.raw_urim))
+
         response = self.http_cache.get(self.raw_urim)
 
         return response.text

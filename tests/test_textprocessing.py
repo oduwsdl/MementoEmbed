@@ -214,5 +214,39 @@ class TestTextProcessing(unittest.TestCase):
         self.assertEqual(extract_text_snippet(htmlcontent), expectedsnippet)
 
 
+    def test_snippet_empty_twitter_metatag(self):
+
+        reallylongstring = "a" * 200
+        expectedsnippet = reallylongstring[0:197]
+
+        htmlcontent = """<html>
+        <head>
+            <title>notatitle</title>
+            <meta name="twitter:description" content="">
+        </head>
+        <body>{}</body>
+        </html>""".format(reallylongstring)
+
+        self.assertEqual(extract_text_snippet(htmlcontent), expectedsnippet)
+
+
+    def test_snippet_empty_ogp_metatag(self):
+
+        reallylongstring = "a" * 200
+        expectedsnippet = reallylongstring[0:197]
+
+        htmlcontent = """<html>
+        <head>
+            <title>notatitle</title>
+            <meta name="og:description" content="">
+        </head>
+        <body>{}</body>
+        </html>""".format(reallylongstring)
+
+        self.assertEqual(extract_text_snippet(htmlcontent), expectedsnippet)
+
+
+
+
 
 

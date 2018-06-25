@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 p = re.compile(' +')
 
-def get_lede3_description(htmlcontent):
+def get_best_description(htmlcontent):
 
     description = None
 
@@ -80,7 +80,11 @@ def extract_text_snippet(htmlcontent):
 
     # 1. favor title from the OGP metadata
     if "og:description" in description_dict:
+
         snippet = description_dict["og:description"]
+
+        if len(snippet) == 0:
+            snippet = None
 
     # 2. favor title from the twitter metadata
     if snippet is None:
@@ -88,9 +92,12 @@ def extract_text_snippet(htmlcontent):
         if "twitter:description" in description_dict:
             snippet = description_dict["twitter:description"]
 
-    # 3. use Lede3
+            if len(snippet) == 0:
+                snippet = None
+
+    # 3. use readability or justext
     if snippet is None:
-        snippet = get_lede3_description(htmlcontent)
+        snippet = get_best_description(htmlcontent)
 
     return snippet[0:197]
 

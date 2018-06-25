@@ -55,7 +55,11 @@ class MementoSurrogate:
 
     @property
     def text_snippet(self):
-        return extract_text_snippet(self.memento.raw_content)
+        raw_content = self.memento.raw_content
+
+        self.logger.debug("extracting text from raw content, currently size {}".format(len(raw_content)))
+
+        return extract_text_snippet(raw_content)
 
     @property
     def title(self):
