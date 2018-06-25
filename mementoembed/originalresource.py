@@ -3,7 +3,6 @@ import logging
 from urllib.parse import urljoin, urlparse
 
 from tldextract import extract
-from memento_client import MementoClient
 
 from .favicon import get_favicon_from_google_service, get_favicon_from_html, \
     find_conventional_favicon_on_live_web, query_timegate_for_favicon, \
