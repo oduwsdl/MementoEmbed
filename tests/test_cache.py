@@ -48,23 +48,10 @@ class TestCache(unittest.TestCase):
 
             def get(self, key):
 
-                print("get called")
-
-                # if key[-1] == 'c':
-
-                #     return mock_response(key, "{}~~~cached".format(key))
-
-                # else:
-
-                #     print("key does not end in 'c'")
-
                 if key in self.mydict:
-                    print("returning value of {}".format(self.mydict[key]))
-                    # return self.mydict[key] + "~~~cached"
                     return mock_response(key, "{}~~~cached".format(
                         self.mydict[key].content))
                 else:
-                    print("key is not in dict")
                     return None
 
             def set(self, key, value):
@@ -72,19 +59,10 @@ class TestCache(unittest.TestCase):
                 if key not in self.mydict:
                     self.mydict[key] = {}
 
-                print("setting key {} to value {}".format(key, value))
-
                 self.mydict[key] = value
 
         fs = mock_session()
         fr = mock_cache_model()
-
-        # print(get_http_response_from_cache_model(fr, "http://example.com/c", fs).content)
-
-        # self.assertEqual(
-        #     get_http_response_from_cache_model(fr, "http://example.com/c", fs).content,
-        #     "http://example.com/c~~~cached"
-        # )
 
         self.assertEqual(
             get_http_response_from_cache_model(fr, "http://example.com/a", fs).content,

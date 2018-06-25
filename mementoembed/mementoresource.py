@@ -89,6 +89,7 @@ class MementoResource:
         self.memento_dt = None
 
         self.framecontent = []
+        self.framescontent = None
 
     @property
     def memento_datetime(self):
@@ -117,67 +118,78 @@ class MementoResource:
 
     def get_content_from_frames(self):
 
-        soup = BeautifulSoup(self.response.text, 'html5lib')
+        if self.framescontent is None:
 
-        # self.framecontent.append(self.response.text)
+            soup = BeautifulSoup(self.response.text, 'html5lib')
 
-        frames = soup.findAll("frame")
+            title = soup.title.text
 
-        for frame in frames:
-            urig = None
-            frameuri = frame['src']
+            self.logger.debug("title is {}".format(title))
 
-            o = urlparse(frameuri)
+            # self.framecontent.append(self.response.text)
 
-            # deal with relative URIs
-            if o.netloc == '':
+            frames = soup.findAll("frame")
 
-                frameuri = urljoin(self.original_uri, frameuri)
+            for frame in frames:
+                urig = None
+                frameuri = frame['src']
 
-                timegate_stem = self.timegate[0:self.timegate.find(self.original_uri)]
+                self.logger.debug("examining frame at {}".format(frameuri))
 
-                if timegate_stem[-1] != '/':
-                    urig = '/'.join([timegate_stem, frameuri])
+                o = urlparse(frameuri)
 
-            if urig is None:
-                urig = timegate_stem + frameuri
+                # deal with relative URIs
+                if o.netloc == '':
 
-            accept_datetime_str = self.memento_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
+                    frameuri = urljoin(self.original_uri, frameuri)
 
-            self.logger.debug("using accept-datetime {} with timegate {} ".format(accept_datetime_str, urig))
+                    timegate_stem = self.timegate[0:self.timegate.find(self.original_uri)]
 
-            response = self.http_cache.get(
-                urig, 
-                headers={
-                    'accept-datetime': accept_datetime_str
-                    })
+                    if timegate_stem[-1] != '/':
+                        urig = '/'.join([timegate_stem, frameuri])
 
-            self.logger.debug("request headers are {}".format(response.request.headers))
-            self.logger.debug("request url is {}".format(response.request.url))
-            self.logger.debug("response is {}".format(response))
+                if urig is None:
+                    urig = timegate_stem + frameuri
 
-            if response.status_code == 302:
-                frameuri = response.headers['location']
+                accept_datetime_str = self.memento_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
-                self.logger.debug("requesting frame URI-M {}".format(frameuri))
+                self.logger.debug("using accept-datetime {} with timegate {} ".format(accept_datetime_str, urig))
 
-                response = self.http_cache.get(frameuri)
-                self.framecontent.append(response.text)
+                response = self.http_cache.get(
+                    urig, 
+                    headers={
+                        'accept-datetime': accept_datetime_str
+                        })
 
-        fullcontent = ""
+                self.logger.debug("request headers are {}".format(response.request.headers))
+                self.logger.debug("request url is {}".format(response.request.url))
+                self.logger.debug("response is {}".format(response))
 
-        for content in self.framecontent:
-            soup = BeautifulSoup(content, 'html5lib')
+                if response.status_code == 200:
+                    self.logger.debug("URI endpoint: {}".format(response.url))
+                    self.logger.debug("frameuri: {}".format(frameuri))
+                    self.framecontent.append(response.text)
 
-            framecontent = ""
+            fullcontent = ""
 
-            for item in soup.findAll('body'):
-                for c in item.children:
-                    framecontent += str(c)
+            self.logger.debug("framecontent size: {}".format(len(self.framecontent)))
 
-            fullcontent += "{}\n".format(framecontent)
+            for content in self.framecontent:
+                soup = BeautifulSoup(content, 'html5lib')
 
-        return "<html><body>\n{}</body></html>".format(fullcontent)
+                framecontent = ""
+
+                for item in soup.findAll('body'):
+                    for c in item.children:
+                        # self.logger.debug("adding:\n{}".format(str(c)))
+                        framecontent += str(c)
+
+                fullcontent += "{}\n".format(framecontent)
+
+            self.framescontent = "<html><head><title>{}</title></head><body>\n{}</body></html>".format(title, fullcontent)
+            # self.logger.debug("framescontent:\n{}".format(self.framescontent))
+
+        return self.framescontent
 
     @property
     def content(self):
@@ -262,10 +274,17 @@ class WaybackMemento(MementoResource):
     @property
     def raw_content(self):
 
-        self.raw_urim = wayback_pattern.sub(r'\1id_/', self.urim)
+        soup = BeautifulSoup(self.response.text, 'html5lib')
 
-        self.logger.info("using raw URI-M {}".format(self.raw_urim))
+        frames = soup.findAll("frame")
 
-        response = self.http_cache.get(self.raw_urim)
+        if len(frames) > 0:
 
-        return response.text
+            framecontent = self.get_content_from_frames()
+            return framecontent
+
+        else:
+            self.raw_urim = wayback_pattern.sub(r'\1id_/', self.urim)
+            self.logger.info("using raw URI-M {}".format(self.raw_urim))
+            response = self.http_cache.get(self.raw_urim)
+            return response.text
