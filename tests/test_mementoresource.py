@@ -376,3 +376,79 @@ class TestMementoResource(unittest.TestCase):
         self.assertEqual(mr.original_uri, expected_original_uri)
         self.assertEqual(mr.content, expected_content)
         self.assertEqual(mr.raw_content, expected_raw_content)
+
+    def test_meta_redirect(self):
+
+        urim = "https://archive-example.org/web/20180401102030/http://example.com/redirpage"
+        redirurim = "https://archive-example.org/web/20180308084654/http://example.com/testpage"
+
+        metaredirecthtml="""<html>
+<meta http-equiv="refresh" content="0; URL='{}'"/>
+</html>""".format(redirurim)
+
+        expected_content = "<html><body>somecontent</body></html>"
+        expected_raw_content = expected_content
+
+        expected_original_uri = "http://example.com/redirpage"
+        expected_urig = "https://archive-example.org/web/timegate/http://example.com/redirpage"
+
+        redir_expected_original_uri = "http://example.com/testpage"
+        redir_expected_urig = "https://archive-example.org/web/timegate/http://example.com/testpage"
+
+        redirurim_raw = "https://archive-example.org/web/20180308084654id_/http://example.com/testpage"
+        expected_raw_content = "<html><body>raw content</body></html>"
+
+        cachedict = {
+            urim:
+                mock_response(
+                    headers = {
+                        'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, urim)
+                    },
+                    text = metaredirecthtml,
+                    content = metaredirecthtml,
+                    status = 200
+                ),
+            redirurim: 
+                mock_response(
+                    headers = {
+                        'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(redir_expected_original_uri, redir_expected_urig, urim)
+                    },
+                    text = expected_content,
+                    content = expected_content,
+                    status = 200
+                ),
+            redirurim_raw: 
+                mock_response(
+                    headers = {},
+                    text = expected_raw_content,
+                    content = expected_raw_content,
+                    status = 200
+                )
+        }
+
+        mh = mock_httpcache(cachedict)
+
+        mr = memento_resource_factory(urim, mh)
+
+        expected_mdt = datetime.strptime(
+            "Sat, 02 Feb 2008 06:29:13 GMT", 
+            "%a, %d %b %Y %H:%M:%S GMT"
+        )
+
+        self.assertEqual(type(mr), WaybackMemento)
+        
+        self.assertEqual(mr.memento_datetime, expected_mdt)
+        self.assertEqual(mr.timegate, redir_expected_urig)
+        self.assertEqual(mr.original_uri, redir_expected_original_uri)
+        self.assertEqual(mr.content, expected_content)
+        self.assertEqual(mr.raw_content, expected_raw_content)

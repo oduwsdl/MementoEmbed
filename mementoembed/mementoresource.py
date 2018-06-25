@@ -22,6 +22,27 @@ def memento_resource_factory(urim, http_cache, logger=None):
 
     # TODO: META redirects?
 
+    metatags = soup.find_all("meta")
+
+    given_urim = urim
+
+    for tag in metatags:
+
+        if tag.get("http-equiv") == "refresh":
+
+            if tag.get("content"):
+
+                url = [i.strip() for i in tag.get("content").split(';')][1]
+                url = url.split('=')[1]
+                url = url.strip('"')
+                redirect_url = url.strip("'")
+                urim = redirect_url
+
+                resp = http_cache.get(urim)
+
+                if resp.status_code == 200:
+                    soup = BeautifulSoup(resp.text, "html5lib")
+
     # maybe we search for /[0-9]{14}/ in the URI and then try id_
     if wayback_pattern.search(urim):
         candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
@@ -29,25 +50,26 @@ def memento_resource_factory(urim, http_cache, logger=None):
         resp = http_cache.get(candidate_raw_urim)
 
         if resp.status_code == 200:
-            return WaybackMemento(http_cache, urim, logger=logger)
+            return WaybackMemento(http_cache, urim, logger=logger, given_uri=given_urim)
 
     if soup.find("iframe", {"id": "theWebpage"}):
-        return IMFMemento(http_cache, urim, logger=logger)
+        return IMFMemento(http_cache, urim, logger=logger, given_uri=given_urim)
     
     if soup.find("div", {'id': 'SOLID'}):
-        return ArchiveIsMemento(http_cache, urim, logger=logger)
+        return ArchiveIsMemento(http_cache, urim, logger=logger, given_uri=given_urim)
 
     # fall through to the base class
-    return MementoResource(http_cache, urim)
+    return MementoResource(http_cache, urim, logger=logger, given_uri=given_urim)
 
 class MementoResource:
 
-    def __init__(self, http_cache, urim, logger=None):
+    def __init__(self, http_cache, urim, logger=None, given_uri=None):
 
         self.logger = logger or logging.getLogger(__name__)
 
         self.http_cache = http_cache
         self.urim = urim
+        self.given_uri = given_uri
 
         self.response = self.http_cache.get(self.urim)
 
