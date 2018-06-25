@@ -184,7 +184,7 @@ class TestOriginalResource(unittest.TestCase):
             expected_favicon:
                 mock_response(
                     headers = {'content-type': 'image/'},
-                    text = "",
+                    text = "a",
                     status=200
                 )
 

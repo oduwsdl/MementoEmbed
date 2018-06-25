@@ -141,7 +141,7 @@ class TestArchiveResource(unittest.TestCase):
             expected_favicon:
                 mock_response(
                     headers = { 'content-type': 'image/x-testing'},
-                    content = "",
+                    content = "a",
                     status=200
                 )
         }
@@ -189,7 +189,7 @@ class TestArchiveResource(unittest.TestCase):
             expected_favicon:
                 mock_response(
                     headers = { 'content-type': 'image/x-testing'},
-                    content = "",
+                    content = "a",
                     status=200
                 )
         }

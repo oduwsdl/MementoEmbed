@@ -13,7 +13,9 @@ def favicon_resource_test(response):
         try:
 
             if 'image/' in response.headers['content-type']:
-                good = True
+
+                if len(response.content) > 0:
+                    good = True
 
         # this should not happen, but some server may not return a content-type
         except KeyError:

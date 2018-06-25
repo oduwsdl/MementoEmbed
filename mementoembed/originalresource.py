@@ -30,7 +30,7 @@ class OriginalResource:
 
         print("original domain parse: {}".format(o))
 
-        return o.netloc
+        return o.netloc.split(':')[0]
         
     @property
     def uri(self):

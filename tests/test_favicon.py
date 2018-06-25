@@ -46,15 +46,23 @@ class TestFavicon(unittest.TestCase):
             'content-type': 'image/testing'
         }
 
-        mr = mock_response(headers=headers, status=200, content="")
+        # happy path - all is as expected
+        mr = mock_response(headers=headers, status=200, content="a")
 
         self.assertEqual(favicon_resource_test(mr), True)
 
-        mr = mock_response(headers=headers, status=404, content="")
+        # empty content
+        mr = mock_response(headers=headers, status=200, content="")
 
         self.assertEqual(favicon_resource_test(mr), False)
 
-        mr = mock_response(headers={}, status=200, content="")
+        # 404 not found for favicon
+        mr = mock_response(headers=headers, status=404, content="a")
+
+        self.assertEqual(favicon_resource_test(mr), False)
+
+        # favicon has no content-type
+        mr = mock_response(headers={}, status=200, content="a")
 
         self.assertEqual(favicon_resource_test(mr), False)
 
@@ -109,13 +117,13 @@ class TestFavicon(unittest.TestCase):
             inputuri: 
                 mock_response(
                     headers = {},
-                    content = "",
+                    content = "a",
                     status = 200
                 ),
             "https://www.google.com/s2/favicons?domain=example.com" :
                 mock_response(
                     headers = { 'content-type': 'image/testing' },
-                    content = "",
+                    content = "a",
                     status = 200
                 )
         }
@@ -133,7 +141,7 @@ class TestFavicon(unittest.TestCase):
             inputuri: 
                 mock_response(
                     headers = {},
-                    content = "",
+                    content = "a",
                     status = 200
                 ),
             "https://www.google.com/s2/favicons?domain=example.com" :
@@ -162,7 +170,7 @@ class TestFavicon(unittest.TestCase):
             expecteduri: 
                 mock_response(
                     headers = { 'content-type': 'image/testing' },
-                    content = "",
+                    content = "a",
                     status = 200
                 )
         }
@@ -178,7 +186,7 @@ class TestFavicon(unittest.TestCase):
             expecteduri: 
                 mock_response(
                     headers = { 'content-type': 'image/testing' },
-                    content = "",
+                    content = "a",
                     status = 404
                 )
         }
@@ -211,7 +219,7 @@ class TestFavicon(unittest.TestCase):
             urim:
                 mock_response(
                     headers = { 'content-type': 'image/testing' },
-                    content = "",
+                    content = "a",
                     status = 200
                 )
         }
@@ -233,7 +241,7 @@ class TestFavicon(unittest.TestCase):
             urim:
                 mock_response(
                     headers = { 'content-type': 'image/testing' },
-                    content = "",
+                    content = "a",
                     status = 404
                 )
         }
@@ -255,7 +263,7 @@ class TestFavicon(unittest.TestCase):
             urim:
                 mock_response(
                     headers = { },
-                    content = "",
+                    content = "a",
                     status = 200
                 )
         }
@@ -291,7 +299,7 @@ class TestFavicon(unittest.TestCase):
             expected_favicon:
                 mock_response(
                     headers = { 'content-type': 'image/testing' },
-                    content = "",
+                    content = "a",
                     status = 200
                 )
         }
