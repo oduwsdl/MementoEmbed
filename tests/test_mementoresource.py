@@ -4,6 +4,7 @@ import zipfile
 import io
 
 from datetime import datetime
+from urllib.parse import urljoin
 
 from mementoembed.mementoresource import MementoResource, WaybackMemento, \
     IMFMemento, ArchiveIsMemento, memento_resource_factory
@@ -37,7 +38,7 @@ class mock_httpcache:
     def __init__(self, cachedict):
         self.cachedict = cachedict
 
-    def get(self, uri):
+    def get(self, uri, **args):
         return self.cachedict[uri]
 
     def is_uri_good(self, uri):
@@ -452,3 +453,140 @@ class TestMementoResource(unittest.TestCase):
         self.assertEqual(mr.original_uri, redir_expected_original_uri)
         self.assertEqual(mr.content, expected_content)
         self.assertEqual(mr.raw_content, expected_raw_content)
+
+    def test_waybackframesets(self):
+
+        urim = "http://myarchive.org/memento/20080202062913/http://example.com/something"
+        urir = "http://example.com/something"
+        raw_urim = "http://myarchive.org/memento/20080202062913id_/http://example.com/something"
+        expected_urig = "http://myarchive.org/timegate/http://example.com/something"
+        expected_original_uri = "http://example.com/something"
+
+        content = """
+        <html>
+            <head>
+                <title>Is this a good title?</title>
+            </head>
+                <!-- ARCHIVE SPECIFIC STUFF -->
+                <frameset rows="*" cols="130,*" framespacing="0" border="0">
+                    <frame src="frame1.htm">
+                    <frame src="pages/frame2.htm">
+                    <frame src="/content/frame3.htm">
+                    <frame src="http://example2.com/content/frame4.htm">
+                </frameset>
+        </html>"""
+
+        raw_content = """
+        <html>
+            <head>
+                <title>Is this a good title?</title>
+            </head>
+                <frameset rows="*" cols="130,*" framespacing="0" border="0">
+                    <frame src="frame1.htm">
+                    <frame src="pages/frame2.htm">
+                    <frame src="/content/frame3.htm">
+                    <frame src="http://example2.com/content/frame4.htm">
+                </frameset>
+        </html>"""
+
+        timegate_stem = "http://myarchive.org/timegate/"
+        memento_stem = "http://myarchive.org/memento/"
+
+        cachedict = {
+            urim:
+                mock_response(
+                    headers = {
+                        'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, urim)
+                    },
+                    text = content,
+                    status=200
+                ),
+            raw_urim:
+                mock_response(
+                    headers = {},
+                    text = raw_content,
+                    status=200
+                ),
+            "{}/{}".format(memento_stem, urljoin(urir, "frame1.htm")):
+                mock_response(
+                    headers = {},
+                    text = "frame1",
+                    status=200
+                ),
+            "{}{}".format(timegate_stem, urljoin(urir, "frame1.htm")):
+                mock_response(
+                    headers = { 'location':  "{}/{}".format(memento_stem, urljoin(urir, "frame1.htm")) },
+                    text = "",
+                    status=302
+                ),
+            "{}{}".format(memento_stem, urljoin(urir, "pages/frame2.htm")):
+                mock_response(
+                    headers = {},
+                    text = "frame2",
+                    status=200
+                ),
+            "{}{}".format(timegate_stem, urljoin(urir, "pages/frame2.htm")):
+                mock_response(
+                    headers = { 'location':  "{}{}".format(memento_stem, urljoin(urir, "pages/frame2.htm")) },
+                    text = "",
+                    status=302
+                ),
+            "{}{}".format(memento_stem, urljoin(urir, "/content/frame3.htm")):
+                mock_response(
+                    headers = {},
+                    text = "frame3",
+                    status=200
+                ),
+            "{}{}".format(timegate_stem, urljoin(urir, "/content/frame3.htm")):
+                mock_response(
+                    headers = { 'location': "{}{}".format(memento_stem, urljoin(urir, "/content/frame3.htm")) },
+                    text = "",
+                    status=302
+                ),
+            "http://myarchive.org/memento/20080202062913/http://example2.com/content/frame4.htm":
+                mock_response(
+                    headers = {},
+                    text = "frame4",
+                    status=200
+                ),
+            "{}{}".format(timegate_stem, "http://example2.com/content/frame4.htm"):
+                mock_response(
+                    headers = { 'location': "http://myarchive.org/memento/20080202062913/http://example2.com/content/frame4.htm" },
+                    text = "",
+                    status=302
+                )
+
+        }
+
+        expected_raw_content = """<html><body>
+frame1
+frame2
+frame3
+frame4
+</body></html>"""
+
+        expected_content = expected_raw_content
+
+        mh = mock_httpcache(cachedict)
+
+        mr = memento_resource_factory(urim, mh)
+
+        expected_mdt = datetime.strptime(
+            "Sat, 02 Feb 2008 06:29:13 GMT", 
+            "%a, %d %b %Y %H:%M:%S GMT"
+        )
+
+        self.maxDiff = None
+
+        self.assertEqual(type(mr), WaybackMemento)
+
+        self.assertEqual(mr.memento_datetime, expected_mdt)
+        self.assertEqual(mr.timegate, expected_urig)
+        self.assertEqual(mr.original_uri, expected_original_uri)
+        self.assertEqual(mr.content, expected_content)
+        # self.assertEqual(mr.raw_content, expected_raw_content)

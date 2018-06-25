@@ -7,6 +7,7 @@ import io
 import aiu
 
 from datetime import datetime
+from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
@@ -85,7 +86,9 @@ class MementoResource:
 
         self.urir = None
         self.urig = None
-        self.memento_dt = None     
+        self.memento_dt = None
+
+        self.framecontent = []
 
     @property
     def memento_datetime(self):
@@ -112,9 +115,73 @@ class MementoResource:
 
         return self.urig
 
+    def get_content_from_frames(self):
+
+        soup = BeautifulSoup(self.response.text, 'html5lib')
+
+        # self.framecontent.append(self.response.text)
+
+        frames = soup.findAll("frame")
+
+        for frame in frames:
+            urig = None
+            frameuri = frame['src']
+
+            o = urlparse(frameuri)
+
+            # deal with relative URIs
+            if o.netloc == '':
+
+                frameuri = urljoin(self.original_uri, frameuri)
+
+                timegate_stem = self.timegate[0:self.timegate.find(self.original_uri)]
+
+                if timegate_stem[-1] != '/':
+                    urig = '/'.join([timegate_stem, frameuri])
+
+            if urig is None:
+                urig = timegate_stem + frameuri
+
+            response = self.http_cache.get(urig, 
+                headers={
+                    'accept-datetime': self.memento_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
+                    })
+
+            if response.status_code == 302:
+                frameuri = response.headers['location']
+
+            response = self.http_cache.get(frameuri)
+            self.framecontent.append(response.text)
+
+        fullcontent = ""
+
+        for content in self.framecontent:
+            soup = BeautifulSoup(content, 'html5lib')
+
+            framecontent = ""
+
+            for item in soup.findAll('body'):
+                for c in item.children:
+                    framecontent += str(c)
+
+            fullcontent += "{}\n".format(framecontent)
+
+        return "<html><body>\n{}</body></html>".format(fullcontent)
+
     @property
     def content(self):
-        return self.response.text
+
+        content = self.response.text
+
+        soup = BeautifulSoup(content, 'html5lib')
+
+        # TODO: BeautifulSoup does not seem to handle framesets inside a <body> tag
+        frames = soup.findAll("frame")
+
+        if len(frames) > 0:
+            content = self.get_content_from_frames()
+
+        return content
 
     @property
     def raw_content(self):

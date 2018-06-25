@@ -27,8 +27,6 @@ class OriginalResource:
         # return extract(self.uri).registered_domain
         o = urlparse(self.uri)
 
-        print("original domain parse: {}".format(o))
-
         return o.netloc.split(':')[0]
         
     @property
