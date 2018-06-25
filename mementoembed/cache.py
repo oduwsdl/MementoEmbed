@@ -38,12 +38,20 @@ def get_http_response_from_cache_model(cache_model, uri, session=requests.sessio
             }
 
             if headers is not None:
-                
+
                 for key in headers:
                     req_headers[key] = headers[key]
 
             response = session.get(uri, headers=req_headers)
-            cache_model.set(uri, response)
+
+            try:
+                #pylint: disable=unused-variable
+                mdt = response.headers['memento-datetime']
+                cache_model.set(uri, response)
+            except KeyError:
+                # only cache 200 responses for non-mementos
+                if response.status_code == 200:
+                    cache_model.set(uri, response)
 
         except ConnectionError:
             raise MementoSurrogateCacheConnectionFailure("Connection error for URI {}".format(uri))
@@ -100,7 +108,7 @@ class HTTPCache:
         self.logger.debug("searching cache before requesting URI {}".format(uri))
         
         try:
-            response = get_http_response_from_cache_model(self.cache_model, uri, session=self.session)
+            response = get_http_response_from_cache_model(self.cache_model, uri, session=self.session, headers=headers)
         except MementoSurrogateCacheConnectionFailure:
             self.logger.warning("Failed to download URI {}".format(uri))
             # give an empty Response object so that other things work

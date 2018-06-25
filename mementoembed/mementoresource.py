@@ -142,16 +142,27 @@ class MementoResource:
             if urig is None:
                 urig = timegate_stem + frameuri
 
-            response = self.http_cache.get(urig, 
+            accept_datetime_str = self.memento_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+            self.logger.debug("using accept-datetime {} with timegate {} ".format(accept_datetime_str, urig))
+
+            response = self.http_cache.get(
+                urig, 
                 headers={
-                    'accept-datetime': self.memento_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
+                    'accept-datetime': accept_datetime_str
                     })
+
+            self.logger.debug("request headers are {}".format(response.request.headers))
+            self.logger.debug("request url is {}".format(response.request.url))
+            self.logger.debug("response is {}".format(response))
 
             if response.status_code == 302:
                 frameuri = response.headers['location']
 
-            response = self.http_cache.get(frameuri)
-            self.framecontent.append(response.text)
+                self.logger.debug("requesting frame URI-M {}".format(frameuri))
+
+                response = self.http_cache.get(frameuri)
+                self.framecontent.append(response.text)
 
         fullcontent = ""
 

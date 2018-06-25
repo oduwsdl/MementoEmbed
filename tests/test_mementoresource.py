@@ -29,6 +29,14 @@ class mock_response:
 
         self.status_code = status
 
+        class mock_request:
+
+            def __init__(self):
+                self.url = "mock_request url"
+                self.headers = {}
+
+        self.request = mock_request()
+
 class mock_httpcache:
     """
         rather than hitting the actual HTTP cache,
