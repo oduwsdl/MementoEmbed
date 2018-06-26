@@ -9,7 +9,8 @@ import aiu
 from urllib.parse import urlparse, urljoin
 
 from .favicon import get_favicon_from_google_service, \
-    get_favicon_from_html, find_conventional_favicon_on_live_web
+    get_favicon_from_html, find_conventional_favicon_on_live_web, \
+    favicon_resource_test
 
 archive_collection_patterns = [
     "http://wayback.archive-it.org/([0-9]*)/[0-9]{14}/.*",
@@ -118,25 +119,30 @@ class ArchiveResource:
         # 1 try the HTML within the archive's web page for a favicon
         if self.archive_favicon_uri is None:
             
-            self.logger.debug("attempting to acquire the archive favicon URI from HTML")
+            self.logger.warn("attempting to acquire the archive favicon URI from HTML")
 
             r = self.httpcache.get(self.uri)
 
             self.archive_favicon_uri = urljoin(self.uri, get_favicon_from_html(r.text))
 
-            if not self.httpcache.is_uri_good(self.archive_favicon_uri):
+            self.logger.warn("got an archive favicon of {}".format(self.archive_favicon_uri))
+
+            r = self.httpcache.get(self.archive_favicon_uri)
+
+            # if not self.httpcache.is_uri_good(self.archive_favicon_uri):
+            if not favicon_resource_test(r):
                 self.archive_favicon_uri = None
 
-        self.logger.debug("archive favicon after step 1: {}".format(self.archive_favicon_uri))
+        self.logger.warn("archive favicon after step 1: {}".format(self.archive_favicon_uri))
 
         # 2. try to construct the favicon URI and look for it on the live web
         if self.archive_favicon_uri is None:
 
-            self.logger.debug("attempting to use the conventional favicon URI to find the archive favicon URI")
+            self.logger.warn("attempting to use the conventional favicon URI to find the archive favicon URI")
 
             self.archive_favicon_uri = find_conventional_favicon_on_live_web(self.scheme, self.domain, self.httpcache)
 
-        self.logger.debug("archive favicon after step 2: {}".format(self.archive_favicon_uri))
+        self.logger.warn("archive favicon after step 2: {}".format(self.archive_favicon_uri))
 
         # 3. if all else fails, fall back to the Google favicon service
         if self.archive_favicon_uri is None:
@@ -146,9 +152,9 @@ class ArchiveResource:
             self.archive_favicon_uri = get_favicon_from_google_service(
                 self.httpcache, self.uri)
 
-        self.logger.debug("discovered archive favicon at {}".format(self.archive_favicon_uri))
+        self.logger.warn("discovered archive favicon at {}".format(self.archive_favicon_uri))
 
-        self.logger.debug("archive favicon after step 3: {}".format(self.archive_favicon_uri))
+        self.logger.warn("archive favicon after step 3: {}".format(self.archive_favicon_uri))
 
         return self.archive_favicon_uri
 
