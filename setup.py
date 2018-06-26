@@ -1,5 +1,10 @@
 from setuptools import setup
 
+# to get pylint to shut up
+__appname__ = None
+__appversion__ = None
+
+# __appname__, __appversion__, and friends come from here
 exec(open("mementoembed/version.py").read())
 
 setup(
@@ -8,21 +13,22 @@ setup(
     packages=[ __appname__.lower() ],
     include_package_data=True,
     install_requires=[
-        'flask',
-        'bs4',
-        'html5lib',
-        'requests',
-        'readability-lxml',
         'Pillow',
-        'tldextract',
-        'httpcache',
-        'lockfile',
-        'justext',
-        'htmlmin',
-        'dicttoxml',
+        'bs4',
         'cachecontrol',
+        'dicttoxml',
         'filelock',
-        'requests_futures'
+        'flask',
+        'html5lib',
+        'htmlmin',
+        'httpcache',
+        'justext',
+        'lockfile',
+        'readability-lxml',
+        'redis',
+        'requests',
+        'requests_futures',
+        'tldextract'
     ],
     scripts=['bin/fetch_surrogate_data'],
     test_suite="tests"
