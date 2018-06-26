@@ -8,7 +8,7 @@ RUN git clone https://github.com/shawnmjones/archiveit_utilities.git /tmp/archiv
     && pip install /tmp/archiveit_utilities \
     && rm -rf /tmp/archiveit_utilities
 
-RUN apt-get update && apt-get upgrade -y && apt-get install redis-server -y
+RUN apt-get update && apt-get install redis-server -y
 
 WORKDIR /app
 
