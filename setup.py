@@ -1,9 +1,11 @@
 from setuptools import setup
 
+exec(open("mementoembed/version.py").read())
+
 setup(
-    name='mementoembed',
-    version='0.0.1a0',
-    packages=['mementoembed'],
+    name=__appname__.lower(),
+    version=__appversion__,
+    packages=[ __appname__.lower() ],
     include_package_data=True,
     install_requires=[
         'flask',
