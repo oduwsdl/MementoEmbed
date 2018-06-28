@@ -5,6 +5,7 @@ import htmlmin
 import dicttoxml
 import requests
 
+from redis import RedisError
 from flask import Flask, request, render_template, make_response
 from requests.exceptions import Timeout, TooManyRedirects, \
     ChunkedEncodingError, ContentDecodingError, StreamConsumedError, \
@@ -188,6 +189,15 @@ def create_app():
                 "error": "MementoEmbed could not parse the text at URI-M {}".format(urim),
                 "error details": repr(e)
             }), 500
+
+        except RedisError as e:
+
+            return json.dumps({
+                "content": "MementoEmbed could not connect to its database cache, please contact the system owner",
+                "error": "A Redis Error has occurred with MementoEmbed",
+                "error details": repr(e)
+            }), 500
+
 
         return response
 
