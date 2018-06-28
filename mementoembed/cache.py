@@ -116,22 +116,6 @@ class HTTPCache:
 
         return response
 
-    def is_uri_good(self, uri):
-        
-        good = False
-
-        try:
-
-            response = self.get(uri)
-
-            if response.status_code == 200:
-                good = True
-
-        except MementoSurrogateCacheConnectionFailure:
-            self.logger.warning("Failed to check this URI is good {}".format(uri))
-
-        return good
-
     def get_multiple(self, urilist):
         # TODO: log failures
         return get_multiple_http_responses_from_cache_model(self.cache_model, urilist, session=self.session)

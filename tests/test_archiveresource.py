@@ -25,13 +25,6 @@ class mock_httpcache:
     def get(self, uri):
         return self.cachedict[uri]
 
-    def is_uri_good(self, uri):
-
-        if self.cachedict[uri].status_code == 200:
-            return True
-        else:
-            return False
-
 class TestArchiveResource(unittest.TestCase):
 
     def test_simplestuff(self):

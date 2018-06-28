@@ -129,7 +129,6 @@ class ArchiveResource:
 
             r = self.httpcache.get(self.archive_favicon_uri)
 
-            # if not self.httpcache.is_uri_good(self.archive_favicon_uri):
             if not favicon_resource_test(r):
                 self.archive_favicon_uri = None
 
