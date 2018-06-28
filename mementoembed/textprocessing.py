@@ -9,13 +9,23 @@ logger = logging.getLogger(__name__)
 
 p = re.compile(' +')
 
+class TextProcessingError(Exception):
+
+    def __init__(self, message, original_exception=None):
+        self.message = message
+        self.original_exception = original_exception
+
 def get_best_description(htmlcontent):
 
     description = None
 
-    doc = Document(htmlcontent)
-
-    d = doc.score_paragraphs()
+    try:
+        doc = Document(htmlcontent)
+        d = doc.score_paragraphs()
+    except Exception as e:
+        raise TextProcessingError(
+            "failed to process document using readability",
+            original_exception=e)
 
     maxscore = 0
 
@@ -23,29 +33,51 @@ def get_best_description(htmlcontent):
 
     for para in d:
 
-        if d[para]['content_score'] > maxscore:
-            maxpara = d[para]['elem']
-            maxscore = d[para]['content_score']
+        try:
+            if d[para]['content_score'] > maxscore:
+                maxpara = d[para]['elem']
+                maxscore = d[para]['content_score']
+
+        except Exception as e:
+            raise TextProcessingError(
+                "failed to process document using readability",
+                original_exception=e)
 
     if maxpara is not None:
         allparatext = maxpara.text_content().replace('\n', ' ').replace('\r', ' ').strip()
         description = p.sub(' ', allparatext)
     else:
-        paragraphs = justext(htmlcontent, get_stoplist("English"))
+
+        try:
+            paragraphs = justext(htmlcontent, get_stoplist("English"))
+        except Exception as e:
+            raise TextProcessingError(
+                "failed to process document using justext",
+                original_exception=e)
 
         allparatext = ""
         
         for paragraph in paragraphs:
 
-            if not paragraph.is_boilerplate:
+            try:
+                if not paragraph.is_boilerplate:
 
-                allparatext += " {}".format(paragraph.text)
+                    allparatext += " {}".format(paragraph.text)
+            except Exception as e:
+                raise TextProcessingError(
+                    "failed to process document using justext",
+                    original_exception=e)
 
         if allparatext == "":
 
             for paragraph in paragraphs:
 
-                allparatext += "{}".format(paragraph.text)
+                try:
+                    allparatext += "{}".format(paragraph.text)
+                except Exception as e:
+                    raise TextProcessingError(
+                        "failed to process document using justext",
+                        original_exception=e)
         
         if allparatext != "":
             description = allparatext.strip()
@@ -58,25 +90,35 @@ def get_best_description(htmlcontent):
 
 def extract_text_snippet(htmlcontent):
     
-    soup = BeautifulSoup(htmlcontent, 'html5lib')
+    try:
+        soup = BeautifulSoup(htmlcontent, 'html5lib')
+    except Exception as e:
+        raise TextProcessingError(
+            "failed to open document using BeautifulSoup",
+            original_exception=e)
 
     snippet = None
 
     description_dict = {}
 
-    for metatag in soup.find_all("meta"):
+    try:
+        for metatag in soup.find_all("meta"):
 
-        if metatag.get("property") == "og:description":
-            description_dict["og:description"] = metatag.get("content")
+            if metatag.get("property") == "og:description":
+                description_dict["og:description"] = metatag.get("content")
 
-        if metatag.get("name") == "og:description":
-            description_dict["og:description"] = metatag.get("content")
+            if metatag.get("name") == "og:description":
+                description_dict["og:description"] = metatag.get("content")
 
-        if metatag.get("name") == "twitter:description":
-            description_dict["twitter:description"] = metatag.get("content")
+            if metatag.get("name") == "twitter:description":
+                description_dict["twitter:description"] = metatag.get("content")
 
-        if metatag.get("property") == "twitter:description":
-            description_dict["twitter:description"] = metatag.get("content")
+            if metatag.get("property") == "twitter:description":
+                description_dict["twitter:description"] = metatag.get("content")
+    except Exception as e:
+        raise TextProcessingError(
+            "failed to process document using BeautifulSoup",
+            original_exception=e)
 
     # 1. favor title from the OGP metadata
     if "og:description" in description_dict:
@@ -104,25 +146,36 @@ def extract_text_snippet(htmlcontent):
 
 def extract_title(htmlcontent):
 
-    soup = BeautifulSoup(htmlcontent, 'html5lib')
+    try:
+        soup = BeautifulSoup(htmlcontent, 'html5lib')
+    except Exception as e:
+        raise TextProcessingError(
+            "failed to open document using BeautifulSoup",
+            original_exception=e)
 
     title = None
 
     titledict = {}
     
-    for metatag in soup.find_all("meta"):
+    try:
+        for metatag in soup.find_all("meta"):
 
-        if metatag.get("property") == "og:title":
-            titledict["og:title"] = metatag.get("content")
+            if metatag.get("property") == "og:title":
+                titledict["og:title"] = metatag.get("content")
 
-        if metatag.get("name") == "og:title":
-            titledict["og:title"] = metatag.get("content")
+            if metatag.get("name") == "og:title":
+                titledict["og:title"] = metatag.get("content")
 
-        if metatag.get("name") == "twitter:title":
-            titledict["twitter:title"] = metatag.get("content")
+            if metatag.get("name") == "twitter:title":
+                titledict["twitter:title"] = metatag.get("content")
 
-        if metatag.get("property") == "twitter:title":
-            titledict["twitter:title"] = metatag.get("content")
+            if metatag.get("property") == "twitter:title":
+                titledict["twitter:title"] = metatag.get("content")
+
+    except Exception as e:
+        raise TextProcessingError(
+            "failed to process document using BeautifulSoup",
+            original_exception=e)
 
     # 1. favor title from the OGP metadata
     if "og:title" in titledict:

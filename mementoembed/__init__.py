@@ -12,8 +12,9 @@ from requests.exceptions import Timeout, TooManyRedirects, \
     UnrewindableBodyError, ConnectionError
 
 from .mementosurrogate import MementoSurrogate
-from .mementoresource import NotAMementoError
+from .mementoresource import NotAMementoError, MementoParsingError
 from .cache import HTTPCache, DictCacheModel, RedisCacheModel
+from .textprocessing import TextProcessingError
 
 __all__ = [
     "MementoSurrogate"
@@ -175,8 +176,16 @@ def create_app():
 
         except UnrewindableBodyError as e:
             return json.dumps({
-                "content": "MementoEmbed had problems processing URI-M {}".format(urim),
-                "error": "MementoEmbed had problems processing URI-M {}".format(urim),
+                "content": "MementoEmbed had problems extracting content for URI-M {}".format(urim),
+                "error": "MementoEmbed had problems extracting content for URI-M {}".format(urim),
+                "error details": repr(e)
+            }), 500
+
+        except (TextProcessingError, MementoParsingError) as e:
+
+            return json.dumps({
+                "content": "MementoEmbed could not process the text at URI-M<br /> {} <br />Are you sure this is an HTML page?".format(urim),
+                "error": "MementoEmbed could not parse the text at URI-M {}".format(urim),
                 "error details": repr(e)
             }), 500
 
