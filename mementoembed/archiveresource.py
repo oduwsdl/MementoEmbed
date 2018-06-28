@@ -177,8 +177,8 @@ class ArchiveResource:
 
                 aic = aiu.ArchiveItCollection(
                     collection_id=self.collection_id,
-                    logger=self.logger,
-                    working_directory=self.working_directory
+                    session=self.httpcache,
+                    logger=self.logger
                     )
 
                 self.archive_collection_name = aic.get_collection_name()

@@ -4,6 +4,7 @@ import json
 import htmlmin
 import dicttoxml
 import requests
+import requests_cache
 
 from redis import RedisError
 from flask import Flask, request, render_template, make_response
@@ -81,8 +82,11 @@ def create_app():
         app.logger.debug("received url {}".format(urim))
         app.logger.debug("format: {}".format(responseformat))
 
-        cachemodel = appconfig['cache_model']
-        httpcache = HTTPCache(cachemodel, requests.session(), logger=app.logger)
+        # cachemodel = appconfig['cache_model']
+        # httpcache = HTTPCache(cachemodel, requests.session(), logger=app.logger)
+
+        requests_cache.install_cache('mementoembed_cache')
+        httpcache = requests.Session()
 
         try:
             
@@ -199,6 +203,8 @@ def create_app():
             }), 500
 
         except Exception as e:
+
+            app.logger.warning("Exception {} has been raised, returning warning".format(e))
 
             return json.dumps({
                 "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
