@@ -58,32 +58,7 @@ function generate_cards() {
 
                 }
 
-                if (linkStatus != null) {
-                    belowtitleHTML += "<br /><br />";
-
-                    if (linkStatus == "Rotten") {
-                        
-                        belowtitleHTML += '<span style="color: #a8201a;">'
-                        belowtitleHTML += "Live web resource is unavailable";
-                        belowtitleHTML += '</span>';
-
-
-                    } else {
-                        linkstatusmsg = '<span style="color: #143642;">'
-                        linkstatusmsg += "Live web resource is available";
-                        linkstatusmsg += '</span>';                    
-
-                        if (urir != null) {
-                            belowtitleHTML += '<a style="text-decoration:none" href="' + urir + '">' + linkstatusmsg + '</a>';
-                        }
-
-                    }
-
-                    belowtitleHTML += "<br /><br />";
-
-                }
-
-                belowtitleHTML += '</div>';
+                belowtitleHTML += '</div><br />';
 
                 me_titles[j].insertAdjacentHTML("afterend", belowtitleHTML);
 
@@ -93,9 +68,6 @@ function generate_cards() {
                 me_titles[j].style.fontSize = "14px";
                 me_titles[j].style.fontWeight = "700";
                 me_titles[j].style.lineHeight = "19.6px";
-                // me_titles[j].style.textDecorationColor = "rgb(9, 116, 183)";
-                // me_titles[j].style.textDecorationLine = "none";
-                // me_titles[j].style.textDecoration = "none";
                 me_titles[j].style.padding = "0px";
                 me_titles[j].style.margin = "0px";
                 me_titles[j].style.marginBottom = "1px";
@@ -118,9 +90,34 @@ function generate_cards() {
                     belowTextRight += '<a class="me-pubdate" href="' + urim + '">' + uDomain + '&nbsp;&nbsp;@&nbsp;&nbsp;' + uPubDate + '</a>';                
                 }
 
-                belowTextRight += '</div>';
+                if (linkStatus != null) {
+                    belowTextRight += "&nbsp;";
 
-                me_textright[j].insertAdjacentHTML("afterend", belowTextRight);
+                    if (linkStatus == "Rotten") {
+                        
+                        belowTextRight += '(<span style="color: #a8201a;">'
+                        belowTextRight += "Current version unavailable";
+                        belowTextRight += '</span>)';
+
+
+                    } else {
+                        linkstatusmsg = '<span style="color: #143642;">'
+                        linkstatusmsg += "Current version";
+                        linkstatusmsg += '</span>';                    
+
+                        if (urir != null) {
+                            belowTextRight += '(<a style="text-decoration:none" href="' + urir + '">' + linkstatusmsg + '</a>)';
+                        }
+
+                    }
+
+                    // belowtitleHTML += "<br /><br />";
+
+                    me_textright[j].insertAdjacentHTML("afterend", belowTextRight);
+
+                }
+
+                belowTextRight += '</div>';
 
                 console.log("done with snippet...");
 
