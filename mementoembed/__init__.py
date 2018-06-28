@@ -6,6 +6,10 @@ import dicttoxml
 import requests
 
 from flask import Flask, request, render_template, make_response
+from requests.exceptions import Timeout, TooManyRedirects, \
+    ChunkedEncodingError, ContentDecodingError, StreamConsumedError, \
+    URLRequired, MissingSchema, InvalidSchema, InvalidURL, \
+    UnrewindableBodyError, ConnectionError
 
 from .mementosurrogate import MementoSurrogate
 from .mementoresource import NotAMementoError
@@ -135,7 +139,8 @@ def create_app():
 
             app.logger.info("returning output as application/json...")
 
-        except NotAMementoError:
+        except NotAMementoError as e:
+            e2 = e.original_exception
             return json.dumps({
                 "content":
                     render_template(
@@ -143,24 +148,37 @@ def create_app():
                     urim = urim
                     ),
                 "error":
-                    "Not a memento"
+                    "Not a memento",
+                "error details": repr(e2)
                 }), 404
 
-        # except MementoContentParseError:
-        #     app.logger.error("There was a problem parsing the memento at {}".format(urim))
-        #     return json.dumps({
-        #         "content": "There was a problem parsing the memento at {}".format(urim),
-        #         "error": "Could not parse memento"
-        #      }), 500
+        except (Timeout, ConnectionError) as e:
+            return json.dumps({
+                "content": "MementoEmbed could not reach the server to download {}".format(urim),
+                "error": "MementoEmbed timed out trying to acquire {} from the server".format(urim),
+                "error details": repr(e)
+            }), 504
 
-        except requests.ConnectionError:
-            app.logger.error("There was a problem reaching the archive holding this memento.")
-            return ({
-                "content": "There was a problem reaching the archive holding the memento at {}".format(
-                urim
-                ),
-                "error": "Connection Error"
-            }), 503
+        except (TooManyRedirects, ChunkedEncodingError, ContentDecodingError, StreamConsumedError) as e:
+            return json.dumps({
+                "content": "MementoEmbed could not download {}".format(urim),
+                "error": "MementoEmbed did not timeout, but had problems downloading {}".format(urim),
+                "error details": repr(e)
+            }), 502
+
+        except (URLRequired, MissingSchema, InvalidSchema, InvalidURL) as e:
+            return json.dumps({
+                "content": "The URI-M {} is not valid".format(urim),
+                "error": "MementoEmbed encountered problems processing {}".format(urim),
+                "error details": repr(e)
+            }), 400
+
+        except UnrewindableBodyError as e:
+            return json.dumps({
+                "content": "MementoEmbed had problems processing URI-M {}".format(urim),
+                "error": "MementoEmbed had problems processing URI-M {}".format(urim),
+                "error details": repr(e)
+            }), 500
 
         return response
 
