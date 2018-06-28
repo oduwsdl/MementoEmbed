@@ -193,10 +193,18 @@ def create_app():
         except RedisError as e:
 
             return json.dumps({
-                "content": "MementoEmbed could not connect to its database cache, please contact the system owner",
-                "error": "A Redis Error has occurred with MementoEmbed",
+                "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
+                "error": "A Redis Error has occurred with MementoEmbed.",
                 "error details": repr(e)
             }), 500
+
+        except Exception as e:
+
+            return json.dumps({
+                "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
+                "error": "A generic exception was caught by MementoEmbed. Please check the log.",
+                "error details": repr(e)
+            })
 
 
         return response
