@@ -13,6 +13,12 @@ from bs4 import BeautifulSoup
 
 wayback_pattern = re.compile('(/[0-9]{14})/')
 
+class NotAMementoError(Exception):
+    
+    def __init__(self, message, original_exception=None):
+        self.message = message
+        self.original_exception = original_exception
+
 def memento_resource_factory(urim, http_cache, logger=None):
 
     logger = logger or logging.getLogger(__name__)
@@ -87,6 +93,23 @@ class MementoResource:
         self.urir = None
         self.urig = None
         self.memento_dt = None
+
+        try:
+            self.memento_dt = self.memento_datetime
+        except KeyError as e:
+            raise NotAMementoError("no memento-datetime header", original_exception=e)
+
+        try:
+            self.urir = self.original_uri
+        except KeyError as e:
+            raise NotAMementoError("error parsing link header for original URI",
+                original_exception=e)
+
+        try:
+            self.urig = self.timegate
+        except KeyError as e:
+            raise NotAMementoError("error parsing link header for timegate URI",
+                original_exception=e)
 
         self.framecontent = []
         self.framescontent = None

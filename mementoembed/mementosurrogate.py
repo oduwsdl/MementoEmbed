@@ -6,29 +6,29 @@ from .imageselection import get_best_image
 from .archiveresource import ArchiveResource
 from .textprocessing import extract_text_snippet, extract_title
 
-class NotMementoException(Exception):
-    # TODO: raise this exception
-    pass
+# class NotMementoException(Exception):
+#     # TODO: raise this exception
+#     pass
 
-class MementoConnectionError(Exception):
-    # TODO: raise this exception, it should generate a 503
-    pass
+# class MementoConnectionError(Exception):
+#     # TODO: raise this exception, it should generate a 503
+#     pass
 
-class MementoConnectionTimeout(Exception):
-    # TODO: raise this exception, it should generate a 504
-    pass
+# class MementoConnectionTimeout(Exception):
+#     # TODO: raise this exception, it should generate a 504
+#     pass
 
-class MementoImageConnectionError(Exception):
-    # TODO: raise this exception, it should generate a 503
-    pass
+# class MementoImageConnectionError(Exception):
+#     # TODO: raise this exception, it should generate a 503
+#     pass
 
-class MementoImageConnectionTimeout(Exception):
-    # TODO: raise this exception, it should generate a 504
-    pass
+# class MementoImageConnectionTimeout(Exception):
+#     # TODO: raise this exception, it should generate a 504
+#     pass
 
-class MementoContentParseError(Exception):
-    """ Something went wrong parsing the Memento Content """
-    pass
+# class MementoContentParseError(Exception):
+#     """ Something went wrong parsing the Memento Content """
+#     pass
 
 class MementoSurrogate:
     """

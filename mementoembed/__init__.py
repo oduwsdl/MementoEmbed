@@ -7,16 +7,12 @@ import requests
 
 from flask import Flask, request, render_template, make_response
 
-from .mementosurrogate import MementoSurrogate, NotMementoException, \
-    MementoConnectionTimeout, MementoImageConnectionError, \
-    MementoImageConnectionTimeout, MementoContentParseError
-
+from .mementosurrogate import MementoSurrogate
+from .mementoresource import NotAMementoError
 from .cache import HTTPCache, DictCacheModel, RedisCacheModel
 
 __all__ = [
-    "MementoSurrogate", "NotMementoException", "MementoConnectionTimeout",
-    "MementoImageConnectionError", "MementoImageConnectionTimeout",
-    "MementoContentParseError"
+    "MementoSurrogate"
     ]
 
 class MementoEmbedException(Exception):
@@ -139,7 +135,7 @@ def create_app():
 
             app.logger.info("returning output as application/json...")
 
-        except NotMementoException:
+        except NotAMementoError:
             return json.dumps({
                 "content":
                     render_template(
@@ -148,14 +144,14 @@ def create_app():
                     ),
                 "error":
                     "Not a memento"
-                }), 400
+                }), 404
 
-        except MementoContentParseError:
-            app.logger.error("There was a problem parsing the memento at {}".format(urim))
-            return json.dumps({
-                "content": "There was a problem parsing the memento at {}".format(urim),
-                "error": "Could not parse memento"
-             }), 500
+        # except MementoContentParseError:
+        #     app.logger.error("There was a problem parsing the memento at {}".format(urim))
+        #     return json.dumps({
+        #         "content": "There was a problem parsing the memento at {}".format(urim),
+        #         "error": "Could not parse memento"
+        #      }), 500
 
         except requests.ConnectionError:
             app.logger.error("There was a problem reaching the archive holding this memento.")
