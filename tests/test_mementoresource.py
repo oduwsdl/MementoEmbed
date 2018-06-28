@@ -71,6 +71,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -132,6 +133,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -144,7 +146,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             raw_urim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = expected_raw_content,
                     status=200
                 )
@@ -199,6 +203,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -211,7 +216,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             raw_urim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = expected_raw_content,
                     status=200
                 )
@@ -276,6 +283,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -288,7 +296,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             zipurim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = "",
                     content = zip_content,
                     status=200
@@ -364,6 +374,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="timegate",
                             <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
@@ -426,6 +437,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -444,7 +456,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             zipurim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html',
+                    },
                     text = "",
                     content = zip_content,
                     status=200
@@ -495,6 +509,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -509,6 +524,7 @@ class TestMementoResource(unittest.TestCase):
             redirurim: 
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -522,7 +538,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             redirurim_raw: 
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html',
+                    },
                     text = expected_raw_content,
                     content = expected_raw_content,
                     status = 200
@@ -591,6 +609,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -603,13 +622,17 @@ class TestMementoResource(unittest.TestCase):
                 ),
             raw_urim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = raw_content,
                     status=200
                 ),
             "{}/{}".format(memento_stem, urljoin(urir, "frame1.htm")):
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = "<html><body><p>frame1</p></body></html>",
                     status=200
                 ),
