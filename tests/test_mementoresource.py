@@ -7,7 +7,7 @@ from datetime import datetime
 from urllib.parse import urljoin
 
 from mementoembed.mementoresource import MementoResource, WaybackMemento, \
-    IMFMemento, ArchiveIsMemento, memento_resource_factory
+    IMFMemento, ArchiveIsMemento, memento_resource_factory, NotAMementoError
 
 testdir = os.path.dirname(os.path.realpath(__file__))
 
@@ -71,6 +71,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -132,6 +133,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -144,7 +146,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             raw_urim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = expected_raw_content,
                     status=200
                 )
@@ -199,6 +203,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -211,7 +216,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             raw_urim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = expected_raw_content,
                     status=200
                 )
@@ -276,6 +283,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -288,7 +296,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             zipurim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = "",
                     content = zip_content,
                     status=200
@@ -314,6 +324,98 @@ class TestMementoResource(unittest.TestCase):
         self.assertEqual(mr.content, expected_content)
         self.assertEqual(mr.raw_content, bytes(expected_raw_content.encode('utf-8')))
 
+    def test_bad_headers(self):
+
+        urim = "http://myarchive.org/memento/20080202062913/http://example.com/something"
+        raw_urim = "http://myarchive.org/memento/20080202062913id_/http://example.com/something"
+        urir = "http://example.com/something"
+        expected_urig = "http://myarchive.org/timegate/http://example.com/something"
+
+        content = """
+        <html>
+            <head>
+                <title>Is this a good title?</title>
+            </head>
+                <!-- ARCHIVE SPECIFIC STUFF -->
+                <frameset rows="*" cols="130,*" framespacing="0" border="0">
+                    <frame src="frame1.htm">
+                    <frame src="pages/frame2.htm">
+                    <frame src="/content/frame3.htm">
+                    <frame src="http://example2.com/content/frame4.htm">
+                </frameset>
+        </html>"""
+
+        cachedict = {
+            urim:
+                mock_response(
+                    headers = {
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(urir, expected_urig, urim)
+                    },
+                    text = content,
+                    status=200
+                ),
+            raw_urim:
+                mock_response(
+                    headers = {},
+                    text = "",
+                    status = 404
+                )
+        }
+
+        mh = mock_httpcache(cachedict)
+
+        self.assertRaises( NotAMementoError, memento_resource_factory, urim, mh )
+
+        cachedict = {
+            urim:
+                mock_response(
+                    headers = {
+                        'content-type': 'text/html',
+                        'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
+                        'link': """<{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_urig, urim)
+                    },
+                    text = content,
+                    status=200
+                ),
+            raw_urim:
+                mock_response(
+                    headers = {},
+                    text = "",
+                    status = 404
+                )
+        }
+
+        mh = mock_httpcache(cachedict)
+
+        self.assertRaises( NotAMementoError, memento_resource_factory, urim, mh )
+
+        cachedict = {
+            urim:
+                mock_response(
+                    headers = {
+                        'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT"
+                        },
+                    text = content,
+                    status=200
+                ),
+            raw_urim:
+                mock_response(
+                    headers = {},
+                    text = "",
+                    status = 404
+                )
+        }
+
+        mh = mock_httpcache(cachedict)
+
+        self.assertRaises( NotAMementoError, memento_resource_factory, urim, mh )
 
     def test_archiveiscase_datetime_in_uri(self):
 
@@ -335,6 +437,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -353,7 +456,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             zipurim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html',
+                    },
                     text = "",
                     content = zip_content,
                     status=200
@@ -404,6 +509,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -418,6 +524,7 @@ class TestMementoResource(unittest.TestCase):
             redirurim: 
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -431,7 +538,9 @@ class TestMementoResource(unittest.TestCase):
                 ),
             redirurim_raw: 
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html',
+                    },
                     text = expected_raw_content,
                     content = expected_raw_content,
                     status = 200
@@ -500,6 +609,7 @@ class TestMementoResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -512,13 +622,17 @@ class TestMementoResource(unittest.TestCase):
                 ),
             raw_urim:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = raw_content,
                     status=200
                 ),
             "{}/{}".format(memento_stem, urljoin(urir, "frame1.htm")):
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = "<html><body><p>frame1</p></body></html>",
                     status=200
                 ),

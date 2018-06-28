@@ -53,6 +53,7 @@ class TestOriginalResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -101,6 +102,7 @@ class TestOriginalResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -113,7 +115,9 @@ class TestOriginalResource(unittest.TestCase):
                 ),
             expected_original_uri:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html'
+                    },
                     text = "",
                     status=200
                 )
@@ -152,6 +156,7 @@ class TestOriginalResource(unittest.TestCase):
             urim:
                 mock_response(
                     headers = {
+                        'content-type': 'text/html',
                         'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
                         'link': """<{}>; rel="original", 
                             <{}>; rel="timegate",
@@ -164,7 +169,9 @@ class TestOriginalResource(unittest.TestCase):
                 ),
             expected_original_uri:
                 mock_response(
-                    headers = {},
+                    headers = {
+                        'content-type': 'text/html',
+                    },
                     text = "",
                     status=200
                 ),

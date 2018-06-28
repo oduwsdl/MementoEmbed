@@ -5,7 +5,7 @@ import logging
 import redis
 import requests
 
-from requests.exceptions import ConnectionError, TooManyRedirects, MissingSchema
+from requests.exceptions import RequestException
 
 from .version import __useragent__
 
@@ -31,36 +31,25 @@ def get_http_response_from_cache_model(cache_model, uri, session=requests.sessio
     
     if response is None:
 
+        req_headers = {
+            'user-agent': __useragent__
+        }
+
+        if headers is not None:
+
+            for key in headers:
+                req_headers[key] = headers[key]
+
+        response = session.get(uri, headers=req_headers)
+
         try:
-
-            req_headers = {
-                'user-agent': __useragent__
-            }
-
-            if headers is not None:
-
-                for key in headers:
-                    req_headers[key] = headers[key]
-
-            response = session.get(uri, headers=req_headers)
-
-            try:
-                #pylint: disable=unused-variable
-                mdt = response.headers['memento-datetime']
+            #pylint: disable=unused-variable
+            mdt = response.headers['memento-datetime']
+            cache_model.set(uri, response)
+        except KeyError:
+            # only cache 200 responses for non-mementos
+            if response.status_code == 200:
                 cache_model.set(uri, response)
-            except KeyError:
-                # only cache 200 responses for non-mementos
-                if response.status_code == 200:
-                    cache_model.set(uri, response)
-
-        except ConnectionError:
-            raise MementoSurrogateCacheConnectionFailure("Connection error for URI {}".format(uri))
-        
-        except TooManyRedirects:
-            raise MementoSurrogateCacheConnectionFailure("Too many redirects encountered for URI {}".format(uri))
-
-        except MissingSchema:
-            raise MementoSurrogateCacheConnectionFailure("Missing schema in URI {}".format(uri))
 
     return response
 
@@ -79,7 +68,7 @@ def get_multiple_http_responses_from_cache_model(cache_model, urilist, session=r
 
             try:
                 response = future.result()
-            except MementoSurrogateCacheConnectionFailure as e:
+            except RequestException as e:
                 # TODO: log this
                 errors[uri] = e
             else:
@@ -107,12 +96,7 @@ class HTTPCache:
 
         self.logger.debug("searching cache before requesting URI {}".format(uri))
         
-        try:
-            response = get_http_response_from_cache_model(self.cache_model, uri, session=self.session, headers=headers)
-        except MementoSurrogateCacheConnectionFailure:
-            self.logger.warning("Failed to download URI {}".format(uri))
-            # give an empty Response object so that other things work
-            response = requests.models.Response()
+        response = get_http_response_from_cache_model(self.cache_model, uri, session=self.session, headers=headers)
 
         return response
 

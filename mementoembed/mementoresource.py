@@ -13,6 +13,18 @@ from bs4 import BeautifulSoup
 
 wayback_pattern = re.compile('(/[0-9]{14})/')
 
+class NotAMementoError(Exception):
+    
+    def __init__(self, message, original_exception=None):
+        self.message = message
+        self.original_exception = original_exception
+
+class MementoParsingError(Exception):
+
+    def __init__(self, message, original_exception=None):
+        self.message = message
+        self.original_exception = original_exception
+
 def memento_resource_factory(urim, http_cache, logger=None):
 
     logger = logger or logging.getLogger(__name__)
@@ -21,34 +33,48 @@ def memento_resource_factory(urim, http_cache, logger=None):
 
     content = response.text
 
-    soup = BeautifulSoup(content, "html5lib")
+    try:
+        soup = BeautifulSoup(content, "html5lib")
+    except Exception as e:
+        raise MementoParsingError(
+            "failed to open document using BeautifulSoup",
+            original_exception=e)
 
-    # TODO: META redirects?
-
-    metatags = soup.find_all("meta")
+    try:
+        metatags = soup.find_all("meta")
+    except Exception as e:
+        raise MementoParsingError(
+            "failed to parse document using BeautifulSoup",
+            original_exception=e)
 
     given_urim = urim
 
     for tag in metatags:
+        
+        try:
+            if tag.get("http-equiv") == "refresh":
 
-        if tag.get("http-equiv") == "refresh":
+                logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
 
-            logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
+                if tag.get("content"):
 
-            if tag.get("content"):
+                    url = [i.strip() for i in tag.get("content").split(';')][1]
+                    url = url.split('=')[1]
+                    url = url.strip('"')
+                    redirect_url = url.strip("'")
+                    urim = redirect_url
 
-                url = [i.strip() for i in tag.get("content").split(';')][1]
-                url = url.split('=')[1]
-                url = url.strip('"')
-                redirect_url = url.strip("'")
-                urim = redirect_url
+                    logger.info("acquiring redirected URI-M {}".format(urim))
 
-                logger.info("acquiring redirected URI-M {}".format(urim))
+                    resp = http_cache.get(urim)
 
-                resp = http_cache.get(urim)
+                    if resp.status_code == 200:
+                        soup = BeautifulSoup(resp.text, "html5lib")
 
-                if resp.status_code == 200:
-                    soup = BeautifulSoup(resp.text, "html5lib")
+        except Exception as e:
+            raise MementoParsingError(
+                "failed to parse document using BeautifulSoup",
+                original_exception=e)
 
     # maybe we search for /[0-9]{14}/ in the URI and then try id_
     if wayback_pattern.search(urim):
@@ -88,6 +114,26 @@ class MementoResource:
         self.urig = None
         self.memento_dt = None
 
+        try:
+            self.memento_dt = self.memento_datetime
+        except KeyError as e:
+            raise NotAMementoError("no memento-datetime header", original_exception=e)
+
+        try:
+            self.urir = self.original_uri
+        except KeyError as e:
+            raise NotAMementoError("error parsing link header for original URI",
+                original_exception=e)
+
+        try:
+            self.urig = self.timegate
+        except KeyError as e:
+            raise NotAMementoError("error parsing link header for timegate URI",
+                original_exception=e)
+        
+        if 'text/html' not in self.response.headers['content-type']:
+            raise MementoParsingError("Cannot process non-HTML content")
+
         self.framecontent = []
         self.framescontent = None
 
@@ -120,15 +166,30 @@ class MementoResource:
 
         if self.framescontent is None:
 
-            soup = BeautifulSoup(self.response.text, 'html5lib')
+            try:
+                soup = BeautifulSoup(self.response.text, 'html5lib')
+            except Exception as e:
+                raise MementoParsingError(
+                    "failed to open document using BeautifulSoup",
+                    original_exception=e)
 
-            title = soup.title.text
+            try:
+                title = soup.title.text
+            except Exception as e:
+                raise MementoParsingError(
+                    "failed to parse document using BeautifulSoup",
+                    original_exception=e)
 
             self.logger.debug("title is {}".format(title))
 
             # self.framecontent.append(self.response.text)
 
-            frames = soup.findAll("frame")
+            try:
+                frames = soup.findAll("frame")
+            except Exception as e:
+                raise MementoParsingError(
+                    "failed to parse document using BeautifulSoup",
+                    original_exception=e)
 
             for frame in frames:
                 urig = None
@@ -175,14 +236,26 @@ class MementoResource:
             self.logger.debug("framecontent size: {}".format(len(self.framecontent)))
 
             for content in self.framecontent:
-                soup = BeautifulSoup(content, 'html5lib')
+
+                try:
+                    soup = BeautifulSoup(content, 'html5lib')
+                except Exception as e:
+                    raise MementoParsingError(
+                        "failed to open document using BeautifulSoup",
+                        original_exception=e)
 
                 framecontent = ""
 
-                for item in soup.findAll('body'):
-                    for c in item.children:
-                        # self.logger.debug("adding:\n{}".format(str(c)))
-                        framecontent += str(c)
+                try:
+                    for item in soup.findAll('body'):
+                        for c in item.children:
+                            # self.logger.debug("adding:\n{}".format(str(c)))
+                            framecontent += str(c)
+
+                except Exception as e:
+                    raise MementoParsingError(
+                        "failed to open document using BeautifulSoup",
+                        original_exception=e)
 
                 fullcontent += "{}\n".format(framecontent)
 
@@ -221,14 +294,25 @@ class ArchiveIsMemento(MementoResource):
 
         if wayback_pattern.search(self.urim):
             
-            soup = BeautifulSoup(self.content, "html5lib")
+            try:
+                soup = BeautifulSoup(self.content, "html5lib")
+            except Exception as e:
+                raise MementoParsingError(
+                    "failed to open document using BeautifulSoup",
+                    original_exception=e)
 
-            anchors = soup.find_all('a')
+            try:
+                anchors = soup.find_all('a')
 
-            for a in anchors:
-                if a.text == 'download .zip':
-                    self.compressed_memento_urim = a['href']
-                    break
+                for a in anchors:
+                    if a.text == 'download .zip':
+                        self.compressed_memento_urim = a['href']
+                        break
+
+            except Exception as e:
+                raise MementoParsingError(
+                    "failed to parse document using BeautifulSoup",
+                    original_exception=e)
 
         else:
 
@@ -258,9 +342,19 @@ class IMFMemento(MementoResource):
 
         content = self.response.text
 
-        soup = BeautifulSoup(content, "html5lib")
+        try:
+            soup = BeautifulSoup(content, "html5lib")
+        except Exception as e:
+            raise MementoParsingError(
+                "failed to open document using BeautifulSoup",
+                original_exception=e)
 
-        twp = soup.find("iframe", {"id": "theWebpage"})
+        try:
+            twp = soup.find("iframe", {"id": "theWebpage"})
+        except Exception as e:
+            raise MementoParsingError(
+                "failed to parse document using BeautifulSoup",
+                original_exception=e)
 
         self.raw_urim = twp.get('src')
 
@@ -274,9 +368,19 @@ class WaybackMemento(MementoResource):
     @property
     def raw_content(self):
 
-        soup = BeautifulSoup(self.response.text, 'html5lib')
+        try:
+            soup = BeautifulSoup(self.response.text, 'html5lib')
+        except Exception as e:
+            raise MementoParsingError(
+                "failed to open document using BeautifulSoup",
+                original_exception=e)
 
-        frames = soup.findAll("frame")
+        try:
+            frames = soup.findAll("frame")
+        except Exception as e:
+            raise MementoParsingError(
+                "failed to parse document using BeautifulSoup",
+                original_exception=e)
 
         if len(frames) > 0:
 

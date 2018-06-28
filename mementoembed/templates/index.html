@@ -153,6 +153,7 @@
                             console.log("failed to connect to oEmbed endpoint");
                             document.getElementById('uri_submitted').focus();
                             message = '*The MementoEmbed Service is Down!*';
+                            error = true;
                         } else {
 
                             if (data.responseText === undefined) {
@@ -167,6 +168,7 @@
                                 } else {
                                     // message = data.responseText;
                                     message = responseJSON['content']
+                                    error = true;
                                 }
 
                             }
