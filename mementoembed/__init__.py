@@ -17,6 +17,7 @@ from .mementosurrogate import MementoSurrogate
 from .mementoresource import NotAMementoError, MementoParsingError
 from .cache import HTTPCache, DictCacheModel, RedisCacheModel
 from .textprocessing import TextProcessingError
+from .version import __useragent__
 
 __all__ = [
     "MementoSurrogate"
@@ -86,7 +87,9 @@ def create_app():
         # httpcache = HTTPCache(cachemodel, requests.session(), logger=app.logger)
 
         requests_cache.install_cache('mementoembed_cache')
+        
         httpcache = requests.Session()
+        httpcache.headers.update({'User-Agent': __useragent__})
 
         try:
             
