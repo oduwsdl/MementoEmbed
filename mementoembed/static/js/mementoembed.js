@@ -102,9 +102,9 @@ function generate_cards() {
 
                     if (linkStatus == "Rotten") {
                         
-                        belowTextRight += '(<span style="color: #a8201a;">'
+                        belowTextRight += ' || <span style="color: #a8201a;">'
                         belowTextRight += "Current version unavailable";
-                        belowTextRight += '</span>)';
+                        belowTextRight += '</span>';
 
 
                     } else {

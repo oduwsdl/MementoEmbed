@@ -3,6 +3,7 @@ import json
 
 import htmlmin
 import dicttoxml
+import redis
 import requests
 import requests_cache
 
@@ -15,7 +16,6 @@ from requests.exceptions import Timeout, TooManyRedirects, \
 
 from .mementosurrogate import MementoSurrogate
 from .mementoresource import NotAMementoError, MementoParsingError
-from .cache import HTTPCache, DictCacheModel, RedisCacheModel
 from .textprocessing import TextProcessingError
 from .version import __useragent__
 
@@ -26,7 +26,7 @@ __all__ = [
 class MementoEmbedException(Exception):
     pass
 
-def process_config(config):
+def setup_cache(config):
 
     appconfig = {}
 
@@ -34,17 +34,21 @@ def process_config(config):
 
         if config['CACHEMODEL'] == 'Redis':
 
-            appconfig['cache_model'] = RedisCacheModel(db=0, host="localhost", port=6379)
+            dbhost = config['CACHEHOST']
+            dbport = config['CACHEPORT']
+            dbno = config['CACHEDB']
 
-        elif config['CACHEMODEL'] == 'Dict':
+            rconn = redis.StrictRedis(host=dbhost, port=dbport, db=dbno)
 
-            appconfig['cache_mode'] = DictCacheModel()
+            requests_cache.install_cache('mementoembed', backend='redis', 
+                connection=rconn)
 
-        else:
-            raise MementoEmbedException("Unsupported cache model {}".format(config['CACHEMODEL']))
+        elif config['CACHEMODEL'] == 'SQLite':
+
+            requests_cache.install_cache('mementoembed')
 
     else:
-        raise MementoEmbedException("No cache model specified in configuration")
+        requests_cache.install_cache('mementoembed')
 
     return appconfig
 
@@ -56,7 +60,7 @@ def create_app():
     app.config.from_object('config.default')
     app.config.from_pyfile('application.cfg', silent=True)
 
-    appconfig = process_config(app.config)
+    setup_cache(app.config)
 
     # pylint: disable=no-member
     app.logger.info("loading Flask app for {}".format(app.name))
