@@ -3,6 +3,10 @@ language: python
 python: 
   - "3.6"
 
+branches:
+  only:
+  - master
+
 script:
   - git clone https://github.com/shawnmjones/archiveit_utilities.git /tmp/archiveit_utilities
   - pip install /tmp/archiveit_utilities
