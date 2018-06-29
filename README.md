@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/oduwsdl/MementoEmbed.svg?branch=master)](https://travis-ci.org/oduwsdl/MementoEmbed)
+
 # MementoEmbed
 
 A tool to create [oEmbed](https://oembed.com/)-compatible embeddable surrogates for archived web pages (mementos).
