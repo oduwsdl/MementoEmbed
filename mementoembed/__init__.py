@@ -34,14 +34,30 @@ def setup_cache(config):
 
         if config['CACHEMODEL'] == 'Redis':
 
-            dbhost = config['CACHEHOST']
-            dbport = config['CACHEPORT']
-            dbno = config['CACHEDB']
+            if 'CACHEHOST' in config:
+                dbhost = config['CACHEHOST']
+            else:
+                dbhost = "localhost"
+
+            if 'CACHEPORT' in config:
+                dbport = config['CACHEPORT']
+            else:
+                dbport = "6379"
+
+            if 'CACHEDB' in config:
+                dbno = config['CACHEDB']
+            else:
+                dbno = "0"
+
+            if 'CACHE_EXPIRETIME' in config:
+                expiretime = config['CACHE_EXPIRETIME']
+            else:
+                expiretime = 7 * 24 * 60 * 60
 
             rconn = redis.StrictRedis(host=dbhost, port=dbport, db=dbno)
 
             requests_cache.install_cache('mementoembed', backend='redis', 
-                connection=rconn)
+                expire_after=expiretime, connection=rconn)
 
         elif config['CACHEMODEL'] == 'SQLite':
 
@@ -73,30 +89,26 @@ def create_app():
     @app.route('/services/oembed', methods=['GET', 'HEAD'])
     def oembed_endpoint():
 
-        urim = request.args.get("url")
-        responseformat = request.args.get("format")
-
-        # JSON is the default
-        if responseformat == None:
-            responseformat = "json"
-
-        if responseformat != "json":
-            if responseformat != "xml":
-                return "The provider cannot return a response in the requested format.", 501
-
-        app.logger.debug("received url {}".format(urim))
-        app.logger.debug("format: {}".format(responseformat))
-
-        # cachemodel = appconfig['cache_model']
-        # httpcache = HTTPCache(cachemodel, requests.session(), logger=app.logger)
-
-        requests_cache.install_cache('mementoembed_cache')
-        
-        httpcache = requests.Session()
-        httpcache.headers.update({'User-Agent': __useragent__})
-
         try:
+            urim = request.args.get("url")
+            responseformat = request.args.get("format")
+
+            # JSON is the default
+            if responseformat == None:
+                responseformat = "json"
+
+            if responseformat != "json":
+                if responseformat != "xml":
+                    return "The provider cannot return a response in the requested format.", 501
+
+            app.logger.debug("received url {}".format(urim))
+            app.logger.debug("format: {}".format(responseformat))
+
+            requests_cache.install_cache('mementoembed_cache')
             
+            httpcache = requests.Session()
+            httpcache.headers.update({'User-Agent': __useragent__})
+        
             s = MementoSurrogate(
                 urim,
                 httpcache,
