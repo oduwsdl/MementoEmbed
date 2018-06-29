@@ -17,13 +17,7 @@ archive_collection_patterns = [
 ]
 
 archive_collection_uri_prefixes = {
-    "ARCHIVE-IT.ORG": "https://archive-it.org/collections/{}"
-}
-
-archive_names = {
-    "archive-it.org": "Archive-It",
-    "archive.org": "Internet Archive",
-    "archive.is": "archive.today"
+    "archive-it.org": "https://archive-it.org/collections/{}"
 }
 
 home_uri_list = {
@@ -91,7 +85,6 @@ class ArchiveResource:
             home_uri = home_uri_list[self.registered_domain]
 
         return home_uri
-
 
     @property
     def name(self):
@@ -200,7 +193,7 @@ class ArchiveResource:
             if self.collection_id:
 
                 try:
-                    self.archive_collection_uri = archive_collection_uri_prefixes[self.name].format(
+                    self.archive_collection_uri = archive_collection_uri_prefixes[self.registered_domain].format(
                         self.collection_id)
                 except KeyError:
                     self.archive_collection_uri = None
