@@ -15,8 +15,9 @@ wayback_pattern = re.compile('(/[0-9]{14})/')
 
 class NotAMementoError(Exception):
     
-    def __init__(self, message, original_exception=None):
+    def __init__(self, message, response, original_exception=None):
         self.message = message
+        self.response = response
         self.original_exception = original_exception
 
 class MementoParsingError(Exception):
@@ -117,19 +118,20 @@ class MementoResource:
         try:
             self.memento_dt = self.memento_datetime
         except KeyError as e:
-            raise NotAMementoError("no memento-datetime header", original_exception=e)
+            raise NotAMementoError("no memento-datetime header", 
+                response=self.response, original_exception=e)
 
         try:
             self.urir = self.original_uri
         except KeyError as e:
             raise NotAMementoError("error parsing link header for original URI",
-                original_exception=e)
+                response=self.response, original_exception=e)
 
         try:
             self.urig = self.timegate
         except KeyError as e:
             raise NotAMementoError("error parsing link header for timegate URI",
-                original_exception=e)
+                response=self.response, original_exception=e)
         
         if 'text/html' not in self.response.headers['content-type']:
             raise MementoParsingError("Cannot process non-HTML content")
