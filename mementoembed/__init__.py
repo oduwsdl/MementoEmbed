@@ -3,7 +3,9 @@ import json
 
 import htmlmin
 import dicttoxml
+import redis
 import requests
+import requests_cache
 
 from redis import RedisError
 from flask import Flask, request, render_template, make_response
@@ -14,8 +16,8 @@ from requests.exceptions import Timeout, TooManyRedirects, \
 
 from .mementosurrogate import MementoSurrogate
 from .mementoresource import NotAMementoError, MementoParsingError
-from .cache import HTTPCache, DictCacheModel, RedisCacheModel
 from .textprocessing import TextProcessingError
+from .version import __useragent__
 
 __all__ = [
     "MementoSurrogate"
@@ -24,7 +26,7 @@ __all__ = [
 class MementoEmbedException(Exception):
     pass
 
-def process_config(config):
+def setup_cache(config):
 
     appconfig = {}
 
@@ -32,17 +34,37 @@ def process_config(config):
 
         if config['CACHEMODEL'] == 'Redis':
 
-            appconfig['cache_model'] = RedisCacheModel(db=0, host="localhost", port=6379)
+            if 'CACHEHOST' in config:
+                dbhost = config['CACHEHOST']
+            else:
+                dbhost = "localhost"
 
-        elif config['CACHEMODEL'] == 'Dict':
+            if 'CACHEPORT' in config:
+                dbport = config['CACHEPORT']
+            else:
+                dbport = "6379"
 
-            appconfig['cache_mode'] = DictCacheModel()
+            if 'CACHEDB' in config:
+                dbno = config['CACHEDB']
+            else:
+                dbno = "0"
 
-        else:
-            raise MementoEmbedException("Unsupported cache model {}".format(config['CACHEMODEL']))
+            if 'CACHE_EXPIRETIME' in config:
+                expiretime = config['CACHE_EXPIRETIME']
+            else:
+                expiretime = 7 * 24 * 60 * 60
+
+            rconn = redis.StrictRedis(host=dbhost, port=dbport, db=dbno)
+
+            requests_cache.install_cache('mementoembed', backend='redis', 
+                expire_after=expiretime, connection=rconn)
+
+        elif config['CACHEMODEL'] == 'SQLite':
+
+            requests_cache.install_cache('mementoembed')
 
     else:
-        raise MementoEmbedException("No cache model specified in configuration")
+        requests_cache.install_cache('mementoembed')
 
     return appconfig
 
@@ -54,7 +76,7 @@ def create_app():
     app.config.from_object('config.default')
     app.config.from_pyfile('application.cfg', silent=True)
 
-    appconfig = process_config(app.config)
+    setup_cache(app.config)
 
     # pylint: disable=no-member
     app.logger.info("loading Flask app for {}".format(app.name))
@@ -67,25 +89,26 @@ def create_app():
     @app.route('/services/oembed', methods=['GET', 'HEAD'])
     def oembed_endpoint():
 
-        urim = request.args.get("url")
-        responseformat = request.args.get("format")
-
-        # JSON is the default
-        if responseformat == None:
-            responseformat = "json"
-
-        if responseformat != "json":
-            if responseformat != "xml":
-                return "The provider cannot return a response in the requested format.", 501
-
-        app.logger.debug("received url {}".format(urim))
-        app.logger.debug("format: {}".format(responseformat))
-
-        cachemodel = appconfig['cache_model']
-        httpcache = HTTPCache(cachemodel, requests.session(), logger=app.logger)
-
         try:
+            urim = request.args.get("url")
+            responseformat = request.args.get("format")
+
+            # JSON is the default
+            if responseformat == None:
+                responseformat = "json"
+
+            if responseformat != "json":
+                if responseformat != "xml":
+                    return "The provider cannot return a response in the requested format.", 501
+
+            app.logger.debug("received url {}".format(urim))
+            app.logger.debug("format: {}".format(responseformat))
+
+            requests_cache.install_cache('mementoembed_cache')
             
+            httpcache = requests.Session()
+            httpcache.headers.update({'User-Agent': __useragent__})
+        
             s = MementoSurrogate(
                 urim,
                 httpcache,
@@ -199,6 +222,8 @@ def create_app():
             }), 500
 
         except Exception as e:
+
+            app.logger.warning("Exception {} has been raised, returning warning".format(e))
 
             return json.dumps({
                 "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",

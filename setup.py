@@ -13,7 +13,7 @@ setup(
     packages=[ __appname__.lower() ],
     include_package_data=True,
     install_requires=[
-        'Pillow',
+        'aiu',
         'bs4',
         'cachecontrol',
         'dicttoxml',
@@ -24,10 +24,11 @@ setup(
         'httpcache',
         'justext',
         'lockfile',
+        'Pillow',
         'readability-lxml',
         'redis',
         'requests',
-        'requests_futures',
+        'requests_cache',
         'tldextract'
     ],
     scripts=['bin/fetch_surrogate_data'],

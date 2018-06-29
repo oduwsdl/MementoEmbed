@@ -23,7 +23,7 @@ class MementoSurrogate:
 
         self.originalresource = OriginalResource(self.memento, self.httpcache, logger=self.logger)
 
-        self.archive = ArchiveResource(self.urim, self.httpcache, working_directory, logger=self.logger)
+        self.archive = ArchiveResource(self.urim, self.httpcache, logger=self.logger)
 
     @property
     def creation_time(self):

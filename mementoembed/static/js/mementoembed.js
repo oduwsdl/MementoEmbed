@@ -44,44 +44,21 @@ function generate_cards() {
                     belowtitleHTML += '<img src="' + archiveFavicon + '" alt="' + archiveName + '" width="16">&nbsp;&nbsp;';
                 }
 
-                if ((collectionName != null) && (collectionURI != null)) {
-                    console.log("collection URI is " + collectionURI);
-                    console.log("collection name is " + collectionName);
-                    belowtitleHTML += 'Member of <a class="me-archive-link" style="text-decoration:none" href="' + collectionURI + '">' + archiveName + 
-                        ' Collection '  + collectionName + '</a>';
-                } else {
-                    if ((archiveName) != null) {
-                        console.log("archive name is " + archiveName);
-                        belowtitleHTML += 'Preserved by <a class="me-archive-link" href="' + archiveURI + '">' + archiveName + '</a>';
-                    }
-                }
+                if ((archiveName) != null) {
 
-                if (linkStatus != null) {
-                    belowtitleHTML += "<br /><br />";
+                    console.log("archive name is " + archiveName);
+                    belowtitleHTML += 'Preserved by <a class="me-archive-link" href="' + archiveURI + '">' + archiveName + '</a>';
 
-                    if (linkStatus == "Rotten") {
-                        
-                        belowtitleHTML += '<span style="color: #a8201a;">'
-                        belowtitleHTML += "Live web resource is unavailable";
-                        belowtitleHTML += '</span>';
-
-
-                    } else {
-                        linkstatusmsg = '<span style="color: #143642;">'
-                        linkstatusmsg += "Live web resource is available";
-                        linkstatusmsg += '</span>';                    
-
-                        if (urir != null) {
-                            belowtitleHTML += '<a style="text-decoration:none" href="' + urir + '">' + linkstatusmsg + '</a>';
-                        }
-
-                    }
-
-                    belowtitleHTML += "<br /><br />";
+                    if ((collectionName != null) && (collectionURI != null)) {
+                        console.log("collection URI is " + collectionURI);
+                        console.log("collection name is " + collectionName);
+                        belowtitleHTML += '<br />Member of the Collection <a class="me-archive-link" style="text-decoration:none" href="' +
+                             collectionURI + '">' + collectionName + '</a>';
+                    }        
 
                 }
 
-                belowtitleHTML += '</div>';
+                belowtitleHTML += '</div><br />';
 
                 me_titles[j].insertAdjacentHTML("afterend", belowtitleHTML);
 
@@ -91,9 +68,6 @@ function generate_cards() {
                 me_titles[j].style.fontSize = "14px";
                 me_titles[j].style.fontWeight = "700";
                 me_titles[j].style.lineHeight = "19.6px";
-                // me_titles[j].style.textDecorationColor = "rgb(9, 116, 183)";
-                // me_titles[j].style.textDecorationLine = "none";
-                // me_titles[j].style.textDecoration = "none";
                 me_titles[j].style.padding = "0px";
                 me_titles[j].style.margin = "0px";
                 me_titles[j].style.marginBottom = "1px";
@@ -116,9 +90,38 @@ function generate_cards() {
                     belowTextRight += '<a class="me-pubdate" href="' + urim + '">' + uDomain + '&nbsp;&nbsp;@&nbsp;&nbsp;' + uPubDate + '</a>';                
                 }
 
-                belowTextRight += '</div>';
+                // urldate, urltime, tzone = pubdate.split(" ");
+                datetime_components = pubDate.split(" ");
+                date_components = datetime_components[0].split("-");
+                time_components = datetime_components[1].split(":");
+                datestring = date_components[0] + date_components[1] + date_components[2] + time_components[0] + time_components[1] + time_components[2];
+                belowTextRight += '&nbsp; || <a class="me-allversions" href="http://timetravel.mementoweb.org/list/' + datestring + '/' + urir + '">Other Versions</a>';
 
-                me_textright[j].insertAdjacentHTML("afterend", belowTextRight);
+                if (linkStatus != null) {
+                    belowTextRight += "&nbsp;";
+
+                    if (linkStatus == "Rotten") {
+                        
+                        belowTextRight += ' || <span style="color: #a8201a;">'
+                        belowTextRight += "Current version unavailable";
+                        belowTextRight += '</span>';
+
+
+                    } else {
+
+                        if (urir != null) {
+                            belowTextRight += ' || <a class="me-livestatus" href="' + urir + '">Current version</a>';
+                        }
+
+                    }
+
+                    // belowtitleHTML += "<br /><br />";
+
+                    me_textright[j].insertAdjacentHTML("afterend", belowTextRight);
+
+                }
+
+                belowTextRight += '</div>';
 
                 console.log("done with snippet...");
 
@@ -199,34 +202,19 @@ function generate_cards() {
         element.style.color = "rgb(9, 116, 283)";
     })
 
+    var me_livestatus_links = [].slice.call(document.querySelectorAll('[class~=me-livestatus]'));
+
+    me_livestatus_links.forEach(element =>{
+        element.style.textDecoration = "none";
+        element.style.color = "rgb(9, 116, 283)";
+    })
+
     var me_archive_links = [].slice.call(document.querySelectorAll('[class~=me-archive-link]'));
     
     me_archive_links.forEach(element =>{
         element.style.textDecoration = "none";
         element.style.color = "rgb(9, 116, 283)";
     })
-
-    // me_title_links = element.getElementsByClassName("me-title-link");
-
-    // for (var j = 0; i < me.me_title_links; j++) {
-    //     me_title_links[j].style.textDecoration = "none";
-    //     me_title_links[j].style.textAlign = "left";
-    //     me_title_links[j].style.color = "rgb(9, 116, 283)";
-    //     me_title_links[j].style.fontFamily = '"Museo Sans", "Helvetica Neue", sans-serif';
-    //     me_title_links[j].style.fontSize = "14px";
-    //     me_title_links[j].style.fontWeight = "700";
-    //     me_title_links[j].style.lineHeight = "19.6px";
-    //     me_title_links[j].style.padding = "0px";
-    //     me_title_links[j].style.margin = "0px";
-    //     me_title_links[j].style.marginBottom = "1px";
-    // }
-
-    // var links = document.getElementsByTagName("a");
-
-    // for (var j = 0; links.length; j++) {
-    //     console.log("working on link " + links[j]);
-    //     links[j].style.textDecoration = "none";
-    // }
 
     console.log("all MementoEmbed social cards generated...");
 }
