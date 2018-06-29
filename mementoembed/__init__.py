@@ -165,6 +165,13 @@ def create_app():
             app.logger.info("returning output as application/json...")
 
         except NotAMementoError as e:
+
+            requests_cache.get_cache().delete_url(urim)
+
+            app.logger.warning(
+                "URI-M {} does not appear to be a memento, details: {}, http status: {}, headers: {}".format(
+                    urim, e.original_exception, e.response.status_code, e.response.headers, ))
+
             e2 = e.original_exception
             return json.dumps({
                 "content":
@@ -178,6 +185,11 @@ def create_app():
                 }), 404
 
         except (Timeout, ConnectionError) as e:
+
+            requests_cache.get_cache().delete_url(urim)
+
+            app.logger.warning("The server for URI-M {} could not be reached, details: {}".format(urim, e))
+
             return json.dumps({
                 "content": "MementoEmbed could not reach the server to download {}".format(urim),
                 "error": "MementoEmbed timed out trying to acquire {} from the server".format(urim),
@@ -185,6 +197,11 @@ def create_app():
             }), 504
 
         except (TooManyRedirects, ChunkedEncodingError, ContentDecodingError, StreamConsumedError) as e:
+
+            requests_cache.get_cache().delete_url(urim)
+
+            app.logger.warning("Problems were encountered acquiring URI-M {}: {}".format(urim, e))
+
             return json.dumps({
                 "content": "MementoEmbed could not download {}".format(urim),
                 "error": "MementoEmbed did not timeout, but had problems downloading {}".format(urim),
@@ -192,6 +209,11 @@ def create_app():
             }), 502
 
         except (URLRequired, MissingSchema, InvalidSchema, InvalidURL) as e:
+
+            requests_cache.get_cache().delete_url(urim)
+
+            app.logger.warning("An unsupported/invalid URI-M {} was submitted, details: {}".format(urim, e))
+
             return json.dumps({
                 "content": "The URI-M {} is not valid".format(urim),
                 "error": "MementoEmbed encountered problems processing {}".format(urim),
@@ -199,6 +221,11 @@ def create_app():
             }), 400
 
         except UnrewindableBodyError as e:
+
+            requests_cache.get_cache().delete_url(urim)
+
+            app.logger.warning("A network issue occurred with URI-M {}, details: {}".format(urim, e))
+
             return json.dumps({
                 "content": "MementoEmbed had problems extracting content for URI-M {}".format(urim),
                 "error": "MementoEmbed had problems extracting content for URI-M {}".format(urim),
@@ -206,6 +233,10 @@ def create_app():
             }), 500
 
         except (TextProcessingError, MementoParsingError) as e:
+
+            requests_cache.get_cache().delete_url(urim)
+
+            app.logger.warning("Memento parsing failed for URI-M {}, details: {}".format(urim, e))
 
             return json.dumps({
                 "content": "MementoEmbed could not process the text at URI-M<br /> {} <br />Are you sure this is an HTML page?".format(urim),
@@ -215,6 +246,10 @@ def create_app():
 
         except RedisError as e:
 
+            requests_cache.get_cache().delete_url(urim)
+
+            app.logger.warning("Redis Error has occurred with URI-M {}, details: {}".format(urim, e))
+
             return json.dumps({
                 "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
                 "error": "A Redis Error has occurred with MementoEmbed.",
@@ -223,7 +258,9 @@ def create_app():
 
         except Exception as e:
 
-            app.logger.warning("Exception {} has been raised, returning warning".format(e))
+            requests_cache.get_cache().delete_url(urim)
+
+            app.logger.warning("An unexpected Exception has been raised for URI-M {}, details: {}".format(urim, e))
 
             return json.dumps({
                 "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",

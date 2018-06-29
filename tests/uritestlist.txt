@@ -25,3 +25,10 @@ http://collection.europarchive.org/nli/20110311033514/http://flexispy.com/
 http://collection.europarchive.org/nli/20140703212055/http://www.garda.ie/
 http://collection.europarchive.org/nli/20161107130328/https://unitetheunionireland.org/
 https://web.archive.org/web/20180308084654/http://www.cs.odu.edu/
+http://webarchive.loc.gov/all/20160830014245/https://www.whitehouse.gov/
+http://webarchive.loc.gov/all/20160830014245/https://www.whitehouse.gov/
+http://webarchive.loc.gov/all/20160817014312/http://www.cnn.com/
+http://webarchive.loc.gov/all/20150422010256/http://www.cnn.com/
+http://webarchive.loc.gov/all/20141224151318/http://www.cnn.com/
+http://webarchive.loc.gov/all/20131002012027/http://www.cnn.com/
+
