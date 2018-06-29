@@ -90,6 +90,13 @@ function generate_cards() {
                     belowTextRight += '<a class="me-pubdate" href="' + urim + '">' + uDomain + '&nbsp;&nbsp;@&nbsp;&nbsp;' + uPubDate + '</a>';                
                 }
 
+                // urldate, urltime, tzone = pubdate.split(" ");
+                datetime_components = pubDate.split(" ");
+                date_components = datetime_components[0].split("-");
+                time_components = datetime_components[1].split(":");
+                datestring = date_components[0] + date_components[1] + date_components[2] + time_components[0] + time_components[1] + time_components[2];
+                belowTextRight += '&nbsp; || <a class="me-allversions" href="http://timetravel.mementoweb.org/list/' + datestring + '/' + urir + '">Other Versions</a>';
+
                 if (linkStatus != null) {
                     belowTextRight += "&nbsp;";
 
@@ -101,12 +108,9 @@ function generate_cards() {
 
 
                     } else {
-                        linkstatusmsg = '<span style="color: #143642;">'
-                        linkstatusmsg += "Current version";
-                        linkstatusmsg += '</span>';                    
 
                         if (urir != null) {
-                            belowTextRight += '(<a style="text-decoration:none" href="' + urir + '">' + linkstatusmsg + '</a>)';
+                            belowTextRight += ' || <a class="me-livestatus" href="' + urir + '">Current version</a>';
                         }
 
                     }
@@ -194,6 +198,13 @@ function generate_cards() {
     var me_pubdate_links = [].slice.call(document.querySelectorAll('[class~=me-pubdate]'));
 
     me_pubdate_links.forEach(element =>{
+        element.style.textDecoration = "none";
+        element.style.color = "rgb(9, 116, 283)";
+    })
+
+    var me_livestatus_links = [].slice.call(document.querySelectorAll('[class~=me-livestatus]'));
+
+    me_livestatus_links.forEach(element =>{
         element.style.textDecoration = "none";
         element.style.color = "rgb(9, 116, 283)";
     })
