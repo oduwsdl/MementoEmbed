@@ -33,13 +33,12 @@ home_uri_list = {
 
 class ArchiveResource:
 
-    def __init__(self, urim, httpcache, working_directory, logger=None):
+    def __init__(self, urim, httpcache, logger=None):
 
         self.urim = urim
         self.logger = logger or logging.getLogger(__name__)
 
         self.httpcache = httpcache
-        self.working_directory=working_directory
 
         self.memento_archive_name = None
         self.memento_archive_domain = None

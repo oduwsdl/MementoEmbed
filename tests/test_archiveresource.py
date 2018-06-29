@@ -3,7 +3,13 @@ import shutil
 import zipfile
 import unittest
 
+import requests
+import requests_cache
+
 from mementoembed.archiveresource import ArchiveResource
+from mementoembed.version import __useragent__
+
+cachefile = "{}/test_cache".format(os.path.dirname(os.path.realpath(__file__)))
 
 class mock_response:
 
@@ -31,37 +37,24 @@ class TestArchiveResource(unittest.TestCase):
 
         httpcache = None
         urim = "https://myarchive.org/somememento"
-        working_directory = "/tmp/{}".format(os.path.basename(__file__))
 
-        x = ArchiveResource(urim, httpcache, working_directory)
+        x = ArchiveResource(urim, httpcache)
 
         self.assertEqual(x.scheme, "https")
         self.assertEqual(x.domain, "myarchive.org")
         self.assertEqual(x.name, "MYARCHIVE.ORG")
         self.assertEqual(x.uri, "https://myarchive.org")
 
-        if os.path.exists(working_directory):
-            shutil.rmtree(working_directory)
-
+    # @unittest.skip("this needs to be updated for the way aiu works now")
     def test_collection_data_extraction(self):
 
-        # uncompress collection data into a working directory
-        working_directory = "/tmp/{}".format(os.path.basename(__file__))
         urim = "http://wayback.archive-it.org/5728/20160518000858/http://blog.willamette.edu/mba/"
-        httpcache = None
 
-        if not os.path.exists(working_directory):
-            os.makedirs(working_directory)
+        requests_cache.install_cache(cachefile)
+        httpcache = requests.Session()
+        httpcache.headers.update({'User-Agent': __useragent__})
 
-        testdatafile = "{}/samples/ac5728.zip".format(
-            os.path.dirname(os.path.realpath(__file__))
-        )
-
-        zipref = zipfile.ZipFile(testdatafile, 'r')
-        zipref.extractall(working_directory)
-        zipref.close()
-
-        x = ArchiveResource(urim, httpcache, working_directory)
+        x = ArchiveResource(urim, httpcache)
         self.assertEqual(x.scheme, "http")
         self.assertEqual(x.domain, "wayback.archive-it.org")
         self.assertEqual(x.name, "Archive-It")
@@ -71,8 +64,6 @@ class TestArchiveResource(unittest.TestCase):
         self.assertEqual(x.collection_id, "5728")
         self.assertEqual(x.collection_uri, "https://archive-it.org/collections/5728")
         self.assertEqual(x.collection_name, "Social Media")
-
-        shutil.rmtree(working_directory)
         
     def test_favicon_from_html(self):
 
@@ -100,11 +91,10 @@ class TestArchiveResource(unittest.TestCase):
         }
 
         httpcache = mock_httpcache(cachedict)
-        working_directory = "/tmp/{}".format(os.path.basename(__file__))
 
         urim = "http://myarchive.org/20160518000858/http://example.com/somecontent"
 
-        x = ArchiveResource(urim, httpcache, working_directory)
+        x = ArchiveResource(urim, httpcache)
 
         self.assertEqual(x.favicon, expected_favicon)
 
@@ -139,12 +129,11 @@ class TestArchiveResource(unittest.TestCase):
                 )
         }
         
-        working_directory = "/tmp/{}".format(os.path.basename(__file__))
         httpcache = mock_httpcache(cachedict)
 
         urim = "http://myarchive.org/20160518000858/http://example.com/somecontent"
 
-        x = ArchiveResource(urim, httpcache, working_directory)
+        x = ArchiveResource(urim, httpcache)
 
         self.assertEqual(x.favicon, expected_favicon)
 
@@ -187,12 +176,11 @@ class TestArchiveResource(unittest.TestCase):
                 )
         }
         
-        working_directory = "/tmp/{}".format(os.path.basename(__file__))
         httpcache = mock_httpcache(cachedict)
 
         urim = "http://myarchive.org/20160518000858/http://example.com/somecontent"
 
-        x = ArchiveResource(urim, httpcache, working_directory)
+        x = ArchiveResource(urim, httpcache)
 
         self.assertEqual(x.favicon, expected_favicon)
 
@@ -235,12 +223,11 @@ class TestArchiveResource(unittest.TestCase):
                 )
         }
         
-        working_directory = "/tmp/{}".format(os.path.basename(__file__))
         httpcache = mock_httpcache(cachedict)
 
         urim = "http://myarchive.org/20160518000858/http://example.com/somecontent"
 
-        x = ArchiveResource(urim, httpcache, working_directory)
+        x = ArchiveResource(urim, httpcache)
 
         self.assertEqual(x.favicon, expected_favicon)
 
@@ -270,10 +257,9 @@ class TestArchiveResource(unittest.TestCase):
         }
 
         httpcache = mock_httpcache(cachedict)
-        working_directory = "/tmp/{}".format(os.path.basename(__file__))
 
         urim = "http://myarchive.org/20160518000858/http://example.com/somecontent"
 
-        x = ArchiveResource(urim, httpcache, working_directory)
+        x = ArchiveResource(urim, httpcache)
 
         self.assertEqual(x.favicon, expected_favicon)
