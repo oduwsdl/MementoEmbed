@@ -1,1 +1,1 @@
-CACHEMODEL = 'Dict'
+CACHEMODEL = 'SQLite'

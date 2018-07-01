@@ -59,7 +59,7 @@ def setup_cache(config):
             requests_cache.install_cache('mementoembed', backend='redis', 
                 expire_after=expiretime, connection=rconn)
 
-        elif config['CACHEMODEL'] == 'SQLite':
+        else:
 
             requests_cache.install_cache('mementoembed')
 
