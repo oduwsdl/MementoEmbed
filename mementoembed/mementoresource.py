@@ -71,7 +71,7 @@ def memento_resource_factory(urim, http_cache):
                         # assume the user is expected to read it, meaning
                         # it contains actual content and is not just a 
                         # pass-through
-                        if int(rtimeout) > 30:
+                        if int(rtimeout) < 30:
 
                             url = redir_info[1]
                             url = url.split('=', 1)[1]
