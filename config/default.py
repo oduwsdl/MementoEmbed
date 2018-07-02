@@ -1,4 +1,4 @@
 import logging
 
 CACHEMODEL = 'SQLite'
-LOGLEVEL = logging.INFO
+LOGLEVEL = logging.DEBUG

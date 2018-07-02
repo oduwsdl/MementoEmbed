@@ -9,6 +9,10 @@ ADD . /app
 
 RUN pip install .
 
+RUN cp docker_appconfig.json /etc/mementoembed.json
+
+RUN mkdir /app/logs
+
 EXPOSE 5550
 
 CMD [ "./dockerstart.sh" ]

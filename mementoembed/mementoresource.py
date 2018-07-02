@@ -79,7 +79,7 @@ def memento_resource_factory(urim, http_cache):
 
     # maybe we search for /[0-9]{14}/ in the URI and then try id_
     if wayback_pattern.search(urim):
-        module_logger.info("URI-M {} matches the wayback pattern".format(urim))
+        module_logger.debug("URI-M {} matches the wayback pattern".format(urim))
         candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
 
         resp = http_cache.get(candidate_raw_urim)
@@ -391,6 +391,6 @@ class WaybackMemento(MementoResource):
 
         else:
             self.raw_urim = wayback_pattern.sub(r'\1id_/', self.urim)
-            self.logger.info("using raw URI-M {}".format(self.raw_urim))
+            self.logger.debug("using raw URI-M {}".format(self.raw_urim))
             response = self.http_cache.get(self.raw_urim)
             return response.text

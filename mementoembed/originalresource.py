@@ -43,7 +43,8 @@ class OriginalResource:
 
         # 1. try the HTML within the memento for a favicon, then query a TimeGate
         if self.original_link_favicon_uri is None:
-            self.logger.info("interrogating HTML of memento for favicon URI")
+
+            self.logger.debug("interrogating HTML of memento for favicon URI")
 
             candidate_favicon = get_favicon_from_html(self.content)
 
@@ -56,11 +57,12 @@ class OriginalResource:
                     self.http_cache
                 )
 
-        self.logger.info("failed to find favicon in HTML for URI {}".format(self.uri))
+        self.logger.debug("failed to find favicon in HTML for URI {}".format(self.uri))
 
         # 2. try to construct the favicon URI and look for it in the archive
         if self.original_link_favicon_uri is None:
-            self.logger.info("querying web archive for original favicon at conventional URI")
+
+            self.logger.debug("querying web archive for original favicon at conventional URI")
 
             self.original_link_favicon_uri = query_timegate_for_favicon(
                 self.memento.timegate[0:self.memento.timegate.find(self.uri)],
@@ -69,28 +71,28 @@ class OriginalResource:
                 self.http_cache   
             )
 
-        self.logger.info("failed to find favicon in archive for URI {}".format(self.uri))
+        self.logger.debug("failed to find favicon in archive for URI {}".format(self.uri))
 
         # 3. request the home page of the site on the live web and look for favicon in its HTML
         if self.original_link_favicon_uri is None:
 
-            self.logger.info("interrogating HTML of live web home page for favicon URI")
+            self.logger.debug("interrogating HTML of live web home page for favicon URI")
 
             self.original_link_favicon_uri = get_favicon_from_resource_content(
                 "{}://{}".format(original_scheme, self.domain), self.http_cache)
 
-        self.logger.info("failed to find favicon in HTML of live page for URI {}".format(self.uri))
+        self.logger.debug("failed to find favicon in HTML of live page for URI {}".format(self.uri))
 
         # 4. try to construct the favicon URI and look for it on the live web
         if self.original_link_favicon_uri is None:
 
-            self.logger.info("requesting the live web home page of the resource and searching "
+            self.logger.debug("requesting the live web home page of the resource and searching "
                 "for the favicon in its content")
 
             self.original_link_favicon_uri = find_conventional_favicon_on_live_web(
                 original_scheme, self.domain, self.http_cache)
 
-        self.logger.info("failed to find favicon on live web for URI {}".format(self.uri))
+        self.logger.debug("failed to find favicon on live web for URI {}".format(self.uri))
         
         # 5. if all else fails, fall back to the Google favicon service
         if self.original_link_favicon_uri is None:
