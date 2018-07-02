@@ -59,8 +59,8 @@ def memento_resource_factory(urim, http_cache):
 
                 if tag.get("content"):
 
-                    url = [i.strip() for i in tag.get("content").split(';')][1]
-                    url = url.split('=')[1]
+                    url = [i.strip() for i in tag.get("content").split(';', 1)][1]
+                    url = url.split('=', 1)[1]
                     url = url.strip('"')
                     redirect_url = url.strip("'")
                     urim = redirect_url
@@ -68,6 +68,9 @@ def memento_resource_factory(urim, http_cache):
                     module_logger.info("acquiring redirected URI-M {}".format(urim))
 
                     resp = http_cache.get(urim)
+
+                    module_logger.debug("for redirected URI-M {}, I got a response of {}".format(urim, resp))
+                    module_logger.debug("content: {}".format(resp.text))
 
                     if resp.status_code == 200:
                         soup = BeautifulSoup(resp.text, "html5lib")
