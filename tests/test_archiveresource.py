@@ -13,11 +13,12 @@ cachefile = "{}/test_cache".format(os.path.dirname(os.path.realpath(__file__)))
 
 class mock_response:
 
-    def __init__(self, headers, content, status):
+    def __init__(self, headers, content, status, url):
         self.headers = headers
         self.content = content
         self.text = bytes(content.encode('utf-8'))
         self.status_code = status
+        self.url = url
 
 class mock_httpcache:
     """
@@ -80,13 +81,15 @@ class TestArchiveResource(unittest.TestCase):
                     </head>
                     <body>Is this all there is to content?</body>
                     </html>""".format(expected_favicon),
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 ),
             expected_favicon:
                 mock_response(
                     headers = { 'content-type': 'image/x-testing'},
                     content = "a",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 )
         }
 
@@ -113,19 +116,22 @@ class TestArchiveResource(unittest.TestCase):
                     </head>
                     <body>Is this all there is to content?</body>
                     </html>""",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 ),
             "http://myarchive.org/content/favicon.ico":
                 mock_response(
                     headers = {},
                     content = "",
-                    status=404
+                    status=404,
+                    url = "testing-url://notused"
                 ),
             expected_favicon:
                 mock_response(
                     headers = { 'content-type': 'image/x-testing'},
                     content = "a",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 )
         }
         
@@ -152,13 +158,15 @@ class TestArchiveResource(unittest.TestCase):
                     </head>
                     <body>Is this all there is to content?</body>
                     </html>""",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 ),
             "http://myarchive.org/content/favicon.ico":
                 mock_response(
                     headers = {},
                     content = "",
-                    status=404
+                    status=404,
+                    url = "testing-url://notused"
                 ),
             "http://myarchive.org/favicon.ico":
                 mock_response(
@@ -166,13 +174,15 @@ class TestArchiveResource(unittest.TestCase):
                         'content-type': 'image/x-testing'
                     },
                     content = "",
-                    status=404
+                    status=404,
+                    url = "testing-url://notused"
                 ),
             expected_favicon:
                 mock_response(
                     headers = { 'content-type': 'image/x-testing'},
                     content = "a",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 )
         }
         
@@ -199,13 +209,15 @@ class TestArchiveResource(unittest.TestCase):
                     </head>
                     <body>Is this all there is to content?</body>
                     </html>""",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 ),
             "http://myarchive.org/content/favicon.ico":
                 mock_response(
                     headers = {},
                     content = "",
-                    status=404
+                    status=404,
+                    url = "testing-url://notused"
                 ),
             "http://myarchive.org/favicon.ico":
                 mock_response(
@@ -213,13 +225,15 @@ class TestArchiveResource(unittest.TestCase):
                         'content-type': 'image/x-testing'
                     },
                     content = "",
-                    status=404
+                    status=404,
+                    url = "testing-url://notused"
                 ),
             "https://www.google.com/s2/favicons?domain={}".format("myarchive.org"):
                 mock_response(
                     headers = {},
                     content = "",
-                    status=404
+                    status=404,
+                    url = "testing-url://notused"
                 )
         }
         
@@ -246,13 +260,15 @@ class TestArchiveResource(unittest.TestCase):
                     </head>
                     <body>Is this all there is to content?</body>
                     </html>""",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 ),
             expected_favicon:
                 mock_response(
                     headers = { 'content-type': 'image/x-testing'},
                     content = "a",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 )
         }
 
