@@ -12,6 +12,8 @@ from .favicon import get_favicon_from_google_service, \
     get_favicon_from_html, find_conventional_favicon_on_live_web, \
     favicon_resource_test
 
+module_logger = logging.getLogger('mementoembed.archiveresource')
+
 archive_collection_patterns = [
     "http://wayback.archive-it.org/([0-9]*)/[0-9]{14}/.*",
 ]
@@ -27,10 +29,10 @@ home_uri_list = {
 
 class ArchiveResource:
 
-    def __init__(self, urim, httpcache, logger=None):
+    def __init__(self, urim, httpcache):
 
         self.urim = urim
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logging.getLogger('mementoembed.archiveresource.ArchiveResource')
 
         self.httpcache = httpcache
 

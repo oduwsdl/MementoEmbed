@@ -8,9 +8,11 @@ from .favicon import get_favicon_from_google_service, get_favicon_from_html, \
     find_conventional_favicon_on_live_web, query_timegate_for_favicon, \
     get_favicon_from_resource_content, construct_conventional_favicon_uri
 
+module_logger = logging.getLogger('mementoembed.originalresource')
+
 class OriginalResource:
 
-    def __init__(self, memento, http_cache, logger=None):
+    def __init__(self, memento, http_cache):
         self.memento = memento
         self.http_cache = http_cache
         
@@ -20,7 +22,7 @@ class OriginalResource:
 
         self.original_link_favicon_uri = None
 
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logging.getLogger('mementoembed.originalresource.OriginalResource')
 
     @property
     def domain(self):

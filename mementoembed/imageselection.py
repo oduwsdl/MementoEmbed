@@ -1,8 +1,11 @@
+import logging
 import base64
 
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from PIL import ImageFile
+
+module_logger = logging.getLogger('mementoembed.imageselection')
 
 def score_image(imagecontent, n, N):
 
@@ -48,6 +51,8 @@ def get_image_list(uri, http_cache):
     return image_list
 
 def get_best_image(uri, http_cache):
+
+    module_logger.debug("getting the best image for content at URI {}".format(uri))
     
     maxscore = float("-inf")
     max_score_image = None

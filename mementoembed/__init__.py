@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import logging
+import traceback
 
 import htmlmin
 import dicttoxml
@@ -142,8 +143,7 @@ def create_app():
         
             s = MementoSurrogate(
                 urim,
-                httpcache,
-                logger=rootlogger
+                httpcache
             )
 
             output = {}
@@ -291,7 +291,7 @@ def create_app():
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning("An unexpected Exception has been raised for URI-M {}, details: {}".format(urim, e))
+            rootlogger.warning("An unexpected Exception has been raised for URI-M {}, details: {}".format(urim, traceback.format_exc()))
 
             return json.dumps({
                 "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",

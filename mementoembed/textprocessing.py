@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from readability import Document
 from justext import justext, get_stoplist
 
-logger = logging.getLogger(__name__)
+module_logger = logging.getLogger('mementoembed.textprocessing')
 
 p = re.compile(' +')
 
@@ -146,7 +146,7 @@ def extract_text_snippet(htmlcontent):
 
 def extract_title(htmlcontent):
 
-    logger.debug("attempting to extract title from input")
+    module_logger.debug("attempting to extract title from input")
 
     try:
         soup = BeautifulSoup(htmlcontent, 'html5lib')
@@ -195,11 +195,11 @@ def extract_title(htmlcontent):
         try:
             title = soup.title.text
         except AttributeError:
-            logger.warning("Could not extract title from input")
+            module_logger.warning("Could not extract title from input")
             title = ""
 
     title = " ".join(title.split())
 
-    logger.debug("extracted title of {}".format(title))
+    module_logger.debug("extracted title of {}".format(title))
 
     return title
