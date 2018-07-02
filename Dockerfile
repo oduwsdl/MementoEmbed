@@ -1,6 +1,7 @@
 FROM python:3.6-stretch
 
-RUN pip install waitress && apt-get update && apt-get install redis-server -y
+RUN pip install waitress 
+RUN apt-get update && apt-get install redis-server -y
 
 WORKDIR /app
 
