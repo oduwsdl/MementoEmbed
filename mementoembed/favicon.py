@@ -1,10 +1,16 @@
+import logging
+
 import tldextract
 
 from datetime import datetime
 
 from bs4 import BeautifulSoup
 
+module_logger = logging.getLogger('mementoembed.favicon')
+
 def favicon_resource_test(response):
+
+    module_logger.debug("testing favicon at {}".format(response.url))
 
     good = False
 

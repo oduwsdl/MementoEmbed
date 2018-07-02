@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime
 
 from .mementoresource import memento_resource_factory
@@ -6,24 +8,26 @@ from .imageselection import get_best_image
 from .archiveresource import ArchiveResource
 from .textprocessing import extract_text_snippet, extract_title
 
+module_logger = logging.getLogger('mementoembed.mementosurrogate')
+
 class MementoSurrogate:
     """
         Surrogate provides a single interface to
         all information about surrogates
         related to content, uri, and response_headers.
     """
-    def __init__(self, urim, httpcache, working_directory="/tmp/mementosurrogate", logger=None):
+    def __init__(self, urim, httpcache, working_directory="/tmp/mementosurrogate"):
 
         self.surrogate_creation_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         self.urim = urim
         self.httpcache = httpcache
-        self.logger = logger
+        self.logger = logging.getLogger('mementoembed.mementosurrogate.MementoSurrogate')
 
-        self.memento = memento_resource_factory(self.urim, self.httpcache, logger=self.logger)
+        self.memento = memento_resource_factory(self.urim, self.httpcache)
 
-        self.originalresource = OriginalResource(self.memento, self.httpcache, logger=self.logger)
+        self.originalresource = OriginalResource(self.memento, self.httpcache)
 
-        self.archive = ArchiveResource(self.urim, self.httpcache, logger=self.logger)
+        self.archive = ArchiveResource(self.urim, self.httpcache)
 
     @property
     def creation_time(self):

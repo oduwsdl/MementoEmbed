@@ -5,7 +5,7 @@ from mementoembed.originalresource import OriginalResource
 
 class mock_response:
 
-    def __init__(self, headers, text, status, content=None):
+    def __init__(self, headers, text, status, url, content=None):
         self.headers = headers
         self.text = text
         if content is None:
@@ -14,6 +14,7 @@ class mock_response:
             self.content = content
 
         self.status_code = status
+        self.url = url
 
 class mock_httpcache:
     """
@@ -62,13 +63,15 @@ class TestOriginalResource(unittest.TestCase):
                             """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 ),
             expected_original_uri:
                 mock_response(
                     headers = {},
                     text = "",
-                    status=404
+                    status=404,
+                    url = "testing-url://notused"
                 )
         }
 
@@ -111,7 +114,8 @@ class TestOriginalResource(unittest.TestCase):
                             """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 ),
             expected_original_uri:
                 mock_response(
@@ -119,7 +123,8 @@ class TestOriginalResource(unittest.TestCase):
                         'content-type': 'text/html'
                     },
                     text = "",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 )
         }
 
@@ -165,7 +170,8 @@ class TestOriginalResource(unittest.TestCase):
                             """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 ),
             expected_original_uri:
                 mock_response(
@@ -173,19 +179,22 @@ class TestOriginalResource(unittest.TestCase):
                         'content-type': 'text/html',
                     },
                     text = "",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 ),
             "http://myarchive.org/timegate/http://example.com/content/favicon.ico":
                 mock_response(
                     headers = {"location": expected_favicon},
                     text = "",
-                    status = 302
+                    status = 302,
+                    url = "testing-url://notused"
                 ),
             expected_favicon:
                 mock_response(
                     headers = {'content-type': 'image/'},
                     text = "a",
-                    status=200
+                    status=200,
+                    url = "testing-url://notused"
                 )
 
         }

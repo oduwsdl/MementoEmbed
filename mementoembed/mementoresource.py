@@ -13,6 +13,8 @@ from bs4 import BeautifulSoup
 
 wayback_pattern = re.compile('(/[0-9]{14})/')
 
+module_logger = logging.getLogger('mementoembed.mementoresource')
+
 class NotAMementoError(Exception):
     
     def __init__(self, message, response, original_exception=None):
@@ -26,9 +28,7 @@ class MementoParsingError(Exception):
         self.message = message
         self.original_exception = original_exception
 
-def memento_resource_factory(urim, http_cache, logger=None):
-
-    logger = logger or logging.getLogger(__name__)
+def memento_resource_factory(urim, http_cache):
 
     response = http_cache.get(urim)
 
@@ -55,7 +55,7 @@ def memento_resource_factory(urim, http_cache, logger=None):
         try:
             if tag.get("http-equiv") == "refresh":
 
-                logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
+                module_logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
 
                 if tag.get("content"):
 
@@ -65,7 +65,7 @@ def memento_resource_factory(urim, http_cache, logger=None):
                     redirect_url = url.strip("'")
                     urim = redirect_url
 
-                    logger.info("acquiring redirected URI-M {}".format(urim))
+                    module_logger.info("acquiring redirected URI-M {}".format(urim))
 
                     resp = http_cache.get(urim)
 
@@ -79,31 +79,31 @@ def memento_resource_factory(urim, http_cache, logger=None):
 
     # maybe we search for /[0-9]{14}/ in the URI and then try id_
     if wayback_pattern.search(urim):
-        logger.info("URI-M {} matches the wayback pattern".format(urim))
+        module_logger.debug("URI-M {} matches the wayback pattern".format(urim))
         candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
 
         resp = http_cache.get(candidate_raw_urim)
 
         if resp.status_code == 200:
-            logger.info("memento at {} is a Wayback memento".format(urim))
-            return WaybackMemento(http_cache, urim, logger=logger, given_uri=given_urim)
+            module_logger.info("memento at {} is a Wayback memento".format(urim))
+            return WaybackMemento(http_cache, urim, given_uri=given_urim)
 
     if soup.find("iframe", {"id": "theWebpage"}):
-        logger.info("memento at {} is an IMF memento".format(urim))
-        return IMFMemento(http_cache, urim, logger=logger, given_uri=given_urim)
+        module_logger.info("memento at {} is an IMF memento".format(urim))
+        return IMFMemento(http_cache, urim, given_uri=given_urim)
     
     if soup.find("div", {'id': 'SOLID'}):
-        logger.info("memento at {} is an Archive.is memento".format(urim))
-        return ArchiveIsMemento(http_cache, urim, logger=logger, given_uri=given_urim)
+        module_logger.info("memento at {} is an Archive.is memento".format(urim))
+        return ArchiveIsMemento(http_cache, urim, given_uri=given_urim)
 
     # fall through to the base class
-    return MementoResource(http_cache, urim, logger=logger, given_uri=given_urim)
+    return MementoResource(http_cache, urim, given_uri=given_urim)
 
 class MementoResource:
 
     def __init__(self, http_cache, urim, logger=None, given_uri=None):
 
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logging.getLogger('mementoembed.mementoresource.MementoResource')
 
         self.http_cache = http_cache
         self.urim = urim
@@ -391,6 +391,6 @@ class WaybackMemento(MementoResource):
 
         else:
             self.raw_urim = wayback_pattern.sub(r'\1id_/', self.urim)
-            self.logger.info("using raw URI-M {}".format(self.raw_urim))
+            self.logger.debug("using raw URI-M {}".format(self.raw_urim))
             response = self.http_cache.get(self.raw_urim)
             return response.text
