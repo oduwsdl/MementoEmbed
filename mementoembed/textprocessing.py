@@ -146,6 +146,8 @@ def extract_text_snippet(htmlcontent):
 
 def extract_title(htmlcontent):
 
+    logger.debug("attempting to extract title from input")
+
     try:
         soup = BeautifulSoup(htmlcontent, 'html5lib')
     except Exception as e:
