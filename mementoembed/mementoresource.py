@@ -59,21 +59,34 @@ def memento_resource_factory(urim, http_cache):
 
                 if tag.get("content"):
 
-                    url = [i.strip() for i in tag.get("content").split(';', 1)][1]
-                    url = url.split('=', 1)[1]
-                    url = url.strip('"')
-                    redirect_url = url.strip("'")
-                    urim = redirect_url
+                    redir_info = [i.strip() for i in tag.get("content").split(';', 1)]
 
-                    module_logger.info("acquiring redirected URI-M {}".format(urim))
+                    # make sure the page isn't just refreshing itself 
+                    # periodically
+                    if len(redir_info) > 1:
 
-                    resp = http_cache.get(urim)
+                        rtimeout = redir_info[0]
 
-                    module_logger.debug("for redirected URI-M {}, I got a response of {}".format(urim, resp))
-                    module_logger.debug("content: {}".format(resp.text))
+                        # if the page redirects in more than 60 seconds, we 
+                        # assume the user is expected to read it, meaning
+                        # it contains actual content and is not just a 
+                        # pass-through
+                        if int(rtimeout) > 30:
 
-                    if resp.status_code == 200:
-                        soup = BeautifulSoup(resp.text, "html5lib")
+                            url = redir_info[1]
+                            url = url.split('=', 1)[1]
+                            url = url.strip('"')
+                            redirect_url = url.strip("'")
+                            urim = redirect_url
+
+                            module_logger.info("acquiring redirected URI-M {}".format(urim))
+
+                            resp = http_cache.get(urim)
+
+                            module_logger.debug("for redirected URI-M {}, I got a response of {}".format(urim, resp))
+
+                            if resp.status_code == 200:
+                                soup = BeautifulSoup(resp.text, "html5lib")
 
         except Exception as e:
             raise MementoParsingError(
