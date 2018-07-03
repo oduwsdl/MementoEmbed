@@ -28,6 +28,49 @@ class MementoParsingError(Exception):
         self.message = message
         self.original_exception = original_exception
 
+def get_memento_datetime_from_response(response):
+
+    memento_dt = None
+
+    try:
+        memento_dt = datetime.strptime(
+                response.headers['memento-datetime'], 
+                "%a, %d %b %Y %H:%M:%S GMT"
+            )
+    except KeyError as e:
+        raise NotAMementoError("no memento-datetime header", 
+            response=response, original_exception=e)
+
+    return memento_dt
+
+def get_timegate_from_response(response):
+
+    urig = None
+
+    try:
+        urig = aiu.convert_LinkTimeMap_to_dict(
+            response.headers['link'] )['timegate_uri']
+    except KeyError as e:
+        raise NotAMementoError(
+            "link header coult not be parsed for timegate URI",
+            response=response, original_exception=e)
+
+    return urig
+
+def get_original_uri_from_response(response):
+
+    urir = None
+
+    try:
+        urir = aiu.convert_LinkTimeMap_to_dict(
+            response.headers['link'] )['original_uri']
+    except KeyError as e:
+        raise NotAMementoError(
+            "link header coult not be parsed for original URI",
+            response=response, original_exception=e)
+
+    return urir
+
 def memento_resource_factory(urim, http_cache):
 
     response = http_cache.get(urim)
@@ -112,6 +155,29 @@ def memento_resource_factory(urim, http_cache):
         module_logger.info("memento at {} is an Archive.is memento".format(urim))
         return ArchiveIsMemento(http_cache, urim, given_uri=given_urim)
 
+    # if we got here, we haven't categorized the URI-M into an Archive type yet
+    # it might be a "hash-style" memento that actually resolves to a Wayback
+    memento_dt = get_memento_datetime_from_response(response)
+
+    # TODO: make this unnecessary, it is solely here for memento header testing
+    urir = get_original_uri_from_response(response)
+
+    mdt = datetime.strftime(memento_dt, "%a, %d %b %Y %H:%M:%S GMT")
+    urig = get_timegate_from_response(response)
+    tg_resp = http_cache.get(urig, headers={"accept-datetime": mdt})
+    candidate_urim = tg_resp.url
+
+    if wayback_pattern.search(candidate_urim):
+        module_logger.debug("derived URI-M {} matches the wayback pattern".format(candidate_urim))
+        candidate_raw_urim = wayback_pattern.sub(r'\1id_/', candidate_urim)
+
+        resp = http_cache.get(candidate_raw_urim)
+        urim = candidate_urim
+
+        if resp.status_code == 200:
+            module_logger.info("memento at {} is a Wayback memento".format(urim))
+            return WaybackMemento(http_cache, urim, given_uri=given_urim)
+
     # fall through to the base class
     return MementoResource(http_cache, urim, given_uri=given_urim)
 
@@ -131,23 +197,9 @@ class MementoResource:
         self.urig = None
         self.memento_dt = None
 
-        try:
-            self.memento_dt = self.memento_datetime
-        except KeyError as e:
-            raise NotAMementoError("no memento-datetime header", 
-                response=self.response, original_exception=e)
-
-        try:
-            self.urir = self.original_uri
-        except KeyError as e:
-            raise NotAMementoError("error parsing link header for original URI",
-                response=self.response, original_exception=e)
-
-        try:
-            self.urig = self.timegate
-        except KeyError as e:
-            raise NotAMementoError("error parsing link header for timegate URI",
-                response=self.response, original_exception=e)
+        self.memento_dt = self.memento_datetime
+        self.urir = self.original_uri
+        self.urig = self.timegate
         
         if 'text/html' not in self.response.headers['content-type']:
             raise MementoParsingError("Cannot process non-HTML content")
@@ -159,9 +211,8 @@ class MementoResource:
     def memento_datetime(self):
         
         if self.memento_dt is None:
-            self.memento_dt = datetime.strptime(
-                self.response.headers['memento-datetime'], 
-                "%a, %d %b %Y %H:%M:%S GMT"
+            self.memento_dt = get_memento_datetime_from_response(
+                self.response
             )
         
         return self.memento_dt
@@ -169,14 +220,14 @@ class MementoResource:
     @property
     def original_uri(self):
         if self.urir is None:
-            self.urir = aiu.convert_LinkTimeMap_to_dict( self.response.headers['link'] )['original_uri']
+            self.urir = get_original_uri_from_response(self.response)
 
         return self.urir
 
     @property
     def timegate(self):
         if self.urig is None:
-            self.urig = aiu.convert_LinkTimeMap_to_dict( self.response.headers['link'] )['timegate_uri']
+            self.urig = get_timegate_from_response(self.response)
 
         return self.urig
 

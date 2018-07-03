@@ -13,9 +13,10 @@ testdir = os.path.dirname(os.path.realpath(__file__))
 
 class mock_response:
 
-    def __init__(self, headers, text, status, content=None):
+    def __init__(self, headers, text, status, url, content=None):
         self.headers = headers
         self.text = text
+        self.url = url
         
         if content is None:
 
@@ -80,7 +81,23 @@ class TestMementoResource(unittest.TestCase):
                             """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
-                    status=200
+                    status=200,
+                    url = urim
+                ),
+            expected_urig: # requests follows all redirects, so we present the result at the end of the chain
+                mock_response(
+                    headers = {
+                        'content-type': 'text/html',
+                        'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, urim)
+                    },
+                    text = expected_content,
+                    status=200,
+                    url = urim
                 )
         }
 
@@ -142,7 +159,8 @@ class TestMementoResource(unittest.TestCase):
                             """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
-                    status=200
+                    status=200,
+                    url = urim
                 ),
             raw_urim:
                 mock_response(
@@ -150,7 +168,8 @@ class TestMementoResource(unittest.TestCase):
                         'content-type': 'text/html'
                     },
                     text = expected_raw_content,
-                    status=200
+                    status=200,
+                    url = raw_urim
                 )
         }
 
@@ -212,7 +231,8 @@ class TestMementoResource(unittest.TestCase):
                             """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
-                    status=200
+                    status=200,
+                    url = urim
                 ),
             raw_urim:
                 mock_response(
@@ -220,7 +240,8 @@ class TestMementoResource(unittest.TestCase):
                         'content-type': 'text/html'
                     },
                     text = expected_raw_content,
-                    status=200
+                    status=200,
+                    url = raw_urim
                 )
         }
 
@@ -292,7 +313,8 @@ class TestMementoResource(unittest.TestCase):
                             """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
-                    status=200
+                    status=200,
+                    url = urim
                 ),
             zipurim:
                 mock_response(
@@ -301,7 +323,8 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = "",
                     content = zip_content,
-                    status=200
+                    status=200,
+                    url = zipurim
                 )
         }
 
@@ -356,13 +379,15 @@ class TestMementoResource(unittest.TestCase):
                             """.format(urir, expected_urig, urim)
                     },
                     text = content,
-                    status=200
+                    status=200,
+                    url = urim
                 ),
             raw_urim:
                 mock_response(
                     headers = {},
                     text = "",
-                    status = 404
+                    status = 404,
+                    url = raw_urim
                 )
         }
 
@@ -382,13 +407,15 @@ class TestMementoResource(unittest.TestCase):
                             """.format(expected_urig, urim)
                     },
                     text = content,
-                    status=200
+                    status=200,
+                    url = urim
                 ),
             raw_urim:
                 mock_response(
                     headers = {},
                     text = "",
-                    status = 404
+                    status = 404,
+                    url = raw_urim
                 )
         }
 
@@ -403,13 +430,15 @@ class TestMementoResource(unittest.TestCase):
                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT"
                         },
                     text = content,
-                    status=200
+                    status=200,
+                    url = urim
                 ),
             raw_urim:
                 mock_response(
                     headers = {},
                     text = "",
-                    status = 404
+                    status = 404,
+                    url = raw_urim
                 )
         }
 
@@ -446,13 +475,15 @@ class TestMementoResource(unittest.TestCase):
                             """.format(expected_original_uri, expected_urig, urim)
                     },
                     text = expected_content,
-                    status=200
+                    status=200,
+                    url = urim
                 ),
             "http://archive.is/20130508132946id_/http://flexispy.com/":
                 mock_response(
                     headers = {},
                     text= "",
-                    status=404
+                    status=404,
+                    url = "http://archive.is/20130508132946id_/http://flexispy.com/"
                 ),
             zipurim:
                 mock_response(
@@ -461,7 +492,8 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = "",
                     content = zip_content,
-                    status=200
+                    status=200,
+                    url = zipurim
                 )
         }
 
@@ -519,7 +551,8 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = metaredirecthtml,
                     content = metaredirecthtml,
-                    status = 200
+                    status = 200,
+                    url = urim
                 ),
             redirurim: 
                 mock_response(
@@ -534,7 +567,8 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_content,
                     content = expected_content,
-                    status = 200
+                    status = 200,
+                    url = redirurim
                 ),
             redirurim_raw: 
                 mock_response(
@@ -543,7 +577,8 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_raw_content,
                     content = expected_raw_content,
-                    status = 200
+                    status = 200,
+                    url = redirurim_raw
                 )
         }
 
@@ -564,46 +599,16 @@ class TestMementoResource(unittest.TestCase):
         self.assertEqual(mr.content, expected_content)
         self.assertEqual(mr.raw_content, expected_raw_content)
 
-    def test_waybackframesets(self):
+    def test_permacc_hashstyle_uris(self):
 
-        # TODO: rework this test so that it passes
-        self.skipTest("Integration tests work, but this unit test does not produce the correct behavior")
+        urim = "http://perma.cc/RZP7-3P4P"
+        expected_original_uri = "http://www.environment.gov.au/minister/hunt/2014/mr20141215a.html"
+        expected_urim = "https://perma-archives.org/warc/20151028031045/http://www.environment.gov.au/minister/hunt/2014/mr20141215a.html"
+        expected_raw_uri = "https://perma-archives.org/warc/20151028031045id_/http://www.environment.gov.au/minister/hunt/2014/mr20141215a.html"
+        expected_urig = "https://perma-archives.org/warc/timegate/http://www.environment.gov.au/minister/hunt/2014/mr20141215a.html"
 
-        urim = "http://myarchive.org/memento/20080202062913/http://example.com/something"
-        urir = "http://example.com/something"
-        raw_urim = "http://myarchive.org/memento/20080202062913id_/http://example.com/something"
-        expected_urig = "http://myarchive.org/timegate/http://example.com/something"
-        expected_original_uri = "http://example.com/something"
-
-        content = """
-        <html>
-            <head>
-                <title>Is this a good title?</title>
-            </head>
-                <!-- ARCHIVE SPECIFIC STUFF -->
-                <frameset rows="*" cols="130,*" framespacing="0" border="0">
-                    <frame src="frame1.htm">
-                    <frame src="pages/frame2.htm">
-                    <frame src="/content/frame3.htm">
-                    <frame src="http://example2.com/content/frame4.htm">
-                </frameset>
-        </html>"""
-
-        raw_content = """
-        <html>
-            <head>
-                <title>Is this a good title?</title>
-            </head>
-                <frameset rows="*" cols="130,*" framespacing="0" border="0">
-                    <frame src="frame1.htm">
-                    <frame src="pages/frame2.htm">
-                    <frame src="/content/frame3.htm">
-                    <frame src="http://example2.com/content/frame4.htm">
-                </frameset>
-        </html>"""
-
-        timegate_stem = "http://myarchive.org/timegate/"
-        memento_stem = "http://myarchive.org/memento/"
+        expected_content = "hi"
+        expected_raw_content = "hi there"
 
         cachedict = {
             urim:
@@ -617,78 +622,56 @@ class TestMementoResource(unittest.TestCase):
                             <{}>; rel="memento"
                             """.format(expected_original_uri, expected_urig, urim)
                     },
-                    text = content,
-                    status=200
+                    text = expected_content,
+                    status=200,
+                    url = urim
                 ),
-            raw_urim:
+            expected_raw_uri:
                 mock_response(
                     headers = {
-                        'content-type': 'text/html'
+                        'content-type': 'text/html',
+                        'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, expected_urim)
                     },
-                    text = raw_content,
-                    status=200
+                    text = expected_raw_content,
+                    status = 200,
+                    url = expected_raw_uri
                 ),
-            "{}/{}".format(memento_stem, urljoin(urir, "frame1.htm")):
+            expected_urig: # requests follows all redirects, so we present the result at the end of the chain
                 mock_response(
-                    headers = {
-                        'content-type': 'text/html'
-                    },
-                    text = "<html><body><p>frame1</p></body></html>",
-                    status=200
+                    headers = { 
+                        'content-type': 'text/html',
+                        'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, expected_urim)
+                     },
+                    text = expected_content,
+                    status = 200, # after following redirects
+                    url = expected_urim
                 ),
-            "{}{}".format(timegate_stem, urljoin(urir, "frame1.htm")):
+            expected_urim:
                 mock_response(
-                    headers = { 'location':  "{}/{}".format(memento_stem, urljoin(urir, "frame1.htm")) },
-                    text = "",
-                    status=302
-                ),
-            "{}{}".format(memento_stem, urljoin(urir, "pages/frame2.htm")):
-                mock_response(
-                    headers = {},
-                    text = "<html><body><div>frame2</div></body></html>",
-                    status=200
-                ),
-            "{}{}".format(timegate_stem, urljoin(urir, "pages/frame2.htm")):
-                mock_response(
-                    headers = { 'location':  "{}{}".format(memento_stem, urljoin(urir, "pages/frame2.htm")) },
-                    text = "",
-                    status=302
-                ),
-            "{}{}".format(memento_stem, urljoin(urir, "/content/frame3.htm")):
-                mock_response(
-                    headers = {},
-                    text = "<html><body><span><p>frame3</p></span></body></html>",
-                    status=200
-                ),
-            "{}{}".format(timegate_stem, urljoin(urir, "/content/frame3.htm")):
-                mock_response(
-                    headers = { 'location': "{}{}".format(memento_stem, urljoin(urir, "/content/frame3.htm")) },
-                    text = "",
-                    status=302
-                ),
-            "http://myarchive.org/memento/20080202062913/http://example2.com/content/frame4.htm":
-                mock_response(
-                    headers = {},
-                    text = "<html><body><div><span><p>frame4</p></span></div></body></html>",
-                    status=200
-                ),
-            "{}{}".format(timegate_stem, "http://example2.com/content/frame4.htm"):
-                mock_response(
-                    headers = { 'location': "http://myarchive.org/memento/20080202062913/http://example2.com/content/frame4.htm" },
-                    text = "",
-                    status=302
+                    headers = { 
+                        'content-type': 'text/html',
+                        'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, expected_urim)
+                     },
+                    text = expected_content,
+                    status = 200, # after following redirects
+                    url = expected_urim
                 )
-
         }
-
-        expected_raw_content = """<html><head><title>Is this a good title?</title></head><body>
-<p>frame1</p>
-<div>frame2</div>
-<span><p>frame3</p></span>
-<div><span><p>frame4</p></span></div>
-</body></html>"""
-
-        expected_content = expected_raw_content
 
         mh = mock_httpcache(cachedict)
 
@@ -708,3 +691,148 @@ class TestMementoResource(unittest.TestCase):
         self.assertEqual(mr.original_uri, expected_original_uri)
         self.assertEqual(mr.content, expected_content)
         self.assertEqual(mr.raw_content, expected_raw_content)
+
+#     def test_waybackframesets(self):
+
+#         # TODO: rework this test so that it passes
+#         self.skipTest("Integration tests work, but this unit test does not produce the correct behavior")
+
+#         urim = "http://myarchive.org/memento/20080202062913/http://example.com/something"
+#         urir = "http://example.com/something"
+#         raw_urim = "http://myarchive.org/memento/20080202062913id_/http://example.com/something"
+#         expected_urig = "http://myarchive.org/timegate/http://example.com/something"
+#         expected_original_uri = "http://example.com/something"
+
+#         content = """
+#         <html>
+#             <head>
+#                 <title>Is this a good title?</title>
+#             </head>
+#                 <!-- ARCHIVE SPECIFIC STUFF -->
+#                 <frameset rows="*" cols="130,*" framespacing="0" border="0">
+#                     <frame src="frame1.htm">
+#                     <frame src="pages/frame2.htm">
+#                     <frame src="/content/frame3.htm">
+#                     <frame src="http://example2.com/content/frame4.htm">
+#                 </frameset>
+#         </html>"""
+
+#         raw_content = """
+#         <html>
+#             <head>
+#                 <title>Is this a good title?</title>
+#             </head>
+#                 <frameset rows="*" cols="130,*" framespacing="0" border="0">
+#                     <frame src="frame1.htm">
+#                     <frame src="pages/frame2.htm">
+#                     <frame src="/content/frame3.htm">
+#                     <frame src="http://example2.com/content/frame4.htm">
+#                 </frameset>
+#         </html>"""
+
+#         timegate_stem = "http://myarchive.org/timegate/"
+#         memento_stem = "http://myarchive.org/memento/"
+
+#         cachedict = {
+#             urim:
+#                 mock_response(
+#                     headers = {
+#                         'content-type': 'text/html',
+#                         'memento-datetime': "Sat, 02 Feb 2008 06:29:13 GMT",
+#                         'link': """<{}>; rel="original", 
+#                             <{}>; rel="timegate",
+#                             <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+#                             <{}>; rel="memento"
+#                             """.format(expected_original_uri, expected_urig, urim)
+#                     },
+#                     text = content,
+#                     status=200
+#                 ),
+#             raw_urim:
+#                 mock_response(
+#                     headers = {
+#                         'content-type': 'text/html'
+#                     },
+#                     text = raw_content,
+#                     status=200
+#                 ),
+#             "{}/{}".format(memento_stem, urljoin(urir, "frame1.htm")):
+#                 mock_response(
+#                     headers = {
+#                         'content-type': 'text/html'
+#                     },
+#                     text = "<html><body><p>frame1</p></body></html>",
+#                     status=200
+#                 ),
+#             "{}{}".format(timegate_stem, urljoin(urir, "frame1.htm")):
+#                 mock_response(
+#                     headers = { 'location':  "{}/{}".format(memento_stem, urljoin(urir, "frame1.htm")) },
+#                     text = "",
+#                     status=302
+#                 ),
+#             "{}{}".format(memento_stem, urljoin(urir, "pages/frame2.htm")):
+#                 mock_response(
+#                     headers = {},
+#                     text = "<html><body><div>frame2</div></body></html>",
+#                     status=200
+#                 ),
+#             "{}{}".format(timegate_stem, urljoin(urir, "pages/frame2.htm")):
+#                 mock_response(
+#                     headers = { 'location':  "{}{}".format(memento_stem, urljoin(urir, "pages/frame2.htm")) },
+#                     text = "",
+#                     status=302
+#                 ),
+#             "{}{}".format(memento_stem, urljoin(urir, "/content/frame3.htm")):
+#                 mock_response(
+#                     headers = {},
+#                     text = "<html><body><span><p>frame3</p></span></body></html>",
+#                     status=200
+#                 ),
+#             "{}{}".format(timegate_stem, urljoin(urir, "/content/frame3.htm")):
+#                 mock_response(
+#                     headers = { 'location': "{}{}".format(memento_stem, urljoin(urir, "/content/frame3.htm")) },
+#                     text = "",
+#                     status=302
+#                 ),
+#             "http://myarchive.org/memento/20080202062913/http://example2.com/content/frame4.htm":
+#                 mock_response(
+#                     headers = {},
+#                     text = "<html><body><div><span><p>frame4</p></span></div></body></html>",
+#                     status=200
+#                 ),
+#             "{}{}".format(timegate_stem, "http://example2.com/content/frame4.htm"):
+#                 mock_response(
+#                     headers = { 'location': "http://myarchive.org/memento/20080202062913/http://example2.com/content/frame4.htm" },
+#                     text = "",
+#                     status=302
+#                 )
+
+#         }
+
+#         expected_raw_content = """<html><head><title>Is this a good title?</title></head><body>
+# <p>frame1</p>
+# <div>frame2</div>
+# <span><p>frame3</p></span>
+# <div><span><p>frame4</p></span></div>
+# </body></html>"""
+
+#         expected_content = expected_raw_content
+
+#         mh = mock_httpcache(cachedict)
+
+#         mr = memento_resource_factory(urim, mh)
+
+#         expected_mdt = datetime.strptime(
+#             "Sat, 02 Feb 2008 06:29:13 GMT", 
+#             "%a, %d %b %Y %H:%M:%S GMT"
+#         )
+
+#         self.maxDiff = None
+
+#         self.assertEqual(type(mr), WaybackMemento)
+
+#         self.assertEqual(mr.memento_datetime, expected_mdt)
+#         self.assertEqual(mr.timegate, expected_urig)
+#         self.assertEqual(mr.original_uri, expected_original_uri)
+#         self.assertEqual(mr.content, expected_content)
+#         self.assertEqual(mr.raw_content, expected_raw_content)
