@@ -112,9 +112,10 @@ def query_timegate_for_favicon(timegate_stem, candidate_favicon_uri, accept_date
 
     r = http_cache.get(favicon_timegate, headers={'accept-datetime': accept_datetime_str})
 
-    if r.status_code == 302:
+    if r.status_code == 200:
 
-        candidate_favicon_uri = r.headers['location']
+        # candidate_favicon_uri = r.headers['location']
+        candidate_favicon_uri = r.url
 
         r = http_cache.get(candidate_favicon_uri)
 
