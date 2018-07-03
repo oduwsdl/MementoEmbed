@@ -64,14 +64,29 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = "testing-url://notused"
+                    url = urim
+                ),
+            expected_urig:
+                mock_response(
+                    headers = {
+                        'content-type': 'text/html',
+                        'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, urim)
+                    },
+                    text = expected_content,
+                    status=200,
+                    url = urim
                 ),
             expected_original_uri:
                 mock_response(
                     headers = {},
                     text = "",
                     status=404,
-                    url = "testing-url://notused"
+                    url = expected_original_uri
                 )
         }
 
@@ -115,7 +130,22 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = "testing-url://notused"
+                    url = urim
+                ),
+            expected_urig:
+                mock_response(
+                    headers = {
+                        'content-type': 'text/html',
+                        'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, urim)
+                    },
+                    text = expected_content,
+                    status=200,
+                    url = urim
                 ),
             expected_original_uri:
                 mock_response(
@@ -124,7 +154,7 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = "",
                     status=200,
-                    url = "testing-url://notused"
+                    url = expected_original_uri
                 )
         }
 
@@ -145,6 +175,7 @@ class TestOriginalResource(unittest.TestCase):
         expected_original_uri = "http://example.com/something"
         expected_favicon = "http://myarchive.org/memento/http://example.com/content/favicon.ico"
         original_favicon = "http://example.com/content/favicon.ico"
+        favicon_urig = "http://myarchive.org/timegate/http://example.com/favicon.ico"
 
         expected_content = """
         <html>
@@ -171,7 +202,22 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = "testing-url://notused"
+                    url = urim
+                ),
+            expected_urig:
+                mock_response(
+                    headers = {
+                        'content-type': 'text/html',
+                        'memento-datetime': "Fri, 22 Jun 2018 21:16:36 GMT",
+                        'link': """<{}>; rel="original", 
+                            <{}>; rel="timegate",
+                            <http://myarchive.org/timemap/http://example.com/something>; rel="timemap",
+                            <{}>; rel="memento"
+                            """.format(expected_original_uri, expected_urig, urim)
+                    },
+                    text = expected_content,
+                    status=200,
+                    url = urim
                 ),
             expected_original_uri:
                 mock_response(
@@ -180,21 +226,28 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = "",
                     status=200,
-                    url = "testing-url://notused"
+                    url = expected_original_uri
                 ),
             "http://myarchive.org/timegate/http://example.com/content/favicon.ico":
                 mock_response(
                     headers = {"location": expected_favicon},
                     text = "",
-                    status = 302,
-                    url = "testing-url://notused"
+                    status = 200,
+                    url = expected_favicon
+                ),
+            favicon_urig:
+                mock_response(
+                    headers = {'content-type': 'image/'},
+                    text = "a",
+                    status=200,
+                    url = expected_favicon
                 ),
             expected_favicon:
                 mock_response(
                     headers = {'content-type': 'image/'},
                     text = "a",
                     status=200,
-                    url = "testing-url://notused"
+                    url = expected_favicon
                 )
 
         }

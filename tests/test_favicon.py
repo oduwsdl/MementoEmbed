@@ -221,15 +221,15 @@ class TestFavicon(unittest.TestCase):
                 mock_response(
                     headers = { 'location': urim },
                     content = "",
-                    status = 302,
-                    url = "testing-url://notused"
+                    status = 200,
+                    url = urim
                 ),
             urim:
                 mock_response(
                     headers = { 'content-type': 'image/testing' },
                     content = "a",
                     status = 200,
-                    url = "testing-url://notused"
+                    url = urim
                 )
         }
 
