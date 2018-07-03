@@ -13,6 +13,8 @@ RUN pip install .
 RUN ln -s /app/mementoembed/templates /usr/local/lib/python3.6/site-packages/mementoembed/templates && \
     ln -s /app/mementoembed/static /usr/local/lib/python3.6/site-packages/mementoembed/static
 
+RUN git rev-parse HEAD > gitrev.txt
+
 RUN cp docker_appconfig.json /etc/mementoembed.json
 
 RUN mkdir /app/logs
