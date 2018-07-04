@@ -36,7 +36,7 @@
             </div>
             <div class="row" style="text-align: center">
                 <div class="col-sm" style="text-align: center">
-                    <form action="#">
+                    <form>
                     <input type="text" id="uri_submitted" class="form-control form-control-lg" size="100" placeholder="Type URL here">
                     <br />
                     <button id="createSocialCard" type="button" class="btn btn-primary">Create a Social Card</button>
@@ -89,8 +89,7 @@
                 workerror.innerHTML = errordata;
             }
 
-            // function requestEmbed() {
-            $( "#createSocialCard" ).bind( "click" , function() {
+            function requestEmbed() {
 
                 console.log("requestEmbed called");
                 setWorking();
@@ -184,14 +183,33 @@
                         
                     }
                 });
+            }
+
+            // handlers for all input begin here
+            $(function() {
+                $("form").submit(function() { return false; });
             });
 
-            // function clearEmbed() {
             $( "#clearURL" ).bind( "click" , function() {
-                document.getElementById('uri_submitted').clear;
+                $('#uri_submitted').val("");
                 workoutput.innerHTML = "";
                 workerror.innerHTML = "";
             });
+
+            $('#uri_submitted').bind("enterKey",function(e){
+                requestEmbed();
+            });
+            $('#uri_submitted').keyup(function(e){
+                if(e.keyCode == 13)
+                {
+                    $(this).trigger("enterKey");
+                }
+            });
+
+            $( "#createSocialCard" ).bind( "click" , function() {
+                requestEmbed();
+            });
+
         </script>
     </body>
 </html>
