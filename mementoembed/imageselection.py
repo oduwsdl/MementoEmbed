@@ -4,6 +4,7 @@ import base64
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from PIL import ImageFile
+from requests.exceptions import RequestException
 
 module_logger = logging.getLogger('mementoembed.imageselection')
 
@@ -39,14 +40,21 @@ def get_image_list(uri, http_cache):
 
     image_list = []
 
-    r = http_cache.get(uri)
+    try:
+        r = http_cache.get(uri)
 
-    soup = BeautifulSoup(r.text, 'html5lib')
+        soup = BeautifulSoup(r.text, 'html5lib')
 
-    for imgtag in soup.find_all("img"):
-    
-        imageuri = urljoin(uri, imgtag.get("src"))
-        image_list.append(imageuri)
+        for imgtag in soup.find_all("img"):
+
+            module_logger.debug("examining image tag {}".format(imgtag))
+        
+            imageuri = urljoin(uri, imgtag.get("src"))
+            image_list.append(imageuri)
+
+    except RequestException as e:
+        module_logger.warn("Failed to download {} for extracing images, skipping...".format(uri))
+        module_logger.debug("Failed to download {}, details: {}".format(uri, e))
     
     return image_list
 
@@ -62,6 +70,8 @@ def get_best_image(uri, http_cache):
     start = 0
     N = len(imagelist)
 
+    module_logger.debug("there are {} images to review for URI {}".format(N, uri))
+
     # TODO: make this value configurable
     while maxscore < 5000:
 
@@ -74,43 +84,51 @@ def get_best_image(uri, http_cache):
 
             imageuri = imagelist[n]
 
+            module_logger.debug("examining image at URI {}".format(imageuri))
+
             if imageuri not in imagescores:
 
-                if imageuri[0:5] == "data:":
+                try:
+
+                    if imageuri[0:5] == "data:":
+                
+                        ctype = imageuri.split(';')[0].split(':')[1]
+
+                        imagecontent = base64.b64decode(imageuri.split(',')[1])
+
+                    else:
+    
+                        r = http_cache.get(imageuri)
+
+                        ctype = r.headers['content-type']
+
+                        imagecontent = r.content
+
+                    if 'image/' in ctype:
+    
+                        try:
+                            score = score_image(imagecontent, n, N)
+
+                            imagescores[imageuri] = score
             
-                    ctype = imageuri.split(';')[0].split(':')[1]
-
-                    imagecontent = base64.b64decode(imageuri.split(',')[1])
-
-                else:
- 
-                    r = http_cache.get(imageuri)
-
-                    ctype = r.headers['content-type']
-
-                    imagecontent = r.content
-
-                if 'image/' in ctype:
-   
-                    try:
-                        score = score_image(imagecontent, n, N)
-
-                        imagescores[imageuri] = score
-        
-                        if maxscore is None:
-                            maxscore = score
-                        else:
-                            if score > maxscore:
+                            if maxscore is None:
                                 maxscore = score
-                                max_score_image = imageuri
+                            else:
+                                if score > maxscore:
+                                    maxscore = score
+                                    max_score_image = imageuri
 
-                    except IOError:
-                        # if something went wrong with the download
-                        # or the image is not identified correctly
+                        except IOError:
+                            # if something went wrong with the download
+                            # or the image is not identified correctly
+                            imagescores[imageuri] = None
+
+                    else:
                         imagescores[imageuri] = None
 
-                else:
-                    imagescores[imageuri] = None
+                except RequestException as e:
+                    module_logger.warn("Failed to download image URI {}, skipping...".format(imageuri))
+                    module_logger.debug("Failed to download {}, details: {}".format(imageuri, e))
 
         if n >= N:
             break

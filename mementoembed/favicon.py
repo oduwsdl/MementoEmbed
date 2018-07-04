@@ -5,6 +5,7 @@ import tldextract
 from datetime import datetime
 
 from bs4 import BeautifulSoup
+from requests.exceptions import RequestException
 
 module_logger = logging.getLogger('mementoembed.favicon')
 
@@ -90,11 +91,18 @@ def find_conventional_favicon_on_live_web(scheme, domain, http_cache):
 
     candidate_favicon_uri = construct_conventional_favicon_uri(scheme, domain)
 
-    r = http_cache.get(candidate_favicon_uri)
+    try:
 
-    if favicon_resource_test(r) is True:
+        r = http_cache.get(candidate_favicon_uri)
 
-        favicon_uri = candidate_favicon_uri
+        if favicon_resource_test(r) is True:
+
+            favicon_uri = candidate_favicon_uri
+
+    except RequestException as e:
+        module_logger.warn("Failed to download favicon {}, skipping...".format(candidate_favicon_uri))
+        module_logger.debug("Favicon from live web failure for URI {}, details: {}".format(candidate_favicon_uri, e))
+
 
     return favicon_uri
 
@@ -110,35 +118,61 @@ def query_timegate_for_favicon(timegate_stem, candidate_favicon_uri, accept_date
     else:
         favicon_timegate = timegate_stem + candidate_favicon_uri
 
-    r = http_cache.get(favicon_timegate, headers={'accept-datetime': accept_datetime_str})
+    try:
 
-    if r.status_code == 200:
+        r = http_cache.get(favicon_timegate, headers={'accept-datetime': accept_datetime_str})
 
-        # candidate_favicon_uri = r.headers['location']
-        candidate_favicon_uri = r.url
+        if r.status_code == 200:
 
-        r = http_cache.get(candidate_favicon_uri)
+            # candidate_favicon_uri = r.headers['location']
+            candidate_favicon_uri = r.url
 
-        if favicon_resource_test(r) is True:
+            try:
+                r = http_cache.get(candidate_favicon_uri)
 
-            favicon_uri = candidate_favicon_uri
+                if favicon_resource_test(r) is True:
+
+                    favicon_uri = candidate_favicon_uri
+
+            except RequestException as e:
+                module_logger.warn("Failed to download favicon {}, skipping...".format(candidate_favicon_uri))
+                module_logger.debug("Failed to download URI {}, details: {}".format(candidate_favicon_uri, e))
+
+
+    except RequestException as e:
+        module_logger.warn("Failed to access timegate {}, skipping...".format(favicon_timegate))
+        module_logger.debug("Timegate access failure for URI {}, details: {}".format(favicon_timegate, e))
+
 
     return favicon_uri
 
 def get_favicon_from_resource_content(uri, http_cache):
 
+    module_logger.debug("searching for favicon in content of URI {}".format(uri))
+
     favicon_uri = None
 
-    r = http_cache.get(uri)
+    try:
+        r = http_cache.get(uri)
+        candidate_favicon_uri = get_favicon_from_html(r.text)
 
-    candidate_favicon_uri = get_favicon_from_html(r.text)
+    except RequestException as e:
+        module_logger.warn("Failed to download favicon discovered in HTML of URI {}, skipping...".format(uri))
+        module_logger.debug("Favicon from HTML failure for URI {}, details: {}".format(uri, e))
+        candidate_favicon_uri = None
 
     if candidate_favicon_uri is not None:
 
-        r = http_cache.get(candidate_favicon_uri)
+        try:
+            r = http_cache.get(candidate_favicon_uri)
 
-        if favicon_resource_test(r) is True:
+            if favicon_resource_test(r) is True:
 
-            favicon_uri = candidate_favicon_uri
+                favicon_uri = candidate_favicon_uri
+
+        except RequestException as e:
+            module_logger.warn("Failed to download favicon {} discovered in HTML of URI {}, skipping...".format(candidate_favicon_uri, uri))
+            module_logger.debug("Favicon from HTML failure for URI {}, details: {}".format(uri, e))
+
 
     return favicon_uri

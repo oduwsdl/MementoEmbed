@@ -245,7 +245,7 @@ def create_app():
                 "content": "MementoEmbed could not reach the server to download {}".format(urim),
                 "error": "MementoEmbed timed out trying to acquire {} from the server".format(urim),
                 "error details": repr(traceback.format_exc())
-            }), 504
+            }, indent=4), 504
 
         except (TooManyRedirects, ChunkedEncodingError, ContentDecodingError, StreamConsumedError) as e:
 
@@ -257,19 +257,19 @@ def create_app():
                 "content": "MementoEmbed could not download {}".format(urim),
                 "error": "MementoEmbed did not timeout, but had problems downloading {}".format(urim),
                 "error details": repr(traceback.format_exc())
-            }), 502
+            }, indent=4), 502
 
         except (URLRequired, MissingSchema, InvalidSchema, InvalidURL) as e:
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning("An unsupported/invalid URI-M {} was submitted, details: {}".format(urim, e))
+            rootlogger.warning("An unsupported/invalid URI related to {} was submitted, details: {}".format(urim, e))
 
             return json.dumps({
                 "content": "The URI-M {} is not valid".format(urim),
                 "error": "MementoEmbed encountered problems processing {}".format(urim),
                 "error details": repr(traceback.format_exc())
-            }), 400
+            }, indent=4), 400
 
         except UnrewindableBodyError as e:
 
@@ -281,7 +281,7 @@ def create_app():
                 "content": "MementoEmbed had problems extracting content for URI-M {}".format(urim),
                 "error": "MementoEmbed had problems extracting content for URI-M {}".format(urim),
                 "error details": repr(traceback.format_exc())
-            }), 500
+            }, indent=4), 500
 
         except (TextProcessingError, MementoParsingError) as e:
 
@@ -293,7 +293,7 @@ def create_app():
                 "content": "MementoEmbed could not process the text at URI-M<br /> {} <br />Are you sure this is an HTML page?".format(urim),
                 "error": "MementoEmbed could not parse the text at URI-M {}".format(urim),
                 "error details": repr(traceback.format_exc())
-            }), 500
+            }, indent=4), 500
 
         except RedisError as e:
 
@@ -305,7 +305,7 @@ def create_app():
                 "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
                 "error": "A Redis Error has occurred with MementoEmbed.",
                 "error details": repr(traceback.format_exc())
-            }), 500
+            }, indent=4), 500
 
         except Exception:
 
@@ -317,7 +317,7 @@ def create_app():
                 "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
                 "error": "A generic exception was caught by MementoEmbed. Please check the log.",
                 "error details": repr(traceback.format_exc())
-            })
+            }, indent=4), 500
 
 
         return response
