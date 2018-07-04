@@ -38,6 +38,8 @@ def score_image(imagecontent, n, N):
 
 def get_image_list(uri, http_cache):
 
+    module_logger.debug("extracting images from the HTML of URI {}".format(uri))
+
     image_list = []
 
     try:
@@ -47,7 +49,7 @@ def get_image_list(uri, http_cache):
 
         for imgtag in soup.find_all("img"):
 
-            module_logger.debug("examining image tag {}".format(imgtag))
+            # module_logger.debug("examining image tag {}".format(imgtag))
         
             imageuri = urljoin(uri, imgtag.get("src"))
             image_list.append(imageuri)
