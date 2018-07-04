@@ -7,11 +7,14 @@ WORKDIR /app
 
 COPY . /app
 
-RUN pip install .
+# TODO: this seems like the wrong way to get the git revision
+RUN git rev-parse HEAD > revfile.txt && rm -rf .git
 
 COPY sample_appconfig.json /etc/mementoembed.json
 
 RUN mkdir /app/logs
+
+RUN pip install .
 
 EXPOSE 5550
 
