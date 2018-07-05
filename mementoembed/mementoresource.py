@@ -136,7 +136,15 @@ def memento_resource_factory(urim, http_cache):
                 "failed to parse document using BeautifulSoup",
                 original_exception=e)
 
-    # maybe we search for /[0-9]{14}/ in the URI and then try id_
+    if soup.find("iframe", {"id": "theWebpage"}):
+        module_logger.info("memento at {} is an IMF memento".format(urim))
+        return IMFMemento(http_cache, urim, given_uri=given_urim)
+    
+    if soup.find("div", {'id': 'SOLID'}):
+        module_logger.info("memento at {} is an Archive.is memento".format(urim))
+        return ArchiveIsMemento(http_cache, urim, given_uri=given_urim)
+
+    # we search for /[0-9]{14}/ in the URI and then try id_
     if wayback_pattern.search(urim):
         module_logger.debug("URI-M {} matches the wayback pattern".format(urim))
         candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
@@ -146,14 +154,6 @@ def memento_resource_factory(urim, http_cache):
         if resp.status_code == 200:
             module_logger.info("memento at {} is a Wayback memento".format(urim))
             return WaybackMemento(http_cache, urim, given_uri=given_urim)
-
-    if soup.find("iframe", {"id": "theWebpage"}):
-        module_logger.info("memento at {} is an IMF memento".format(urim))
-        return IMFMemento(http_cache, urim, given_uri=given_urim)
-    
-    if soup.find("div", {'id': 'SOLID'}):
-        module_logger.info("memento at {} is an Archive.is memento".format(urim))
-        return ArchiveIsMemento(http_cache, urim, given_uri=given_urim)
 
     # if we got here, we haven't categorized the URI-M into an Archive type yet
     # it might be a "hash-style" memento that actually resolves to a Wayback
@@ -268,18 +268,23 @@ class MementoResource:
 
                 o = urlparse(frameuri)
 
+                timegate_stem = self.timegate[0:self.timegate.find(self.original_uri)]
+
+                self.logger.debug("timegate stem is now {}".format(timegate_stem))
+
                 # deal with relative URIs
                 if o.netloc == '':
 
                     frameuri = urljoin(self.original_uri, frameuri)
 
-                    timegate_stem = self.timegate[0:self.timegate.find(self.original_uri)]
-
                     if timegate_stem[-1] != '/':
                         urig = '/'.join([timegate_stem, frameuri])
+                else:
+                    urig = frameuri
 
                 if urig is None:
                     urig = timegate_stem + frameuri
+                    self.logger.debug("URI-G is now {}".format(urig))
 
                 accept_datetime_str = self.memento_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
