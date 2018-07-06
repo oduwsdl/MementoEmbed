@@ -102,9 +102,19 @@ def get_best_image(uri, http_cache):
     
                         r = http_cache.get(imageuri)
 
-                        ctype = r.headers['content-type']
+                        if r.status_code == 200:
 
-                        imagecontent = r.content
+                            try:
+
+                                ctype = r.headers['content-type']
+                                imagecontent = r.content
+                            
+                            except KeyError as e:
+                                module_logger.warn("could not find a content-type for URI {}".format(imageuri))
+                                ctype = ""
+                                imagecontent = ""
+
+                        
 
                     if 'image/' in ctype:
     
