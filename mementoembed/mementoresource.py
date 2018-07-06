@@ -95,46 +95,48 @@ def memento_resource_factory(urim, http_cache):
 
     for tag in metatags:
         
-        try:
-            if tag.get("http-equiv") == "refresh":
+        if tag.parent.name != 'noscript':
 
-                module_logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
+            try:
+                if tag.get("http-equiv") == "refresh":
 
-                if tag.get("content"):
+                    module_logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
 
-                    redir_info = [i.strip() for i in tag.get("content").split(';', 1)]
+                    if tag.get("content"):
 
-                    # make sure the page isn't just refreshing itself 
-                    # periodically
-                    if len(redir_info) > 1:
+                        redir_info = [i.strip() for i in tag.get("content").split(';', 1)]
 
-                        rtimeout = redir_info[0]
+                        # make sure the page isn't just refreshing itself 
+                        # periodically
+                        if len(redir_info) > 1:
 
-                        # if the page redirects in more than 60 seconds, we 
-                        # assume the user is expected to read it, meaning
-                        # it contains actual content and is not just a 
-                        # pass-through
-                        if int(rtimeout) < 30:
+                            rtimeout = redir_info[0]
 
-                            url = redir_info[1]
-                            url = url.split('=', 1)[1]
-                            url = url.strip('"')
-                            redirect_url = url.strip("'")
-                            urim = redirect_url
+                            # if the page redirects in more than 60 seconds, we 
+                            # assume the user is expected to read it, meaning
+                            # it contains actual content and is not just a 
+                            # pass-through
+                            if int(rtimeout) < 30:
 
-                            module_logger.info("acquiring redirected URI-M {}".format(urim))
+                                url = redir_info[1]
+                                url = url.split('=', 1)[1]
+                                url = url.strip('"')
+                                redirect_url = url.strip("'")
+                                urim = redirect_url
 
-                            resp = http_cache.get(urim)
+                                module_logger.info("acquiring redirected URI-M {}".format(urim))
 
-                            module_logger.debug("for redirected URI-M {}, I got a response of {}".format(urim, resp))
+                                resp = http_cache.get(urim)
 
-                            if resp.status_code == 200:
-                                soup = BeautifulSoup(resp.text, "html5lib")
+                                module_logger.debug("for redirected URI-M {}, I got a response of {}".format(urim, resp))
 
-        except Exception as e:
-            raise MementoParsingError(
-                "failed to parse document using BeautifulSoup",
-                original_exception=e)
+                                if resp.status_code == 200:
+                                    soup = BeautifulSoup(resp.text, "html5lib")
+
+            except Exception as e:
+                raise MementoParsingError(
+                    "failed to parse document using BeautifulSoup",
+                    original_exception=e)
 
     if soup.find("iframe", {"id": "theWebpage"}):
         module_logger.info("memento at {} is an IMF memento".format(urim))
