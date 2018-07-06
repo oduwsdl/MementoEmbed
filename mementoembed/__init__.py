@@ -18,6 +18,7 @@ from requests.exceptions import Timeout, TooManyRedirects, \
     URLRequired, MissingSchema, InvalidSchema, InvalidURL, \
     UnrewindableBodyError, ConnectionError
 
+from .cachesession import CacheSession
 from .mementosurrogate import MementoSurrogate
 from .mementoresource import NotAMementoError, MementoParsingError
 from .textprocessing import TextProcessingError
@@ -85,11 +86,18 @@ def setup_cache(config):
             rootlogger.info("With no other supported cache engines detected, "
                 "setting up SQLite as cache engine with file named 'mementoembed'")
 
-            requests_cache.install_cache('mementoembed')
+            requests_cache.install_cache('mementoembed_cache')
 
     else:
         requests_cache.install_cache('mementoembed')
 
+def get_requests_timeout(config):
+
+    if 'REQUEST_TIMEOUT' in config:
+        return float(config['REQUEST_TIMEOUT'])
+    else:
+        return 20
+        
 def setup_logging_config(config):
 
     logfile = None
@@ -124,13 +132,17 @@ def create_app():
     app.config.from_pyfile('application.cfg', silent=True)
     app.config.from_json("/etc/mementoembed.json", silent=True)
 
-    setup_logging_config(app.config)
     rootlogger.addHandler(default_handler)
+    setup_logging_config(app.config)
 
     setup_cache(app.config)
 
+    timeout = get_requests_timeout(app.config)
+
     # pylint: disable=no-member
     rootlogger.info("loading Flask app for {}".format(app.name))
+
+    rootlogger.info("requests timeout is set to {}".format(timeout))
 
     #pylint: disable=unused-variable
     @app.route('/', methods=['GET', 'HEAD'])
@@ -155,11 +167,12 @@ def create_app():
                     return "The provider cannot return a response in the requested format.", 501
 
             rootlogger.debug("output format will be: {}".format(responseformat))
-
-            requests_cache.install_cache('mementoembed_cache')
             
-            httpcache = requests.Session()
-            httpcache.headers.update({'User-Agent': __useragent__})
+            httpcache = CacheSession(
+                timeout=timeout,
+                user_agent=__useragent__,
+                starting_uri=urim
+                )
         
             s = MementoSurrogate(
                 urim,
