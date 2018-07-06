@@ -92,6 +92,9 @@ def get_best_image(uri, http_cache):
 
                 try:
 
+                    ctype = ""
+                    imagecontent = ""
+
                     if imageuri[0:5] == "data:":
                 
                         ctype = imageuri.split(';')[0].split(':')[1]
@@ -111,10 +114,6 @@ def get_best_image(uri, http_cache):
                             
                             except KeyError as e:
                                 module_logger.warn("could not find a content-type for URI {}".format(imageuri))
-                                ctype = ""
-                                imagecontent = ""
-
-                        
 
                     if 'image/' in ctype:
     

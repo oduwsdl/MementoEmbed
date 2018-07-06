@@ -71,11 +71,17 @@ def get_favicon_from_google_service(http_cache, uri):
 
     google_favicon_uri = "https://www.google.com/s2/favicons?domain={}".format(domain)
 
-    r = http_cache.get(google_favicon_uri)
+    try:
 
-    if favicon_resource_test(r) is True:
+        r = http_cache.get(google_favicon_uri)
 
-        favicon_uri = google_favicon_uri
+        if favicon_resource_test(r) is True:
+
+            favicon_uri = google_favicon_uri
+
+    except RequestException as e:
+        module_logger.warn("Failed to download favicon {}, skipping...".format(google_favicon_uri))
+        module_logger.debug("Favicon from live web failure for URI {}, details: {}".format(google_favicon_uri, e))
 
     return favicon_uri
 
