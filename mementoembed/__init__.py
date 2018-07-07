@@ -10,6 +10,8 @@ import redis
 import requests
 import requests_cache
 
+from time import strftime
+
 from redis import RedisError
 from flask import Flask, request, render_template, make_response
 from flask.logging import default_handler
@@ -111,32 +113,33 @@ def get_requests_timeout(config):
     else:
         return 20
         
-def setup_logging_config(config):
+def setup_logging_config(config, applogger):
 
     logfile = None
 
-    if 'LOGLEVEL' in config:
-        loglevel = eval(config['LOGLEVEL'])
+    if 'APPLICATION_LOGLEVEL' in config:
+        loglevel = eval(config['APPLICATION_LOGLEVEL'])
 
     else:
         loglevel = logging.INFO
 
-    if 'LOGFILE' in config:
-        logfile = config['LOGFILE']
+    if 'APPLICATION_LOGFILE' in config:
+        logfile = config['APPLICATION_LOGFILE']
 
     formatter = logging.Formatter('[%(asctime)s] - %(name)s - %(levelname)s - [ %(urim)s ]: %(message)s')
 
     print("loglevel is {}".format(loglevel))
 
-    default_handler.addFilter(URIMFilter())
+    # default_handler.addFilter(URIMFilter())
 
     # this formatter must be set here to work
-    default_handler.setFormatter(formatter)
+    # default_handler.setFormatter(formatter)
     
     rootlogger.setLevel(loglevel)
-    rootlogger.addHandler(default_handler)
-
+    # rootlogger.addHandler(default_handler)
+    
     ch = logging.StreamHandler()
+    ch.addFilter(URIMFilter())
     rootlogger.addHandler(ch)
 
     if logfile is not None:
@@ -145,6 +148,11 @@ def setup_logging_config(config):
         fh.setLevel(loglevel)
         fh.setFormatter(formatter)
         rootlogger.addHandler(fh)
+
+    if 'ACCESS_LOGFILE' in config:
+        logfile = config['ACCESS_LOGFILE']
+        handler = logging.FileHandler(logfile)
+        applogger.addHandler(handler)
 
     rootlogger.info("logging with level {}".format(loglevel))
     rootlogger.info("logging to logfile {}".format(logfile))
@@ -157,13 +165,30 @@ def create_app():
     app.config.from_pyfile('application.cfg', silent=True)
     app.config.from_json("/etc/mementoembed.json", silent=True)
 
-    setup_logging_config(app.config)
+    setup_logging_config(app.config, app.logger)
     setup_cache(app.config)
 
     timeout = get_requests_timeout(app.config)
 
     rootlogger.info("loading Flask app for {}".format(app.name))
     rootlogger.info("requests timeout is set to {}".format(timeout))
+
+    @app.after_request
+    def after_request(response):
+
+        ts = strftime('[%d/%b/%Y:%H:%M:%S %z]')
+        
+        # pylint: disable=no-member
+        app.logger.info(
+            '%s - - %s %s %s %s',
+            request.remote_addr,
+            ts,
+            request.method,
+            request.full_path,
+            response.status
+        )
+
+        return response
 
     #pylint: disable=unused-variable
     @app.route('/', methods=['GET', 'HEAD'])
