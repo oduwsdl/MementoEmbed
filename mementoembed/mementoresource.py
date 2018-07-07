@@ -95,48 +95,58 @@ def memento_resource_factory(urim, http_cache):
 
     for tag in metatags:
         
-        try:
-            if tag.get("http-equiv") == "refresh":
+        if tag.parent.name != 'noscript':
 
-                module_logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
+            try:
+                if tag.get("http-equiv") == "refresh":
 
-                if tag.get("content"):
+                    module_logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
 
-                    redir_info = [i.strip() for i in tag.get("content").split(';', 1)]
+                    if tag.get("content"):
 
-                    # make sure the page isn't just refreshing itself 
-                    # periodically
-                    if len(redir_info) > 1:
+                        redir_info = [i.strip() for i in tag.get("content").split(';', 1)]
 
-                        rtimeout = redir_info[0]
+                        # make sure the page isn't just refreshing itself 
+                        # periodically
+                        if len(redir_info) > 1:
 
-                        # if the page redirects in more than 60 seconds, we 
-                        # assume the user is expected to read it, meaning
-                        # it contains actual content and is not just a 
-                        # pass-through
-                        if int(rtimeout) < 30:
+                            rtimeout = redir_info[0]
 
-                            url = redir_info[1]
-                            url = url.split('=', 1)[1]
-                            url = url.strip('"')
-                            redirect_url = url.strip("'")
-                            urim = redirect_url
+                            # if the page redirects in more than 60 seconds, we 
+                            # assume the user is expected to read it, meaning
+                            # it contains actual content and is not just a 
+                            # pass-through
+                            if int(rtimeout) < 30:
 
-                            module_logger.info("acquiring redirected URI-M {}".format(urim))
+                                url = redir_info[1]
+                                url = url.split('=', 1)[1]
+                                url = url.strip('"')
+                                redirect_url = url.strip("'")
+                                urim = redirect_url
 
-                            resp = http_cache.get(urim)
+                                module_logger.info("acquiring redirected URI-M {}".format(urim))
 
-                            module_logger.debug("for redirected URI-M {}, I got a response of {}".format(urim, resp))
+                                resp = http_cache.get(urim)
 
-                            if resp.status_code == 200:
-                                soup = BeautifulSoup(resp.text, "html5lib")
+                                module_logger.debug("for redirected URI-M {}, I got a response of {}".format(urim, resp))
 
-        except Exception as e:
-            raise MementoParsingError(
-                "failed to parse document using BeautifulSoup",
-                original_exception=e)
+                                if resp.status_code == 200:
+                                    soup = BeautifulSoup(resp.text, "html5lib")
 
-    # maybe we search for /[0-9]{14}/ in the URI and then try id_
+            except Exception as e:
+                raise MementoParsingError(
+                    "failed to parse document using BeautifulSoup",
+                    original_exception=e)
+
+    if soup.find("iframe", {"id": "theWebpage"}):
+        module_logger.info("memento at {} is an IMF memento".format(urim))
+        return IMFMemento(http_cache, urim, given_uri=given_urim)
+    
+    if soup.find("div", {'id': 'SOLID'}):
+        module_logger.info("memento at {} is an Archive.is memento".format(urim))
+        return ArchiveIsMemento(http_cache, urim, given_uri=given_urim)
+
+    # we search for /[0-9]{14}/ in the URI and then try id_
     if wayback_pattern.search(urim):
         module_logger.debug("URI-M {} matches the wayback pattern".format(urim))
         candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
@@ -146,14 +156,6 @@ def memento_resource_factory(urim, http_cache):
         if resp.status_code == 200:
             module_logger.info("memento at {} is a Wayback memento".format(urim))
             return WaybackMemento(http_cache, urim, given_uri=given_urim)
-
-    if soup.find("iframe", {"id": "theWebpage"}):
-        module_logger.info("memento at {} is an IMF memento".format(urim))
-        return IMFMemento(http_cache, urim, given_uri=given_urim)
-    
-    if soup.find("div", {'id': 'SOLID'}):
-        module_logger.info("memento at {} is an Archive.is memento".format(urim))
-        return ArchiveIsMemento(http_cache, urim, given_uri=given_urim)
 
     # if we got here, we haven't categorized the URI-M into an Archive type yet
     # it might be a "hash-style" memento that actually resolves to a Wayback
@@ -268,18 +270,23 @@ class MementoResource:
 
                 o = urlparse(frameuri)
 
+                timegate_stem = self.timegate[0:self.timegate.find(self.original_uri)]
+
+                self.logger.debug("timegate stem is now {}".format(timegate_stem))
+
                 # deal with relative URIs
                 if o.netloc == '':
 
                     frameuri = urljoin(self.original_uri, frameuri)
 
-                    timegate_stem = self.timegate[0:self.timegate.find(self.original_uri)]
-
                     if timegate_stem[-1] != '/':
                         urig = '/'.join([timegate_stem, frameuri])
+                else:
+                    urig = frameuri
 
                 if urig is None:
                     urig = timegate_stem + frameuri
+                    self.logger.debug("URI-G is now {}".format(urig))
 
                 accept_datetime_str = self.memento_datetime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 

@@ -4,5 +4,6 @@
     "CACHEPORT" : "6379",
     "CACHEDB" : "0",
     "LOGFILE" : "/app/logs/mementoembed.log",
-    "LOGLEVEL" : "logging.INFO"
+    "LOGLEVEL" : "logging.INFO",
+    "REQUEST_TIMEOUT" : "15"
 }

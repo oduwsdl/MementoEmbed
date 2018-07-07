@@ -52,7 +52,7 @@ class MementoSurrogate:
     @property
     def striking_image(self):
         self.logger.info("looking for the best image within URI-M: {}".format(self.urim))
-        return get_best_image(self.urim, self.httpcache)
+        return get_best_image(self.memento.urim, self.httpcache)
 
     @property
     def original_uri(self):

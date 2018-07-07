@@ -120,6 +120,7 @@ class TestImageSelection(unittest.TestCase):
             def __init__(self, content, headers):
                 self.content = content
                 self.headersdict = headers
+                self.status_code = 200
 
             @property
             def text(self):
