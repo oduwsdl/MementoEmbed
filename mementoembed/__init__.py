@@ -33,6 +33,19 @@ __all__ = [
 class MementoEmbedException(Exception):
     pass
 
+class URIMFilter(logging.Filter):
+
+    def filter(self, record):
+        record.urim = "No request"
+
+        try:
+            record.urim = request.args.get("url")
+        except RuntimeError as e:
+            # just use the defalt message if the flask request object isn't set
+            pass
+        
+        return True
+
 def setup_cache(config):
 
     if 'CACHEENGINE' in config:
@@ -111,15 +124,27 @@ def setup_logging_config(config):
     if 'LOGFILE' in config:
         logfile = config['LOGFILE']
 
-    if logfile is None:
-        logging.basicConfig( 
-            format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-            level=loglevel)
-    else:
-        logging.basicConfig( 
-            format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-            level=loglevel,
-            filename=logfile)
+    formatter = logging.Formatter('[%(asctime)s] - %(name)s - %(levelname)s - [ %(urim)s ]: %(message)s')
+
+    print("loglevel is {}".format(loglevel))
+
+    default_handler.addFilter(URIMFilter())
+
+    # this formatter must be set here to work
+    default_handler.setFormatter(formatter)
+    
+    rootlogger.setLevel(loglevel)
+    rootlogger.addHandler(default_handler)
+
+    ch = logging.StreamHandler()
+    rootlogger.addHandler(ch)
+
+    if logfile is not None:
+
+        fh = logging.FileHandler(logfile)
+        fh.setLevel(loglevel)
+        fh.setFormatter(formatter)
+        rootlogger.addHandler(fh)
 
     rootlogger.info("logging with level {}".format(loglevel))
     rootlogger.info("logging to logfile {}".format(logfile))
@@ -132,16 +157,12 @@ def create_app():
     app.config.from_pyfile('application.cfg', silent=True)
     app.config.from_json("/etc/mementoembed.json", silent=True)
 
-    rootlogger.addHandler(default_handler)
     setup_logging_config(app.config)
-
     setup_cache(app.config)
 
     timeout = get_requests_timeout(app.config)
 
-    # pylint: disable=no-member
     rootlogger.info("loading Flask app for {}".format(app.name))
-
     rootlogger.info("requests timeout is set to {}".format(timeout))
 
     #pylint: disable=unused-variable
