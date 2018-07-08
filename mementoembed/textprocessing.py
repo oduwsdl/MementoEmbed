@@ -15,6 +15,12 @@ class TextProcessingError(Exception):
         self.message = message
         self.original_exception = original_exception
 
+class TitleExtractionError(TextProcessingError):
+    pass
+
+class SnippetGenerationError(TextProcessingError):
+    pass
+
 def get_best_description(htmlcontent):
 
     description = None
@@ -23,7 +29,7 @@ def get_best_description(htmlcontent):
         doc = Document(htmlcontent)
         d = doc.score_paragraphs()
     except Exception as e:
-        raise TextProcessingError(
+        raise SnippetGenerationError(
             "failed to process document using readability",
             original_exception=e)
 
@@ -39,7 +45,7 @@ def get_best_description(htmlcontent):
                 maxscore = d[para]['content_score']
 
         except Exception as e:
-            raise TextProcessingError(
+            raise SnippetGenerationError(
                 "failed to process document using readability",
                 original_exception=e)
 
@@ -51,7 +57,7 @@ def get_best_description(htmlcontent):
         try:
             paragraphs = justext(htmlcontent, get_stoplist("English"))
         except Exception as e:
-            raise TextProcessingError(
+            raise SnippetGenerationError(
                 "failed to process document using justext",
                 original_exception=e)
 
@@ -64,7 +70,7 @@ def get_best_description(htmlcontent):
 
                     allparatext += " {}".format(paragraph.text)
             except Exception as e:
-                raise TextProcessingError(
+                raise SnippetGenerationError(
                     "failed to process document using justext",
                     original_exception=e)
 
@@ -75,7 +81,7 @@ def get_best_description(htmlcontent):
                 try:
                     allparatext += "{}".format(paragraph.text)
                 except Exception as e:
-                    raise TextProcessingError(
+                    raise SnippetGenerationError(
                         "failed to process document using justext",
                         original_exception=e)
         
@@ -93,7 +99,7 @@ def extract_text_snippet(htmlcontent):
     try:
         soup = BeautifulSoup(htmlcontent, 'html5lib')
     except Exception as e:
-        raise TextProcessingError(
+        raise SnippetGenerationError(
             "failed to open document using BeautifulSoup",
             original_exception=e)
 
@@ -116,7 +122,7 @@ def extract_text_snippet(htmlcontent):
             if metatag.get("property") == "twitter:description":
                 description_dict["twitter:description"] = metatag.get("content")
     except Exception as e:
-        raise TextProcessingError(
+        raise SnippetGenerationError(
             "failed to process document using BeautifulSoup",
             original_exception=e)
 
@@ -151,7 +157,7 @@ def extract_title(htmlcontent):
     try:
         soup = BeautifulSoup(htmlcontent, 'html5lib')
     except Exception as e:
-        raise TextProcessingError(
+        raise TitleExtractionError(
             "failed to open document using BeautifulSoup",
             original_exception=e)
 
@@ -175,7 +181,7 @@ def extract_title(htmlcontent):
                 titledict["twitter:title"] = metatag.get("content")
 
     except Exception as e:
-        raise TextProcessingError(
+        raise TitleExtractionError(
             "failed to process document using BeautifulSoup",
             original_exception=e)
 

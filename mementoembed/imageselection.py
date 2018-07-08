@@ -1,5 +1,6 @@
 import logging
 import base64
+import traceback
 
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
@@ -65,9 +66,9 @@ def get_image_list(uri, http_cache):
                 "failed to find images in document using BeautifulSoup",
                 original_exception=e)
 
-    except RequestException as e:
+    except RequestException:
         module_logger.warn("Failed to download {} for extracing images, skipping...".format(uri))
-        module_logger.debug("Failed to download {}, details: {}".format(uri, e))
+        module_logger.debug("Failed to download {}, details: {}".format(uri, repr(traceback.format_exc())))
     
     return image_list
 

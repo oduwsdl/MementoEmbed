@@ -15,14 +15,11 @@ from time import strftime
 from redis import RedisError
 from flask import Flask, request, render_template, make_response
 from flask.logging import default_handler
-from requests.exceptions import Timeout, TooManyRedirects, \
-    ChunkedEncodingError, ContentDecodingError, StreamConsumedError, \
-    URLRequired, MissingSchema, InvalidSchema, InvalidURL, \
-    UnrewindableBodyError, ConnectionError
 
 from .cachesession import CacheSession
 from .mementosurrogate import MementoSurrogate
-from .mementoresource import NotAMementoError, MementoParsingError
+from .mementoresource import NotAMementoError, MementoContentError, \
+    MementoConnectionError, MementoTimeoutError, MementoInvalidURI
 from .textprocessing import TextProcessingError
 from .version import __useragent__
 
@@ -42,7 +39,7 @@ class URIMFilter(logging.Filter):
 
         try:
             record.urim = request.args.get("url")
-        except RuntimeError as e:
+        except RuntimeError:
             # just use the defalt message if the flask request object isn't set
             pass
         
@@ -271,106 +268,57 @@ def create_app():
             rootlogger.info("finished generating {} oEmbed output".format(responseformat))
 
         except NotAMementoError as e:
-
             requests_cache.get_cache().delete_url(urim)
-
-            rootlogger.error(
-                "URI-M does not appear to be a memento, details: {}, http status: {}, headers: {}".format(
-                    e.original_exception, e.response.status_code, e.response.headers, ))
-
-            e2 = e.original_exception
             return json.dumps({
                 "content":
                     render_template(
                     'make_your_own_memento.html',
                     urim = urim
                     ),
-                "error":
-                    "Not a memento",
                 "error details": repr(traceback.format_exc())
                 }), 404
 
-        except (Timeout, ConnectionError) as e:
-
+        except MementoTimeoutError as e:
             requests_cache.get_cache().delete_url(urim)
-
-            rootlogger.error("A server required during memento processing could not be reached, details: {}".format(e))
-
             return json.dumps({
-                "content": "MementoEmbed could not reach a server required during processing of this memento {}".format(urim),
-                "error": "MementoEmbed could not reach a server required during processing of this memento {}".format(urim),
+                "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
-            }, indent=4), 504
+            }, indent=4), 504            
 
-        except (TooManyRedirects, ChunkedEncodingError, ContentDecodingError, StreamConsumedError) as e:
-
+        except MementoInvalidURI as e:
             requests_cache.get_cache().delete_url(urim)
-
-            rootlogger.error("Problems were encountered acquiring a URI during processing, details: {}".format(e))
-
             return json.dumps({
-                "content": "MementoEmbed could not a URI required during processing of this memento {}".format(urim),
-                "error": "MementoEmbed did not timeout, but had problems processing {}".format(urim),
-                "error details": repr(traceback.format_exc())
-            }, indent=4), 502
-
-        except (URLRequired, MissingSchema, InvalidSchema, InvalidURL) as e:
-
-            requests_cache.get_cache().delete_url(urim)
-
-            rootlogger.error("An unsupported/invalid URI was requested during processing, details: {}".format(e))
-
-            return json.dumps({
-                "content": "The URI-M {} is not valid".format(urim),
-                "error": "MementoEmbed encountered problems processing {}".format(urim),
+                "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
             }, indent=4), 400
 
-        except UnrewindableBodyError as e:
-
+        except MementoConnectionError as e:
             requests_cache.get_cache().delete_url(urim)
-
-            rootlogger.error("A network issue occurred, details: {}".format(e))
-
             return json.dumps({
-                "content": "MementoEmbed had problems extracting content for URI-M {}".format(urim),
-                "error": "MementoEmbed had problems extracting content for URI-M {}".format(urim),
+                "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
-            }, indent=4), 500
+            }, indent=4), 502
 
-        except (TextProcessingError, MementoParsingError) as e:
-
+        except (TextProcessingError, MementoContentError) as e:
             requests_cache.get_cache().delete_url(urim)
-
-            rootlogger.error("Memento parsing failed for URI-M, details: {}".format(e))
-
             return json.dumps({
-                "content": "MementoEmbed could not process the text at URI-M<br /> {} <br />Are you sure this is an HTML page?".format(urim),
-                "error": "MementoEmbed could not parse the text at URI-M {}".format(urim),
+                "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
             }, indent=4), 500
 
         except RedisError as e:
-
             requests_cache.get_cache().delete_url(urim)
-
-            rootlogger.error("Redis Error has occurred, details: {}".format(e))
-
+            rootlogger.exception("A Redis problem has occured")
             return json.dumps({
                 "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
-                "error": "A Redis Error has occurred with MementoEmbed.",
                 "error details": repr(traceback.format_exc())
             }, indent=4), 500
 
         except Exception:
-
             requests_cache.get_cache().delete_url(urim)
-
-            rootlogger.error("An unexpected Exception has been raised, details: {}".format(traceback.format_exc()))
-
+            rootlogger.exception("An unforeseen error has occurred")
             return json.dumps({
                 "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
-                "error": "A generic exception was caught by MementoEmbed. Please check the log.",
                 "error details": repr(traceback.format_exc())
             }, indent=4), 500
 
