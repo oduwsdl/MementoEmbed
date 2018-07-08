@@ -9,6 +9,11 @@ from requests.exceptions import RequestException
 
 module_logger = logging.getLogger('mementoembed.favicon')
 
+class FaviconParsingError(Exception):
+    def __init__(self, message, original_exception=None):
+        self.message = message
+        self.original_exception = original_exception
+
 def favicon_resource_test(response):
 
     module_logger.debug("testing favicon at {}".format(response.url))
@@ -26,6 +31,9 @@ def favicon_resource_test(response):
 
         # this should not happen, but some server may not return a content-type
         except KeyError:
+            module_logger.warning("headers for {} did not contain a "
+                "content-type, marking favicon as unsuitable".format(
+                    response.url))
             good = False
 
     return good
@@ -35,9 +43,23 @@ def get_favicon_from_html(content):
     
     favicon_uri = None
 
-    soup = BeautifulSoup(content, 'html5lib')
+    try:
+        soup = BeautifulSoup(content, 'html5lib')
+    except Exception as e:
+        module_logger.warning("failed to open document using BeautifulSoup")
+        raise FaviconParsingError(
+            "failed to open document using BeautifulSoup",
+            original_exception=e
+        )
 
-    links = soup.find_all("link")
+    try:
+        links = soup.find_all("link")
+    except Exception as e:
+        module_logger.warning("failed to find link tags in document using BeautifulSoup")
+        raise FaviconParsingError(
+            "failed to find link tags in document using BeautifulSoup",
+            original_exception=e
+        )
 
     for link in links:
 

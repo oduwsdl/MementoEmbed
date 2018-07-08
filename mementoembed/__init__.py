@@ -74,7 +74,7 @@ def setup_cache(config):
             else:
                 expiretime = 7 * 24 * 60 * 60
 
-            rootlogger.info("Setting up Redis as cache engine with host={}, "
+            rootlogger.info("Using Redis as cache engine with host={}, "
                 "port={}, database number={}, and expiretime={}".format(
                     dbhost, dbport, dbno, expiretime
                 ))
@@ -127,20 +127,14 @@ def setup_logging_config(config, applogger):
         logfile = config['APPLICATION_LOGFILE']
 
     formatter = logging.Formatter('[%(asctime)s] - %(name)s - %(levelname)s - [ %(urim)s ]: %(message)s')
-
-    print("loglevel is {}".format(loglevel))
-
-    # default_handler.addFilter(URIMFilter())
-
-    # this formatter must be set here to work
-    # default_handler.setFormatter(formatter)
     
     rootlogger.setLevel(loglevel)
-    # rootlogger.addHandler(default_handler)
     
     ch = logging.StreamHandler()
     ch.addFilter(URIMFilter())
     rootlogger.addHandler(ch)
+
+    rootlogger.info("Logging with level {}".format(loglevel))
 
     if logfile is not None:
 
@@ -148,14 +142,13 @@ def setup_logging_config(config, applogger):
         fh.setLevel(loglevel)
         fh.setFormatter(formatter)
         rootlogger.addHandler(fh)
+        rootlogger.info("Storing application log in file {}".format(logfile))
 
     if 'ACCESS_LOGFILE' in config:
         logfile = config['ACCESS_LOGFILE']
         handler = logging.FileHandler(logfile)
         applogger.addHandler(handler)
-
-    rootlogger.info("logging with level {}".format(loglevel))
-    rootlogger.info("logging to logfile {}".format(logfile))
+        rootlogger.info("Storing acces log in {}".format(logfile))
 
 def create_app():
 
@@ -170,8 +163,8 @@ def create_app():
 
     timeout = get_requests_timeout(app.config)
 
-    rootlogger.info("loading Flask app for {}".format(app.name))
-    rootlogger.info("requests timeout is set to {}".format(timeout))
+    rootlogger.info("Requests timeout is set to {}".format(timeout))
+    rootlogger.info("Configuration loaded for {}".format(app.name))
 
     @app.after_request
     def after_request(response):
@@ -202,7 +195,7 @@ def create_app():
             urim = request.args.get("url")
             responseformat = request.args.get("format")
 
-            rootlogger.info("starting surrogate oembed creation process for URI-M {}".format(urim))
+            rootlogger.info("Starting oEmbed surrogate creation process")
 
             # JSON is the default
             if responseformat == None:
@@ -210,6 +203,9 @@ def create_app():
 
             if responseformat != "json":
                 if responseformat != "xml":
+                    rootlogger.error("Requested response format "
+                        "is {}, which {} does not "
+                        "support".format(responseformat, app.name))
                     return "The provider cannot return a response in the requested format.", 501
 
             rootlogger.debug("output format will be: {}".format(responseformat))
@@ -237,7 +233,7 @@ def create_app():
             urlroot = request.url_root
             urlroot = urlroot if urlroot[-1] != '/' else urlroot[0:-1]
 
-            rootlogger.info("generating oEmbed output for {}".format(urim))
+            rootlogger.debug("generating oEmbed output for {}".format(urim))
             output["html"] = htmlmin.minify( render_template(
                 "social_card.html",
                 urim = urim,
@@ -272,15 +268,15 @@ def create_app():
                 response = make_response( dicttoxml.dicttoxml(output, custom_root='oembed') )
                 response.headers['Content-Type'] = 'text/xml'
 
-            rootlogger.info("returning {} oEmbed output for {}".format(responseformat, urim))
+            rootlogger.info("finished generating {} oEmbed output".format(responseformat))
 
         except NotAMementoError as e:
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning(
-                "URI-M {} does not appear to be a memento, details: {}, http status: {}, headers: {}".format(
-                    urim, e.original_exception, e.response.status_code, e.response.headers, ))
+            rootlogger.error(
+                "URI-M does not appear to be a memento, details: {}, http status: {}, headers: {}".format(
+                    e.original_exception, e.response.status_code, e.response.headers, ))
 
             e2 = e.original_exception
             return json.dumps({
@@ -298,11 +294,11 @@ def create_app():
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning("The server for URI-M {} could not be reached, details: {}".format(urim, e))
+            rootlogger.error("A server required during memento processing could not be reached, details: {}".format(e))
 
             return json.dumps({
-                "content": "MementoEmbed could not reach the server to download {}".format(urim),
-                "error": "MementoEmbed timed out trying to acquire {} from the server".format(urim),
+                "content": "MementoEmbed could not reach a server required during processing of this memento {}".format(urim),
+                "error": "MementoEmbed could not reach a server required during processing of this memento {}".format(urim),
                 "error details": repr(traceback.format_exc())
             }, indent=4), 504
 
@@ -310,11 +306,11 @@ def create_app():
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning("Problems were encountered acquiring URI-M {}: {}".format(urim, e))
+            rootlogger.error("Problems were encountered acquiring a URI during processing, details: {}".format(e))
 
             return json.dumps({
-                "content": "MementoEmbed could not download {}".format(urim),
-                "error": "MementoEmbed did not timeout, but had problems downloading {}".format(urim),
+                "content": "MementoEmbed could not a URI required during processing of this memento {}".format(urim),
+                "error": "MementoEmbed did not timeout, but had problems processing {}".format(urim),
                 "error details": repr(traceback.format_exc())
             }, indent=4), 502
 
@@ -322,7 +318,7 @@ def create_app():
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning("An unsupported/invalid URI related to {} was submitted, details: {}".format(urim, e))
+            rootlogger.error("An unsupported/invalid URI was requested during processing, details: {}".format(e))
 
             return json.dumps({
                 "content": "The URI-M {} is not valid".format(urim),
@@ -334,7 +330,7 @@ def create_app():
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning("A network issue occurred with URI-M {}, details: {}".format(urim, e))
+            rootlogger.error("A network issue occurred, details: {}".format(e))
 
             return json.dumps({
                 "content": "MementoEmbed had problems extracting content for URI-M {}".format(urim),
@@ -346,7 +342,7 @@ def create_app():
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning("Memento parsing failed for URI-M {}, details: {}".format(urim, e))
+            rootlogger.error("Memento parsing failed for URI-M, details: {}".format(e))
 
             return json.dumps({
                 "content": "MementoEmbed could not process the text at URI-M<br /> {} <br />Are you sure this is an HTML page?".format(urim),
@@ -358,7 +354,7 @@ def create_app():
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning("Redis Error has occurred with URI-M {}, details: {}".format(urim, e))
+            rootlogger.error("Redis Error has occurred, details: {}".format(e))
 
             return json.dumps({
                 "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
@@ -370,7 +366,7 @@ def create_app():
 
             requests_cache.get_cache().delete_url(urim)
 
-            rootlogger.warning("An unexpected Exception has been raised for URI-M {}, details: {}".format(urim, traceback.format_exc()))
+            rootlogger.error("An unexpected Exception has been raised, details: {}".format(traceback.format_exc()))
 
             return json.dumps({
                 "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",

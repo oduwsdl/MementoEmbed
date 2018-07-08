@@ -100,7 +100,7 @@ def memento_resource_factory(urim, http_cache):
             try:
                 if tag.get("http-equiv") == "refresh":
 
-                    module_logger.info("detected html meta tag redirect in content from URI-M {}".format(urim))
+                    module_logger.info("detected html meta tag redirect in content from URI-M")
 
                     if tag.get("content"):
 
@@ -139,11 +139,11 @@ def memento_resource_factory(urim, http_cache):
                     original_exception=e)
 
     if soup.find("iframe", {"id": "theWebpage"}):
-        module_logger.info("memento at {} is an IMF memento".format(urim))
+        module_logger.info("memento is an IMF memento")
         return IMFMemento(http_cache, urim, given_uri=given_urim)
     
     if soup.find("div", {'id': 'SOLID'}):
-        module_logger.info("memento at {} is an Archive.is memento".format(urim))
+        module_logger.info("memento is an Archive.is memento")
         return ArchiveIsMemento(http_cache, urim, given_uri=given_urim)
 
     # we search for /[0-9]{14}/ in the URI and then try id_
@@ -154,7 +154,7 @@ def memento_resource_factory(urim, http_cache):
         resp = http_cache.get(candidate_raw_urim)
 
         if resp.status_code == 200:
-            module_logger.info("memento at {} is a Wayback memento".format(urim))
+            module_logger.info("memento at is a Wayback memento")
             return WaybackMemento(http_cache, urim, given_uri=given_urim)
 
     # if we got here, we haven't categorized the URI-M into an Archive type yet
@@ -177,7 +177,7 @@ def memento_resource_factory(urim, http_cache):
         urim = candidate_urim
 
         if resp.status_code == 200:
-            module_logger.info("memento at {} is a Wayback memento".format(urim))
+            module_logger.info("derived URI-M {} is a Wayback memento".format(urim))
             return WaybackMemento(http_cache, urim, given_uri=given_urim)
 
     # fall through to the base class
@@ -204,6 +204,7 @@ class MementoResource:
         self.urig = self.timegate
         
         if 'text/html' not in self.response.headers['content-type']:
+            module_logger.error("Cannot process non-HTML mementos")
             raise MementoParsingError("Cannot process non-HTML content")
 
         self.framecontent = []
@@ -240,6 +241,7 @@ class MementoResource:
             try:
                 soup = BeautifulSoup(self.response.text, 'html5lib')
             except Exception as e:
+                module_logger.error("failed to open document using BeautifulSoup")
                 raise MementoParsingError(
                     "failed to open document using BeautifulSoup",
                     original_exception=e)
@@ -247,8 +249,9 @@ class MementoResource:
             try:
                 title = soup.title.text
             except Exception as e:
+                module_logger.error("failed to extract title using BeautifulSoup")
                 raise MementoParsingError(
-                    "failed to parse document using BeautifulSoup",
+                    "failed to extract title using BeautifulSoup",
                     original_exception=e)
 
             self.logger.debug("title is {}".format(title))
@@ -258,8 +261,9 @@ class MementoResource:
             try:
                 frames = soup.findAll("frame")
             except Exception as e:
+                module_logger.error("failed to find frames using BeautifulSoup")
                 raise MementoParsingError(
-                    "failed to parse document using BeautifulSoup",
+                    "failed to find frames using BeautifulSoup",
                     original_exception=e)
 
             for frame in frames:
@@ -316,6 +320,7 @@ class MementoResource:
                 try:
                     soup = BeautifulSoup(content, 'html5lib')
                 except Exception as e:
+                    module_logger.error("failed to open document using BeautifulSoup")
                     raise MementoParsingError(
                         "failed to open document using BeautifulSoup",
                         original_exception=e)
@@ -329,8 +334,9 @@ class MementoResource:
                             framecontent += str(c)
 
                 except Exception as e:
+                    module_logger.error("failed to parse document using BeautifulSoup")
                     raise MementoParsingError(
-                        "failed to open document using BeautifulSoup",
+                        "failed to parse document using BeautifulSoup",
                         original_exception=e)
 
                 fullcontent += "{}\n".format(framecontent)
@@ -373,6 +379,7 @@ class ArchiveIsMemento(MementoResource):
             try:
                 soup = BeautifulSoup(self.content, "html5lib")
             except Exception as e:
+                module_logger.error("failed to open document using BeautifulSoup")
                 raise MementoParsingError(
                     "failed to open document using BeautifulSoup",
                     original_exception=e)
@@ -386,6 +393,7 @@ class ArchiveIsMemento(MementoResource):
                         break
 
             except Exception as e:
+                module_logger.error("failed to parse document using BeautifulSoup")
                 raise MementoParsingError(
                     "failed to parse document using BeautifulSoup",
                     original_exception=e)
@@ -399,11 +407,17 @@ class ArchiveIsMemento(MementoResource):
 
         response = self.http_cache.get(self.compressed_memento_urim)
 
-        z = zipfile.ZipFile(io.BytesIO(response.content))
+        try:
+            z = zipfile.ZipFile(io.BytesIO(response.content))
+        except zipfile.BadZipFile as e:
+            module_logger.error("zip file acquired from archive is malformed")
+            raise MementoParsingError(
+                "zip file acquired from archive is malformed",
+                original_exception=e)
 
         content = z.read('index.html')
 
-        self.logger.debug( "from Archive.is type of raw content: {}".format( type(content) ) )
+        self.logger.debug("from Archive.is type of raw content: {}".format( type(content) ) )
         self.logger.debug("size of raw content: {}".format( len(content) ) )
 
         return content
@@ -421,6 +435,7 @@ class IMFMemento(MementoResource):
         try:
             soup = BeautifulSoup(content, "html5lib")
         except Exception as e:
+            module_logger.error("failed to open document using BeautifulSoup")
             raise MementoParsingError(
                 "failed to open document using BeautifulSoup",
                 original_exception=e)
@@ -428,6 +443,7 @@ class IMFMemento(MementoResource):
         try:
             twp = soup.find("iframe", {"id": "theWebpage"})
         except Exception as e:
+            module_logger.error("failed to find iframe with id=theWebPage using BeautifulSoup")
             raise MementoParsingError(
                 "failed to parse document using BeautifulSoup",
                 original_exception=e)
@@ -447,6 +463,7 @@ class WaybackMemento(MementoResource):
         try:
             soup = BeautifulSoup(self.response.text, 'html5lib')
         except Exception as e:
+            module_logger.error("failed to open document using BeautifulSoup")
             raise MementoParsingError(
                 "failed to open document using BeautifulSoup",
                 original_exception=e)
@@ -454,6 +471,7 @@ class WaybackMemento(MementoResource):
         try:
             frames = soup.findAll("frame")
         except Exception as e:
+            module_logger.error("failed to find frames using BeautifulSoup")
             raise MementoParsingError(
                 "failed to parse document using BeautifulSoup",
                 original_exception=e)

@@ -51,7 +51,7 @@ class MementoSurrogate:
 
     @property
     def striking_image(self):
-        self.logger.info("looking for the best image within URI-M: {}".format(self.urim))
+        self.logger.info("looking for the best image in the memento")
         return get_best_image(self.memento.urim, self.httpcache)
 
     @property
