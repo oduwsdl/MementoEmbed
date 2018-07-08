@@ -238,6 +238,7 @@ def create_app():
 
         ts = strftime('[%d/%b/%Y:%H:%M:%S %z]')
 
+        # this should be the only place where access_logger is used
         access_logger.info(
             '%s - - %s %s %s %s',
             request.remote_addr,
