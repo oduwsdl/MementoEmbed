@@ -9,7 +9,7 @@ COPY . /app
 
 RUN pip install .
 
-COPY sample_appconfig.json /etc/mementoembed.json
+COPY sample_appconfig.cfg /etc/mementoembed.cfg
 
 RUN mkdir /app/logs
 

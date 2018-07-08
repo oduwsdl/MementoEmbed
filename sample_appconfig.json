@@ -1,9 +1,0 @@
-{
-    "CACHEENGINE" :"Redis",
-    "CACHEHOST" : "localhost",
-    "CACHEPORT" : "6379",
-    "CACHEDB" : "0",
-    "LOGFILE" : "/app/logs/mementoembed.log",
-    "LOGLEVEL" : "logging.INFO",
-    "REQUEST_TIMEOUT" : "15"
-}

@@ -67,7 +67,7 @@ def setup_cache(config):
                 dbno = "0"
 
             if 'CACHE_EXPIRETIME' in config:
-                expiretime = config['CACHE_EXPIRETIME']
+                expiretime = int(config['CACHE_EXPIRETIME'])
             else:
                 expiretime = 7 * 24 * 60 * 60
 
@@ -76,22 +76,37 @@ def setup_cache(config):
                     dbhost, dbport, dbno, expiretime
                 ))
 
-            rconn = redis.StrictRedis(host=dbhost, port=dbport, db=dbno)
+            try:
+                rconn = redis.StrictRedis(host=dbhost, port=dbport, db=dbno)
+
+                rconn.set("mementoembed_test_key", "success")
+                rconn.delete("mementoembed_test_key")
+
+            except redis.exceptions.RedisError as e:
+                rootlogger.exception("Logging exception in redis database setup")
+                rootlogger.critical("The Redis database settings are invalid, the application cannot continue")
+                raise e
 
             requests_cache.install_cache('mementoembed', backend='redis', 
                 expire_after=expiretime, connection=rconn)
 
         elif config['CACHEENGINE'] == 'SQLite':
 
-            if 'CACHEFILE' in config:
-                cachefile = config['CACHEFILE']
+            if 'CACHE_FILENAME' in config:
+                cachefile = config['CACHE_FILENAME']
             else:
                 cachefile = "mementoembed"
 
             rootlogger.info("Setting up SQLite as cache engine with "
                 "file named {}".format(cachefile))
 
-            requests_cache.install_cache(cachefile)
+            if os.path.exists(os.path.dirname(cachefile)):
+                requests_cache.install_cache(cachefile)
+                rootlogger.info("SQLite cache file {} passed setup tests".format(cachefile))
+            else:
+                rootlogger.critical("SQLite cache file directory {} does not exist, "
+                    "the application cannot continue".format(os.path.dirname(cachefile)))
+                raise RuntimeError("SQLite cache file directory does not exist")
 
         else:
 
@@ -139,13 +154,13 @@ def setup_logging_config(config, applogger):
         fh.setLevel(loglevel)
         fh.setFormatter(formatter)
         rootlogger.addHandler(fh)
-        rootlogger.info("Storing application log in file {}".format(logfile))
+        rootlogger.info("Writing application log to file {}".format(logfile))
 
     if 'ACCESS_LOGFILE' in config:
         logfile = config['ACCESS_LOGFILE']
         handler = logging.FileHandler(logfile)
         applogger.addHandler(handler)
-        rootlogger.info("Storing acces log in {}".format(logfile))
+        rootlogger.info("Writing access log to {}".format(logfile))
 
 def create_app():
 
@@ -153,7 +168,7 @@ def create_app():
 
     app.config.from_object('config.default')
     app.config.from_pyfile('application.cfg', silent=True)
-    app.config.from_json("/etc/mementoembed.json", silent=True)
+    app.config.from_json("/etc/mementoembed.cfg", silent=True)
 
     setup_logging_config(app.config, app.logger)
     setup_cache(app.config)
@@ -162,6 +177,7 @@ def create_app():
 
     rootlogger.info("Requests timeout is set to {}".format(timeout))
     rootlogger.info("Configuration loaded for {}".format(app.name))
+    rootlogger.info("{} is now initialized and ready to receive requests".format(app.name))
 
     @app.after_request
     def after_request(response):
