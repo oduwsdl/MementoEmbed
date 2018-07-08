@@ -45,6 +45,14 @@ class URIMFilter(logging.Filter):
         
         return True
 
+def test_file_access(filename):
+
+    try:
+        with open(filename, 'a'):
+            os.utime(filename, times=None)
+    except Exception as e:
+        raise e
+
 def setup_cache(config):
 
     if 'CACHEENGINE' in config:
@@ -100,13 +108,14 @@ def setup_cache(config):
             rootlogger.info("Setting up SQLite as cache engine with "
                 "file named {}".format(cachefile))
 
-            if os.path.exists(os.path.dirname(cachefile)):
+            try:
+                test_file_access("{}.sqlite".format(cachefile))
                 requests_cache.install_cache(cachefile)
-                rootlogger.info("SQLite cache file {} passed setup tests".format(cachefile))
-            else:
-                rootlogger.critical("SQLite cache file directory {} does not exist, "
-                    "the application cannot continue".format(os.path.dirname(cachefile)))
-                raise RuntimeError("SQLite cache file directory does not exist")
+                rootlogger.info("SQLite cache file {}.sqlite is writeable".format(cachefile))
+            except Exception as e:
+                rootlogger.critical("SQLite cache file {}.sqlite is NOT WRITEABLE, "
+                    "the application cannot continue".format(cachefile))
+                raise e
 
         else:
 
@@ -118,16 +127,27 @@ def setup_cache(config):
     else:
         requests_cache.install_cache('mementoembed')
 
+    rootlogger.info("Application request web cache has been successfuly configured")
+
 def get_requests_timeout(config):
 
     if 'REQUEST_TIMEOUT' in config:
-        return float(config['REQUEST_TIMEOUT'])
+        try:
+            timeout = float(config['REQUEST_TIMEOUT'])
+        except Exception as e:
+            rootlogger.exception("REQUEST_TIMEOUT value is invalid")
+            rootlogger.critical("REQUEST_TIMEOUT value '{}' is invalid, "
+                "application cannot continue".format(config['REQUEST_TIMEOUT']))
+            raise e
     else:
-        return 20
-        
+        timeout = 20.0
+
+    return timeout
+
 def setup_logging_config(config, applogger):
 
     logfile = None
+    formatter = logging.Formatter('[%(asctime)s] - %(name)s - %(levelname)s - [ %(urim)s ]: %(message)s')
 
     if 'APPLICATION_LOGLEVEL' in config:
         loglevel = eval(config['APPLICATION_LOGLEVEL'])
@@ -135,32 +155,49 @@ def setup_logging_config(config, applogger):
     else:
         loglevel = logging.INFO
 
-    if 'APPLICATION_LOGFILE' in config:
-        logfile = config['APPLICATION_LOGFILE']
-
-    formatter = logging.Formatter('[%(asctime)s] - %(name)s - %(levelname)s - [ %(urim)s ]: %(message)s')
-    
     rootlogger.setLevel(loglevel)
-    
+
     ch = logging.StreamHandler()
     ch.addFilter(URIMFilter())
     rootlogger.addHandler(ch)
 
     rootlogger.info("Logging with level {}".format(loglevel))
 
-    if logfile is not None:
+    if 'APPLICATION_LOGFILE' in config:
+        logfile = config['APPLICATION_LOGFILE']
 
-        fh = logging.FileHandler(logfile)
-        fh.setLevel(loglevel)
-        fh.setFormatter(formatter)
-        rootlogger.addHandler(fh)
-        rootlogger.info("Writing application log to file {}".format(logfile))
+        try:
+            test_file_access(logfile) # should throw if file is invalid
+
+            fh = logging.FileHandler(logfile)
+            fh.setLevel(loglevel)
+            fh.setFormatter(formatter)
+            rootlogger.addHandler(fh)
+            rootlogger.info("Writing application log to file {}".format(logfile))
+
+        except Exception as e:
+            message = "Cannot write to requested application logfile {}, " \
+                "the application cannot continue".format(logfile)
+            rootlogger.critical(message)
+            raise e
 
     if 'ACCESS_LOGFILE' in config:
         logfile = config['ACCESS_LOGFILE']
-        handler = logging.FileHandler(logfile)
-        applogger.addHandler(handler)
-        rootlogger.info("Writing access log to {}".format(logfile))
+
+        try:
+            test_file_access(logfile) # should throw if file is invalid
+            handler = logging.FileHandler(logfile)
+            applogger.addHandler(handler)
+            rootlogger.info("Writing access log to {}".format(logfile))
+
+        except Exception as e:
+            message = "Cannot write to requested access logfile {}, " \
+                "the application cannot continue".format(logfile)
+            rootlogger.exception(message)
+            rootlogger.critical(message)
+            raise e
+
+    rootlogger.info("Logging has been successfully configured")
 
 def create_app():
 
