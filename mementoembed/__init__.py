@@ -149,10 +149,9 @@ def get_requests_timeout(config):
 def setup_logging_config(config):
 
     logfile = None
-    formatter = logging.Formatter('[%(asctime)s] - %(name)s - %(levelname)s - [ %(urim)s ]: %(message)s')
-
+    
     if 'APPLICATION_LOGLEVEL' in config:
-        loglevel = eval(config['APPLICATION_LOGLEVEL'])
+        loglevel = logging._nameToLevel[config['APPLICATION_LOGLEVEL']]
 
     else:
         loglevel = logging.INFO
@@ -166,12 +165,25 @@ def setup_logging_config(config):
         try:
             test_file_access(logfile) # should throw if file is invalid
 
+            if loglevel == logging.DEBUG:
+                formatter = logging.Formatter(
+                    '[%(asctime)s {} ] - %(levelname)s - [ %(urim)s ]: %(name)s - %(message)s'.format(
+                        strftime('%z')
+                    ))
+            else:
+                formatter = logging.Formatter(
+                    '[%(asctime)s {} ] - %(levelname)s - [ %(urim)s ]: %(message)s'.format(
+                        strftime('%z')
+                    ))
+
             fh = logging.FileHandler(logfile)
             fh.addFilter(URIMFilter())
             fh.setLevel(loglevel)
             fh.setFormatter(formatter)
             application_logger.addHandler(fh)
-            application_logger.info("Writing application log to file {}".format(logfile))
+            application_logger.info("=== Starting application ===")
+            application_logger.info("Writing application log to file {} with level {}".format(
+                logfile, logging.getLevelName(loglevel)))
 
         except Exception as e:
             message = "Cannot write to requested application logfile {}, " \

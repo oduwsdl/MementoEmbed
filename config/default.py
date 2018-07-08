@@ -1,5 +1,3 @@
-import logging
-
 CACHEMODEL = 'SQLite'
-LOGLEVEL = logging.DEBUG
+LOGLEVEL = "DEBUG"
 REQUEST_TIMEOUT = 15
