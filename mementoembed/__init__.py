@@ -35,7 +35,7 @@ class MementoEmbedException(Exception):
 class URIMFilter(logging.Filter):
 
     def filter(self, record):
-        record.urim = "No request"
+        record.urim = "No requested URI"
 
         try:
             record.urim = request.args.get("url")
@@ -80,7 +80,7 @@ def setup_cache(config):
                 expiretime = 7 * 24 * 60 * 60
 
             rootlogger.info("Using Redis as cache engine with host={}, "
-                "port={}, database number={}, and expiretime={}".format(
+                "port={}, database_number={}, and expiretime={}".format(
                     dbhost, dbport, dbno, expiretime
                 ))
 
@@ -213,8 +213,8 @@ def create_app():
     timeout = get_requests_timeout(app.config)
 
     rootlogger.info("Requests timeout is set to {}".format(timeout))
-    rootlogger.info("Configuration loaded for {}".format(app.name))
-    rootlogger.info("{} is now initialized and ready to receive requests".format(app.name))
+    rootlogger.info("All Configuration successfully loaded for MementoEmbed")
+    rootlogger.info("MementoEmbed is now initialized and ready to receive requests")
 
     #pylint: disable=unused-variable
     @app.after_request
@@ -324,6 +324,7 @@ def create_app():
 
         except NotAMementoError as e:
             requests_cache.get_cache().delete_url(urim)
+            rootlogger.warning("The submitted URI is not a memento, returning instructions")
             return json.dumps({
                 "content":
                     render_template(
@@ -335,6 +336,7 @@ def create_app():
 
         except MementoTimeoutError as e:
             requests_cache.get_cache().delete_url(urim)
+            rootlogger.exception("The submitted URI request timed out")
             return json.dumps({
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
@@ -342,6 +344,7 @@ def create_app():
 
         except MementoInvalidURI as e:
             requests_cache.get_cache().delete_url(urim)
+            rootlogger.exception("There submitted URI is not valid")
             return json.dumps({
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
@@ -349,6 +352,8 @@ def create_app():
 
         except MementoConnectionError as e:
             requests_cache.get_cache().delete_url(urim)
+            rootlogger.exception("There was a problem connecting to the "
+                "submitted URI: {}".format(e.user_facing_error))
             return json.dumps({
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
@@ -356,6 +361,7 @@ def create_app():
 
         except (TextProcessingError, MementoContentError) as e:
             requests_cache.get_cache().delete_url(urim)
+            rootlogger.exception("There was a problem processing the content of the submitted URI")
             return json.dumps({
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
