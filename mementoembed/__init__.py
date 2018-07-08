@@ -23,7 +23,8 @@ from .mementoresource import NotAMementoError, MementoContentError, \
 from .textprocessing import TextProcessingError
 from .version import __useragent__
 
-rootlogger = logging.getLogger(__name__)
+application_logger = logging.getLogger(__name__)
+access_logger = logging.getLogger('mementoembed_access')
 
 __all__ = [
     "MementoSurrogate"
@@ -35,6 +36,7 @@ class MementoEmbedException(Exception):
 class URIMFilter(logging.Filter):
 
     def filter(self, record):
+
         record.urim = "No requested URI"
 
         try:
@@ -79,7 +81,7 @@ def setup_cache(config):
             else:
                 expiretime = 7 * 24 * 60 * 60
 
-            rootlogger.info("Using Redis as cache engine with host={}, "
+            application_logger.info("Using Redis as cache engine with host={}, "
                 "port={}, database_number={}, and expiretime={}".format(
                     dbhost, dbport, dbno, expiretime
                 ))
@@ -91,8 +93,8 @@ def setup_cache(config):
                 rconn.delete("mementoembed_test_key")
 
             except redis.exceptions.RedisError as e:
-                rootlogger.exception("Logging exception in redis database setup")
-                rootlogger.critical("The Redis database settings are invalid, the application cannot continue")
+                application_logger.exception("Logging exception in redis database setup")
+                application_logger.critical("The Redis database settings are invalid, the application cannot continue")
                 raise e
 
             requests_cache.install_cache('mementoembed', backend='redis', 
@@ -105,21 +107,21 @@ def setup_cache(config):
             else:
                 cachefile = "mementoembed"
 
-            rootlogger.info("Setting up SQLite as cache engine with "
+            application_logger.info("Setting up SQLite as cache engine with "
                 "file named {}".format(cachefile))
 
             try:
                 test_file_access("{}.sqlite".format(cachefile))
                 requests_cache.install_cache(cachefile)
-                rootlogger.info("SQLite cache file {}.sqlite is writeable".format(cachefile))
+                application_logger.info("SQLite cache file {}.sqlite is writeable".format(cachefile))
             except Exception as e:
-                rootlogger.critical("SQLite cache file {}.sqlite is NOT WRITEABLE, "
+                application_logger.critical("SQLite cache file {}.sqlite is NOT WRITEABLE, "
                     "the application cannot continue".format(cachefile))
                 raise e
 
         else:
 
-            rootlogger.info("With no other supported cache engines detected, "
+            application_logger.info("With no other supported cache engines detected, "
                 "setting up SQLite as cache engine with file named 'mementoembed'")
 
             requests_cache.install_cache('mementoembed_cache')
@@ -127,7 +129,7 @@ def setup_cache(config):
     else:
         requests_cache.install_cache('mementoembed')
 
-    rootlogger.info("Application request web cache has been successfuly configured")
+    application_logger.info("Application request web cache has been successfuly configured")
 
 def get_requests_timeout(config):
 
@@ -135,8 +137,8 @@ def get_requests_timeout(config):
         try:
             timeout = float(config['REQUEST_TIMEOUT'])
         except Exception as e:
-            rootlogger.exception("REQUEST_TIMEOUT value is invalid")
-            rootlogger.critical("REQUEST_TIMEOUT value '{}' is invalid, "
+            application_logger.exception("REQUEST_TIMEOUT value is invalid")
+            application_logger.critical("REQUEST_TIMEOUT value '{}' is invalid, "
                 "application cannot continue".format(config['REQUEST_TIMEOUT']))
             raise e
     else:
@@ -144,7 +146,7 @@ def get_requests_timeout(config):
 
     return timeout
 
-def setup_logging_config(config, applogger):
+def setup_logging_config(config):
 
     logfile = None
     formatter = logging.Formatter('[%(asctime)s] - %(name)s - %(levelname)s - [ %(urim)s ]: %(message)s')
@@ -155,13 +157,8 @@ def setup_logging_config(config, applogger):
     else:
         loglevel = logging.INFO
 
-    rootlogger.setLevel(loglevel)
-
-    ch = logging.StreamHandler()
-    ch.addFilter(URIMFilter())
-    rootlogger.addHandler(ch)
-
-    rootlogger.info("Logging with level {}".format(loglevel))
+    application_logger.setLevel(loglevel)
+    application_logger.info("Logging with level {}".format(loglevel))
 
     if 'APPLICATION_LOGFILE' in config:
         logfile = config['APPLICATION_LOGFILE']
@@ -170,34 +167,41 @@ def setup_logging_config(config, applogger):
             test_file_access(logfile) # should throw if file is invalid
 
             fh = logging.FileHandler(logfile)
+            fh.addFilter(URIMFilter())
             fh.setLevel(loglevel)
             fh.setFormatter(formatter)
-            rootlogger.addHandler(fh)
-            rootlogger.info("Writing application log to file {}".format(logfile))
+            application_logger.addHandler(fh)
+            application_logger.info("Writing application log to file {}".format(logfile))
 
         except Exception as e:
             message = "Cannot write to requested application logfile {}, " \
                 "the application cannot continue".format(logfile)
-            rootlogger.critical(message)
+            application_logger.critical(message)
             raise e
+
+    formatter = logging.Formatter('%(message)s')
 
     if 'ACCESS_LOGFILE' in config:
         logfile = config['ACCESS_LOGFILE']
 
         try:
             test_file_access(logfile) # should throw if file is invalid
+
             handler = logging.FileHandler(logfile)
-            applogger.addHandler(handler)
-            rootlogger.info("Writing access log to {}".format(logfile))
+            handler.setFormatter(formatter)
+            access_logger.addHandler(handler)
+            access_logger.setLevel(logging.INFO)
+
+            application_logger.info("Writing access log to {}".format(logfile))
 
         except Exception as e:
             message = "Cannot write to requested access logfile {}, " \
                 "the application cannot continue".format(logfile)
-            rootlogger.exception(message)
-            rootlogger.critical(message)
+            application_logger.exception(message)
+            application_logger.critical(message)
             raise e
 
-    rootlogger.info("Logging has been successfully configured")
+    application_logger.info("Logging has been successfully configured")
 
 def create_app():
 
@@ -205,25 +209,24 @@ def create_app():
 
     app.config.from_object('config.default')
     app.config.from_pyfile('application.cfg', silent=True)
-    app.config.from_json("/etc/mementoembed.cfg", silent=True)
+    app.config.from_pyfile("/etc/mementoembed.cfg", silent=True)
 
-    setup_logging_config(app.config, app.logger)
+    setup_logging_config(app.config)
     setup_cache(app.config)
 
     timeout = get_requests_timeout(app.config)
 
-    rootlogger.info("Requests timeout is set to {}".format(timeout))
-    rootlogger.info("All Configuration successfully loaded for MementoEmbed")
-    rootlogger.info("MementoEmbed is now initialized and ready to receive requests")
+    application_logger.info("Requests timeout is set to {}".format(timeout))
+    application_logger.info("All Configuration successfully loaded for MementoEmbed")
+    application_logger.info("MementoEmbed is now initialized and ready to receive requests")
 
     #pylint: disable=unused-variable
     @app.after_request
     def after_request(response):
 
         ts = strftime('[%d/%b/%Y:%H:%M:%S %z]')
-        
-        # pylint: disable=no-member
-        app.logger.info(
+
+        access_logger.info(
             '%s - - %s %s %s %s',
             request.remote_addr,
             ts,
@@ -247,7 +250,7 @@ def create_app():
             urim = request.args.get("url")
             responseformat = request.args.get("format")
 
-            rootlogger.info("Starting oEmbed surrogate creation process")
+            application_logger.info("Starting oEmbed surrogate creation process")
 
             # JSON is the default
             if responseformat == None:
@@ -255,12 +258,12 @@ def create_app():
 
             if responseformat != "json":
                 if responseformat != "xml":
-                    rootlogger.error("Requested response format "
+                    application_logger.error("Requested response format "
                         "is {}, which {} does not "
                         "support".format(responseformat, app.name))
                     return "The provider cannot return a response in the requested format.", 501
 
-            rootlogger.debug("output format will be: {}".format(responseformat))
+            application_logger.debug("output format will be: {}".format(responseformat))
             
             httpcache = CacheSession(
                 timeout=timeout,
@@ -285,7 +288,7 @@ def create_app():
             urlroot = request.url_root
             urlroot = urlroot if urlroot[-1] != '/' else urlroot[0:-1]
 
-            rootlogger.debug("generating oEmbed output for {}".format(urim))
+            application_logger.debug("generating oEmbed output for {}".format(urim))
             output["html"] = htmlmin.minify( render_template(
                 "social_card.html",
                 urim = urim,
@@ -320,11 +323,11 @@ def create_app():
                 response = make_response( dicttoxml.dicttoxml(output, custom_root='oembed') )
                 response.headers['Content-Type'] = 'text/xml'
 
-            rootlogger.info("finished generating {} oEmbed output".format(responseformat))
+            application_logger.info("finished generating {} oEmbed output".format(responseformat))
 
         except NotAMementoError as e:
             requests_cache.get_cache().delete_url(urim)
-            rootlogger.warning("The submitted URI is not a memento, returning instructions")
+            application_logger.warning("The submitted URI is not a memento, returning instructions")
             return json.dumps({
                 "content":
                     render_template(
@@ -336,7 +339,7 @@ def create_app():
 
         except MementoTimeoutError as e:
             requests_cache.get_cache().delete_url(urim)
-            rootlogger.exception("The submitted URI request timed out")
+            application_logger.exception("The submitted URI request timed out")
             return json.dumps({
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
@@ -344,7 +347,7 @@ def create_app():
 
         except MementoInvalidURI as e:
             requests_cache.get_cache().delete_url(urim)
-            rootlogger.exception("There submitted URI is not valid")
+            application_logger.exception("There submitted URI is not valid")
             return json.dumps({
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
@@ -352,7 +355,7 @@ def create_app():
 
         except MementoConnectionError as e:
             requests_cache.get_cache().delete_url(urim)
-            rootlogger.exception("There was a problem connecting to the "
+            application_logger.exception("There was a problem connecting to the "
                 "submitted URI: {}".format(e.user_facing_error))
             return json.dumps({
                 "content": e.user_facing_error,
@@ -361,7 +364,7 @@ def create_app():
 
         except (TextProcessingError, MementoContentError) as e:
             requests_cache.get_cache().delete_url(urim)
-            rootlogger.exception("There was a problem processing the content of the submitted URI")
+            application_logger.exception("There was a problem processing the content of the submitted URI")
             return json.dumps({
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
@@ -369,7 +372,7 @@ def create_app():
 
         except RedisError as e:
             requests_cache.get_cache().delete_url(urim)
-            rootlogger.exception("A Redis problem has occured")
+            application_logger.exception("A Redis problem has occured")
             return json.dumps({
                 "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
                 "error details": repr(traceback.format_exc())
@@ -377,7 +380,7 @@ def create_app():
 
         except Exception:
             requests_cache.get_cache().delete_url(urim)
-            rootlogger.exception("An unforeseen error has occurred")
+            application_logger.exception("An unforeseen error has occurred")
             return json.dumps({
                 "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
                 "error details": repr(traceback.format_exc())

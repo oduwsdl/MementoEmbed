@@ -15,7 +15,6 @@ setup(
     install_requires=[
         'aiu',
         'bs4',
-        'cachecontrol',
         'dicttoxml',
         'filelock',
         'flask',

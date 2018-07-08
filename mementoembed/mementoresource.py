@@ -214,7 +214,7 @@ def memento_resource_factory(urim, http_cache):
         resp = http_cache.get(candidate_raw_urim)
 
         if resp.status_code == 200:
-            module_logger.info("memento at is a Wayback memento")
+            module_logger.info("memento is a Wayback memento")
             return WaybackMemento(http_cache, urim, given_uri=given_urim)
 
     # if we got here, we haven't categorized the URI-M into an Archive type yet
