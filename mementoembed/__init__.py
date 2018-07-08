@@ -216,6 +216,7 @@ def create_app():
     rootlogger.info("Configuration loaded for {}".format(app.name))
     rootlogger.info("{} is now initialized and ready to receive requests".format(app.name))
 
+    #pylint: disable=unused-variable
     @app.after_request
     def after_request(response):
 
@@ -238,6 +239,7 @@ def create_app():
     def front_page():
         return render_template('index.html')
 
+    #pylint: disable=unused-variable
     @app.route('/services/oembed', methods=['GET', 'HEAD'])
     def oembed_endpoint():
 
