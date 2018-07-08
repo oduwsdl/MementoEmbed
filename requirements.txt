@@ -1,0 +1,12 @@
+aiu==0.1.0a1
+dicttoxml==1.7.4
+Flask==1.0.2
+html5lib==1.0.1
+htmlmin==0.1.12
+jusText==2.2.0
+Pillow==5.1.0
+readability-lxml==0.7
+redis==2.10.6
+requests==2.18.4
+requests-cache==0.4.13
+tldextract==2.2.0

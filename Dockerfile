@@ -5,11 +5,15 @@ RUN apt-get update && apt-get install redis-server -y
 
 WORKDIR /app
 
+COPY requirements.txt /app
+
+RUN pip install -r requirements.txt
+
 COPY . /app
 
 RUN pip install .
 
-COPY sample_appconfig.json /etc/mementoembed.json
+COPY sample_appconfig.cfg /etc/mementoembed.cfg
 
 RUN mkdir /app/logs
 

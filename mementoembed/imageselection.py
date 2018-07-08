@@ -1,10 +1,13 @@
 import logging
 import base64
+import traceback
 
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from PIL import ImageFile
 from requests.exceptions import RequestException
+
+from .mementoresource import MementoParsingError
 
 module_logger = logging.getLogger('mementoembed.imageselection')
 
@@ -45,18 +48,27 @@ def get_image_list(uri, http_cache):
     try:
         r = http_cache.get(uri)
 
-        soup = BeautifulSoup(r.text, 'html5lib')
+        try:
+            soup = BeautifulSoup(r.text, 'html5lib')
+        except Exception as e:
+            module_logger.error("failed to open document using BeautifulSoup")
+            raise MementoParsingError(
+                "failed to open document using BeautifulSoup",
+                original_exception=e)
 
-        for imgtag in soup.find_all("img"):
+        try:
+            for imgtag in soup.find_all("img"):
+                imageuri = urljoin(uri, imgtag.get("src"))
+                image_list.append(imageuri)
+        except Exception as e:
+            module_logger.error("failed to find images in document using BeautifulSoup")
+            raise MementoParsingError(
+                "failed to find images in document using BeautifulSoup",
+                original_exception=e)
 
-            # module_logger.debug("examining image tag {}".format(imgtag))
-        
-            imageuri = urljoin(uri, imgtag.get("src"))
-            image_list.append(imageuri)
-
-    except RequestException as e:
+    except RequestException:
         module_logger.warn("Failed to download {} for extracing images, skipping...".format(uri))
-        module_logger.debug("Failed to download {}, details: {}".format(uri, e))
+        module_logger.debug("Failed to download {}, details: {}".format(uri, repr(traceback.format_exc())))
     
     return image_list
 
@@ -81,8 +93,6 @@ def get_best_image(uri, http_cache):
 
             if n >= N:
                 break
-
-            #print("working on image {} of {}".format(n, N))
 
             imageuri = imagelist[n]
 
@@ -138,8 +148,8 @@ def get_best_image(uri, http_cache):
                         imagescores[imageuri] = None
 
                 except RequestException as e:
-                    module_logger.warn("Failed to download image URI {}, skipping...".format(imageuri))
-                    module_logger.debug("Failed to download {}, details: {}".format(imageuri, e))
+                    module_logger.warning("Failed to download image URI {}, skipping...".format(imageuri))
+                    module_logger.debug("Failed to download image URI {}, details: {}".format(imageuri, e))
 
         if n >= N:
             break
