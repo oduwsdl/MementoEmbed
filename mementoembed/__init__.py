@@ -250,10 +250,75 @@ def create_app():
 
         return response
 
+    def generate_social_card_html(urim, surrogate, urlroot, image=True):
+
+        if image:
+            return htmlmin.minify( render_template(
+                "social_card.html",
+                urim = urim,
+                urir = surrogate.original_uri,
+                image = surrogate.striking_image,
+                archive_uri = surrogate.archive_uri,
+                archive_favicon = surrogate.archive_favicon,
+                archive_collection_id = surrogate.collection_id,
+                archive_collection_uri = surrogate.collection_uri,
+                archive_collection_name = surrogate.collection_name,
+                archive_name = surrogate.archive_name,
+                original_favicon = surrogate.original_favicon,
+                original_domain = surrogate.original_domain,
+                original_link_status = surrogate.original_link_status,
+                surrogate_creation_time = surrogate.creation_time,
+                memento_datetime = surrogate.memento_datetime,
+                me_title = surrogate.title,
+                me_snippet = surrogate.text_snippet,
+                server_domain = urlroot
+            ), remove_empty_space=True, 
+            remove_optional_attribute_quotes=False )
+        else:
+            return htmlmin.minify( render_template(
+                "social_card.html",
+                urim = urim,
+                urir = surrogate.original_uri,
+                image = None,
+                archive_uri = surrogate.archive_uri,
+                archive_favicon = surrogate.archive_favicon,
+                archive_collection_id = surrogate.collection_id,
+                archive_collection_uri = surrogate.collection_uri,
+                archive_collection_name = surrogate.collection_name,
+                archive_name = surrogate.archive_name,
+                original_favicon = surrogate.original_favicon,
+                original_domain = surrogate.original_domain,
+                original_link_status = surrogate.original_link_status,
+                surrogate_creation_time = surrogate.creation_time,
+                memento_datetime = surrogate.memento_datetime,
+                me_title = surrogate.title,
+                me_snippet = surrogate.text_snippet,
+                server_domain = urlroot
+            ), remove_empty_space=True, 
+            remove_optional_attribute_quotes=False )            
+
     #pylint: disable=unused-variable
     @app.route('/', methods=['GET', 'HEAD'])
     def front_page():
-        return render_template('index.html')
+        return render_template('index.html', pagetitle = "MementoEmbed")
+
+    @app.route('/generate/socialcard/', methods=['GET', 'HEAD'])
+    def generate_social_card():
+        return render_template('generate_social_card.html', 
+            pagetitle="MementoEmbed - Generate a Social Card",
+            surrogate_type="Social Card",
+            baseuri="/generate/socialcard/",
+            oembed_endpoint="/services/oembed?&format=json&url="
+        )
+
+    @app.route('/generate/socialcardnoimage/', methods=['GET', 'HEAD'])
+    def generate_social_card_wo_image():
+        return render_template('generate_social_card.html', 
+            pagetitle="MementoEmbed - Generate a Social Card without an Image",
+            surrogate_type="Social Card without Image",
+            baseuri="/generate/socialcardnoimage/",
+            oembed_endpoint="/services/oembed?&image=no&format=json&url="
+        )
 
     #pylint: disable=unused-variable
     @app.route('/services/oembed', methods=['GET', 'HEAD'])
@@ -262,6 +327,11 @@ def create_app():
         try:
             urim = request.args.get("url")
             responseformat = request.args.get("format")
+            
+            if request.args.get("image") == "no":
+                imagechoice = False
+            else:
+                imagechoice = True
 
             application_logger.info("Starting oEmbed surrogate creation process")
 
@@ -302,27 +372,7 @@ def create_app():
             urlroot = urlroot if urlroot[-1] != '/' else urlroot[0:-1]
 
             application_logger.debug("generating oEmbed output for {}".format(urim))
-            output["html"] = htmlmin.minify( render_template(
-                "social_card.html",
-                urim = urim,
-                urir = s.original_uri,
-                image = s.striking_image,
-                archive_uri = s.archive_uri,
-                archive_favicon = s.archive_favicon,
-                archive_collection_id = s.collection_id,
-                archive_collection_uri = s.collection_uri,
-                archive_collection_name = s.collection_name,
-                archive_name = s.archive_name,
-                original_favicon = s.original_favicon,
-                original_domain = s.original_domain,
-                original_link_status = s.original_link_status,
-                surrogate_creation_time = s.creation_time,
-                memento_datetime = s.memento_datetime,
-                me_title = s.title,
-                me_snippet = s.text_snippet,
-                server_domain = urlroot
-            ), remove_empty_space=True, 
-            remove_optional_attribute_quotes=False )
+            output["html"] = generate_social_card_html(urim, s, urlroot, imagechoice)
 
             output["width"] = 500
 
@@ -337,6 +387,8 @@ def create_app():
                 response.headers['Content-Type'] = 'text/xml'
 
             application_logger.info("finished generating {} oEmbed output".format(responseformat))
+
+            response.headers['Access-Control-Origin'] = '*'
 
         except NotAMementoError as e:
             requests_cache.get_cache().delete_url(urim)

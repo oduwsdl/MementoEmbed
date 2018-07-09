@@ -1,0 +1,170 @@
+{% include "pagetop.html" %}
+
+{% include "navbar_menu.html" %}
+
+<!-- Begin page content -->
+<main role="main" class="container">
+  <div class="row">
+    <h1 class="mt-5" id="workstatus">Create a {{ surrogate_type }}</h1>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      <form id="urimform">
+        <input type="text" id="uri_submitted" class="form-control form-control-lg" size="100" placeholder="Type URI-M here">
+        <br>
+        <button id="createSocialCard" type="button" class="btn btn-primary">Create an {{ surrogate_type }} for this URI-M</button>
+        <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
+      </form>
+      <hr>
+    </div>
+  </div>
+  <div class="row">
+      <div class="col-sm">
+        <div id="embedWorkArea"></div>
+      </div>
+  </div>
+
+
+<!-- <div class="container"> -->
+{% include "footer.html" %}
+
+</main>
+
+<script>
+workarea = document.getElementById("embedWorkArea");
+formarea = document.getElementById("urimform");
+workstatus = document.getElementById("workstatus");
+
+if (window.location.hash) {
+    urim = window.location.hash.substr(1);
+    workstatus.innerHTML = "";
+    workstatus.innerHTML = "Generating {{ surrogate_type }}";
+    formarea.innerHTML = "";
+    formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
+    setWorking();
+    requestEmbed(urim);
+}
+
+function setWorking() {
+    workarea.innerHTML = '<img src="/static/images/activity.gif">';
+}
+
+function setOutput(outputdata) {
+    workarea.style.backgroundColor = "#ffffff";
+    workarea.style.color = "#000000";
+    workarea.innerHTML = "";
+    workarea.innerHTML = outputdata;
+    workarea.style.padding = "5px";
+}
+
+function setError(outputdata) {
+    workstatus.innerHTML = "";
+    workstatus.innerHTML = "Failed to generate {{ surrogate_type }}";
+    workarea.style.backgroundColor = "#ffffff";
+    workarea.style.color = "#000000";
+    workarea.innerHTML = "";
+    workarea.innerHTML = outputdata + '<br><br>If you want to try again, <a href="{{ baseuri }}">click here</a>';
+    workarea.style.fontWeight = "bolder";
+    workarea.style.border = "thick solid #ff0000";
+    workarea.style.padding = "5px";
+    
+}
+
+function requestEmbed(uri) {
+
+    encoded_uri = encodeURI(uri)
+    oembed_data_svc = "{{ oembed_endpoint|safe }}" + encoded_uri
+
+    console.log("using oembed data service of " + oembed_data_svc);
+
+    $.ajax({
+        type: "GET",
+        url: oembed_data_svc,
+        success: function(json) {
+
+            workstatus.innerHTML = "";
+            workstatus.innerHTML = "Social Card Generated";
+
+            formarea.innerHTML = "";
+            formarea.innerHTML = '<p class="lead">for URI-M: ' + uri + '</p>';
+
+            social_card_area = "";
+            social_card_area += '<div class="row">';
+            social_card_area += '<div class="col-sm">';
+            social_card_area += 'If you want to include this social card in your web page<br><br>';
+            social_card_area += json['html'];
+            social_card_area += '</div>';
+            social_card_area += '<div class="col-sm">';
+            social_card_area += 'copy the code below and paste it into your page HTML.<br><br>'
+            social_card_area += '<textarea cols="50" rows="5" id="sc_code">';
+            social_card_area += json['html'];
+            social_card_area += '</textarea>';
+            social_card_area += '</div>';
+            social_card_area += '</div>';
+
+            window.location.hash = uri;
+
+            setOutput(social_card_area);
+
+            generate_cards();
+        },
+        error: function(data, textStatus, errorThrown) {
+            
+            console.log("we have an error!!!!");
+            console.log("data.status = " + data.status);
+            console.log("data.responseText = " + data.responseText);
+
+            
+
+            if (data.status == 0) {
+                document.getElementById('uri_submitted').focus();
+                message = '*The MementoEmbed Service is Down!*';
+                error = true;
+            } else {
+
+                if (data.responseText === undefined) {
+                    message = "MementoEmbed failed to generate an error message"
+                    error = true;
+                } else {
+                    responseJSON = jQuery.parseJSON(data.responseText);
+                    message = responseJSON['content'];
+                    console.log("response JSON: " + responseJSON);
+                }
+
+            }
+
+            setError(message);
+
+        }
+    });
+}
+
+// handlers for all input begin here
+$(function() {
+    $("form").submit(function() { return false; });
+});
+
+$( "#clearURL" ).bind( "click" , function() {
+    $('#uri_submitted').val("");
+    workarea.innerHTML = "";
+});
+
+$('#uri_submitted').keyup(function(e){
+    if(e.keyCode == 13) {
+        console.log("13 keyup");
+        // $(this).trigger("enterKey");
+        uri = document.getElementById('uri_submitted').value;
+        setWorking();
+        requestEmbed(uri);
+    }
+});
+
+$( "#createSocialCard" ).bind( "click" , function() {
+    uri = document.getElementById('uri_submitted').value;
+    setWorking();
+    requestEmbed(uri);
+});
+
+</script>
+
+{% include "pagebottom.html" %}

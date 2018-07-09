@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Create an embeddable surrogate of a a memento for your blog or web page.">
+    <meta name="author" content="Web Science and Digital Libraires Research Group">
+    <!-- <link rel="icon" href="../../../../favicon.ico"> -->
+
+    <title>MementoEmbed</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/sticky-footer-navbar.css" rel="stylesheet">
+
+    <style>
+      .versiontext {
+        text-align: right;
+      }
+
+      /* .urimform {
+        visibility: hidden;
+      } */
+    </style>
+  </head>
+
+  <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script src="http://localhost:5000/static/js/mementoembed.js" type="text/javascript"></script>
+
+    <header>
+      <!-- Fixed navbar -->
+      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand" href="/">MementoEmbed</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="#">Why MementoEmbed?</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">API</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">FAQ</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Help</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Begin page content -->
+    <main role="main" class="container">
+      <div class="row">
+        <h1 class="mt-5">Generating Social Card</h1>
+      </div>
+      <div class="row">
+        <div class="col-sm">
+          <form id="urimform">
+            <input type="text" id="uri_submitted" class="form-control form-control-lg" size="100" placeholder="Type URI-M here">
+            <br>
+            <button id="createSocialCard" type="button" class="btn btn-primary">Create an Social Card for this URI-M</button>
+            <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
+          </form>
+        </div>
+      </div>
+      <div class="row">
+          <div class="col-sm">
+          <div id = "embedWorkArea"></div>
+          </div>
+      </div>
+    
+
+    <!-- <div class="container"> -->
+        <hr>
+      <div class="row">
+        <div class="col-md-12">
+          Copyright © <a href="https://ws-dl.blogspot.com">Web Science and Digital Libraries - Department of Computer Science, Old Dominion University, Norfolk VA - 23529</a>, 2018.
+        </div>
+      </div>
+      <div class="row versiontext">
+        <div class="col-md-12">
+          <span class="text-muted">MementoEmbed Version 0.1.0.dev1</span>
+        </div>
+      </div>
+
+    </main>
+
+    <script>
+      workarea = document.getElementById("embedWorkArea");
+
+      if (window.location.hash) {
+        urim = window.location.hash.substr(1);
+        formarea = document.getElementById("urimform");
+        formarea.innerHTML = "";
+        formarea.innerHTML = '<p class="lead">URI-M: ' + urim + '</p>';
+        setWorking();
+        requestEmbed(urim);
+      }
+
+      function setWorking() {
+        workarea.innerHTML = '<img src="/images/activity.gif">';
+      }
+
+      function setError(errordata) {
+        workarea.style.backgroundColor = "#ff0000";
+        workarea.style.color = "#ffffff";
+        workarea.style.fontWeight = "bolder";
+        workarea.innerHTML = "";
+        workarea.innerHTML = errordata;
+      }
+
+      function requestEmbed(uri) {
+
+        encoded_uri = encodeURI(uri)
+        oembed_data_svc = "http://localhost:5000/services/oembed?url=" + encoded_uri + "&format=json"
+
+        $.ajax({
+          type: "GET",
+          url: oembed_data_svc,
+          success: function(json) {
+            social_card_area = "";
+            social_card_area += '<div class="row"><div class="col-sm">';
+            social_card_area += '<h2>Social Card Generated for URI-M <br/><span style="font-size: 12px">' + uri + '</span></h2>';
+            social_card_area += '</div></div>';
+            social_card_area += '<div class="row"><div class="col-sm"><hr /></div></div>';                        
+            social_card_area += '<div class="row">';
+            social_card_area += '<div class="col-sm">If you want to include this social card in your web page</div>';
+            social_card_area += '<div class="col-sm">copy the code below and paste it into your page HTML.</div>';
+            social_card_area += '</div>';
+            social_card_area += '<div class="row">';
+            social_card_area += '<div class="col-sm">' + json['html'] + '</div>';
+            social_card_area += '<div class="col-sm"><textarea cols="50" rows="5" id="sc_code">';
+            social_card_area += json['html'] + '</textarea>';
+            // social_card_area += '<button id="copy_sc_code">Copy Text</button>';
+            social_card_area += '</div>';
+            social_card_area += '</div>';
+
+            setOutput(social_card_area);
+
+            generate_cards();
+          },
+          error: function(data, textStatus, errorThrown) {
+                        
+            responseJSON = jQuery.parseJSON(data.responseText);
+
+            if (data.status == 0) {
+                document.getElementById('uri_submitted').focus();
+                message = '*The MementoEmbed Service is Down!*';
+                error = true;
+            } else {
+
+                if (data.responseText === undefined) {
+                    message = "MementoEmbed failed to generate an error message"
+                    error = true;
+                } else {
+
+                    if (responseJSON['error'] == "Not a memento") {
+                        message = responseJSON['content'];
+                        output = true;
+                        error = false;
+                    } else {
+                        // message = data.responseText;
+                        message = responseJSON['content']
+                        error = true;
+                    }
+
+                }
+
+            }
+
+            if ( error == true ) {
+                setError(message);
+            } else {
+                setOutput(message);
+            }
+          }
+        });
+      }
+
+      // handlers for all input begin here
+      $(function() {
+        $("form").submit(function() { return false; });
+      });
+
+      $( "#clearURL" ).bind( "click" , function() {
+        $('#uri_submitted').val("");
+        workoutput.innerHTML = "";
+        workerror.innerHTML = "";
+      });
+
+      $('#uri_submitted').bind("enterKey",function(e){
+        requestEmbed();
+      });
+
+      $('#uri_submitted').keyup(function(e){
+        if(e.keyCode == 13)
+        {
+          $(this).trigger("enterKey");
+        }
+      });
+
+      $( "#createSocialCard" ).bind( "click" , function() {
+        uri = document.getElementById('uri_submitted').value;
+        requestEmbed(uri);
+      });
+
+    </script>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>
+
