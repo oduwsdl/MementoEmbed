@@ -302,6 +302,10 @@ def create_app():
     def front_page():
         return render_template('index.html', pagetitle = "MementoEmbed")
 
+    @app.route('/about/', methods=['GET', 'HEAD'])
+    def about_page():
+        return render_template('about.html', pagetitle = "MementoEmbed")
+
     @app.route('/generate/socialcard/', methods=['GET', 'HEAD'])
     def generate_social_card():
         return render_template('generate_social_card.html', 
