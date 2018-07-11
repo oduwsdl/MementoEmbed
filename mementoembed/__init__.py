@@ -21,7 +21,7 @@ from .mementosurrogate import MementoSurrogate
 from .mementoresource import NotAMementoError, MementoContentError, \
     MementoConnectionError, MementoTimeoutError, MementoInvalidURI
 from .textprocessing import TextProcessingError
-from .version import __useragent__
+from .version import __useragent__, __appversion__
 
 application_logger = logging.getLogger(__name__)
 access_logger = logging.getLogger('mementoembed_access')
@@ -215,6 +215,18 @@ def setup_logging_config(config):
 
     application_logger.info("Logging has been successfully configured")
 
+def get_commithash():
+
+    gitcommit = None
+
+    print("current path: {}".format(os.getcwd()))
+
+    if os.path.exists("revfile.txt"):
+        with open("revfile.txt") as f:
+            gitcommit = f.read().strip()
+
+    return gitcommit
+
 def create_app():
 
     app = Flask(__name__, instance_relative_config=True)
@@ -250,10 +262,12 @@ def create_app():
 
         return response
 
+    commithash = get_commithash()
+
     #pylint: disable=unused-variable
     @app.route('/', methods=['GET', 'HEAD'])
     def front_page():
-        return render_template('index.html')
+        return render_template('index.html', current_version=__appversion__, commithash=commithash)
 
     #pylint: disable=unused-variable
     @app.route('/services/oembed', methods=['GET', 'HEAD'])

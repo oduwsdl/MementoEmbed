@@ -54,6 +54,15 @@
                     </div>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-sm" style="text-align:center">
+                    MementoEmbed version {{ current_version }}<br />
+{% if commithash %}
+Source code revision: <a href="https://github.com/oduwsdl/MementoEmbed/tree/{{ commithash }}">{{ commithash }}</a>
+{% endif %}
+                </div>
+            </div>
         </div>
 
         <script>
@@ -211,5 +220,7 @@
             });
 
         </script>
+
+
     </body>
 </html>
