@@ -16,12 +16,12 @@ from mementoembed.mementoresource import NotAMementoError, MementoContentError, 
 from mementoembed.textprocessing import TextProcessingError
 from mementoembed.version import __useragent__
 
-from .socialcard import generate_social_card_html
+from .product import generate_social_card_html
 from .errors import handle_errors
 
 module_logger = logging.getLogger('mementoembed.services.oembed')
 
-bp = Blueprint('oembed', __name__)
+bp = Blueprint('services.oembed', __name__)
 
 def generate_oembed_response(urim):
 

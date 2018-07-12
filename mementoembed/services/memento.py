@@ -18,7 +18,7 @@ from mementoembed.version import __useragent__
 
 from .errors import handle_errors
 
-bp = Blueprint('memento', __name__)
+bp = Blueprint('services.memento', __name__)
 
 module_logger = logging.getLogger('mementoembed.services.memento')
 

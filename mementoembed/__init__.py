@@ -221,10 +221,16 @@ def create_app():
     application_logger.info("All Configuration successfully loaded for MementoEmbed")
     application_logger.info("MementoEmbed is now initialized and ready to receive requests")
 
-    from mementoembed.services import oembed, memento, socialcard
+    from mementoembed.services import oembed, memento, product
     app.register_blueprint(oembed.bp)
     app.register_blueprint(memento.bp)
-    app.register_blueprint(socialcard.bp)
+    app.register_blueprint(product.bp)
+
+    from mementoembed.ui import bp
+    app.register_blueprint(bp)
+
+    from mementoembed.ui import product as pd
+    app.register_blueprint(pd.bp)
 
     #pylint: disable=unused-variable
     @app.after_request
@@ -243,35 +249,5 @@ def create_app():
         )
 
         return response
-
-    #pylint: disable=unused-variable
-    @app.route('/', methods=['GET', 'HEAD'])
-    def front_page():
-        return render_template('index.html', pagetitle = "MementoEmbed")
-
-    @app.route('/about/', methods=['GET', 'HEAD'])
-    def about_page():
-        return render_template('about.html', pagetitle = "MementoEmbed")
-
-    @app.route('/generate/socialcard/', methods=['GET', 'HEAD'])
-    def generate_social_card():
-        return render_template('generate_social_card.html', 
-            pagetitle="MementoEmbed - Generate a Social Card",
-            surrogate_type="Social Card",
-            baseuri="/generate/socialcard/",
-            oembed_endpoint="/services/oembed?&format=json&url="
-        )
-
-    @app.route('/generate/socialcardnoimage/', methods=['GET', 'HEAD'])
-    def generate_social_card_wo_image():
-        return render_template('generate_social_card.html', 
-            pagetitle="MementoEmbed - Generate a Social Card without an Image",
-            surrogate_type="Social Card without Image",
-            baseuri="/generate/socialcardnoimage/",
-            oembed_endpoint="/services/oembed?&image=no&format=json&url="
-        )
-
-    #pylint: disable=unused-variable
-
 
     return app

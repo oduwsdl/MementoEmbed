@@ -14,7 +14,7 @@ from .errors import handle_errors
 
 module_logger = logging.getLogger('mementoembed.services.socialcard')
 
-bp = Blueprint('socialcard', __name__)
+bp = Blueprint('services.product', __name__)
 
 def generate_social_card_html(urim, surrogate, urlroot, image=True):
 
@@ -81,9 +81,13 @@ def generate_socialcard_response(urim):
     
     return generate_social_card_html(urim, s, urlroot, image=True), 200
 
-@bp.route('/services/socialcard/<path:subpath>')
+@bp.route('/services/product/socialcard/<path:subpath>')
 def socialcard_endpoint(subpath):
 
     urim = subpath
     return handle_errors(generate_socialcard_response, urim)
 
+@bp.route('/services/product/thumbnail/<path:subpath>')
+def thumbnail_endpoint(subpath):
+
+    return "This service is not yet available", 500
