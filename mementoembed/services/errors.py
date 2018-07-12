@@ -13,14 +13,20 @@ from mementoembed.textprocessing import TextProcessingError
 
 module_logger = logging.getLogger('mementoembed.services.errors')
 
+def attempt_cache_deletion(urim):
+
+    baduris = ["", None]
+
+    if urim not in baduris:
+        requests_cache.get_cache().delete_url(urim)
+
 def handle_errors(function_name, urim):
 
     try:
-
+        attempt_cache_deletion(urim)
         return function_name(urim)
 
     except NotAMementoError as e:
-        requests_cache.get_cache().delete_url(urim)
         module_logger.warning("The submitted URI is not a memento, returning instructions")
         return json.dumps({
             "content":
@@ -32,7 +38,7 @@ def handle_errors(function_name, urim):
             }), 404
 
     except MementoTimeoutError as e:
-        requests_cache.get_cache().delete_url(urim)
+        attempt_cache_deletion(urim)
         module_logger.exception("The submitted URI request timed out")
         return json.dumps({
             "content": e.user_facing_error,
@@ -40,7 +46,7 @@ def handle_errors(function_name, urim):
         }, indent=4), 504            
 
     except MementoInvalidURI as e:
-        requests_cache.get_cache().delete_url(urim)
+        attempt_cache_deletion(urim)
         module_logger.exception("There submitted URI is not valid")
         return json.dumps({
             "content": e.user_facing_error,
@@ -48,7 +54,7 @@ def handle_errors(function_name, urim):
         }, indent=4), 400
 
     except MementoConnectionError as e:
-        requests_cache.get_cache().delete_url(urim)
+        attempt_cache_deletion(urim)
         module_logger.exception("There was a problem connecting to the "
             "submitted URI: {}".format(e.user_facing_error))
         return json.dumps({
@@ -57,7 +63,7 @@ def handle_errors(function_name, urim):
         }, indent=4), 502
 
     except (TextProcessingError, MementoContentError) as e:
-        requests_cache.get_cache().delete_url(urim)
+        attempt_cache_deletion(urim)
         module_logger.exception("There was a problem processing the content of the submitted URI")
         return json.dumps({
             "content": e.user_facing_error,
@@ -65,7 +71,7 @@ def handle_errors(function_name, urim):
         }, indent=4), 500
 
     except RedisError as e:
-        requests_cache.get_cache().delete_url(urim)
+        attempt_cache_deletion(urim)
         module_logger.exception("A Redis problem has occured")
         return json.dumps({
             "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
@@ -73,7 +79,7 @@ def handle_errors(function_name, urim):
         }, indent=4), 500
 
     except Exception:
-        requests_cache.get_cache().delete_url(urim)
+        attempt_cache_deletion(urim)
         module_logger.exception("An unforeseen error has occurred")
         return json.dumps({
             "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
