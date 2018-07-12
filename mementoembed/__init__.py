@@ -11,13 +11,6 @@ from time import strftime
 
 from redis import RedisError
 from flask import Flask, request, render_template, make_response
-from flask.logging import default_handler
-
-
-
-
-
-
 
 application_logger = logging.getLogger(__name__)
 access_logger = logging.getLogger('mementoembed_access')
@@ -228,9 +221,10 @@ def create_app():
     application_logger.info("All Configuration successfully loaded for MementoEmbed")
     application_logger.info("MementoEmbed is now initialized and ready to receive requests")
 
-    from mementoembed.services import oembed, memento
+    from mementoembed.services import oembed, memento, socialcard
     app.register_blueprint(oembed.bp)
     app.register_blueprint(memento.bp)
+    app.register_blueprint(socialcard.bp)
 
     #pylint: disable=unused-variable
     @app.after_request

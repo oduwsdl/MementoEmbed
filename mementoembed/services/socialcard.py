@@ -4,10 +4,17 @@ import json
 import htmlmin
 import requests_cache
 
-from flask import render_template
+from flask import render_template, request, Blueprint, current_app
 
+from mementoembed.mementosurrogate import MementoSurrogate
+from mementoembed.cachesession import CacheSession
+from mementoembed.version import __useragent__
+
+from .errors import handle_errors
 
 module_logger = logging.getLogger('mementoembed.services.socialcard')
+
+bp = Blueprint('socialcard', __name__)
 
 def generate_social_card_html(urim, surrogate, urlroot, image=True):
 
@@ -55,4 +62,28 @@ def generate_social_card_html(urim, surrogate, urlroot, image=True):
             server_domain = urlroot
         ), remove_empty_space=True, 
         remove_optional_attribute_quotes=False )   
+
+def generate_socialcard_response(urim):
+
+    httpcache = CacheSession(
+        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        user_agent=__useragent__,
+        starting_uri=urim
+        )
+
+    s = MementoSurrogate(
+        urim,
+        httpcache
+    )
+
+    urlroot = request.url_root
+    urlroot = urlroot if urlroot[-1] != '/' else urlroot[0:-1]
+    
+    return generate_social_card_html(urim, s, urlroot, image=True), 200
+
+@bp.route('/services/socialcard/<path:subpath>')
+def socialcard_endpoint(subpath):
+
+    urim = subpath
+    return handle_errors(generate_socialcard_response, urim)
 
