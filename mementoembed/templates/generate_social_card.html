@@ -141,6 +141,15 @@ function fill_social_card_area(html) {
     social_card_area += 'copy the code below and paste it into your page HTML.<br><br>'
     social_card_area += '<textarea cols="50" rows="5" id="sc_code">';
     social_card_area += html;
+
+    social_card_area += '&lt;script async src="';
+    if (window.location.port == "") {
+        social_card_area += "//" + window.location.hostname + "/static/js/mementoembed.js";
+    } else {
+        social_card_area += "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed.js";
+    }
+    social_card_area += '"&gt;&lt/script&gt;';
+
     social_card_area += '</textarea>';
     social_card_area += '</div>';
     social_card_area += '</div>';
