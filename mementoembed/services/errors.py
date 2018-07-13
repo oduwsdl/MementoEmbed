@@ -23,10 +23,10 @@ def attempt_cache_deletion(urim):
 def handle_errors(function_name, urim):
 
     try:
-        attempt_cache_deletion(urim)
         return function_name(urim)
 
     except NotAMementoError as e:
+        attempt_cache_deletion(urim)
         module_logger.warning("The submitted URI is not a memento, returning instructions")
         return json.dumps({
             "content":

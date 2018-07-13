@@ -41,7 +41,9 @@ def contentdata(urim):
     output['snippet'] = extract_text_snippet(memento.raw_content)
     output['memento-datetime'] = memento.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
     
-    return make_response(json.dumps(output, indent=4)), 200
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+    return response, 200
 
 def originaldata(urim):
 
@@ -65,7 +67,9 @@ def originaldata(urim):
     output['original-favicon'] = originalresource.favicon
     output['original-linkstatus'] = originalresource.link_status
 
-    return make_response(json.dumps(output, indent=4)), 200
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+    return response, 200
 
 def bestimage(urim):
 
@@ -81,10 +85,13 @@ def bestimage(urim):
 
     output = {}
 
+    output['urim'] = urim
     output['best-image-uri'] = best_image_uri
     output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    return make_response(json.dumps(output, indent=4)), 200
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+    return response, 200
 
 def archivedata(urim):
 
@@ -108,9 +115,11 @@ def archivedata(urim):
     output['archive-collection-name'] = archive.collection_name
     output['archive-collection-uri'] = archive.collection_uri
 
-    return make_response(json.dumps(output, indent=4)), 200
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+    return response, 200
 
-@bp.route('/services/memento/textdata/')
+@bp.route('/services/memento/contentdata/')
 @bp.route('/services/memento/archivedata/')
 @bp.route('/services/memento/originalresourcedata/')
 @bp.route('/services/memento/bestimage/')

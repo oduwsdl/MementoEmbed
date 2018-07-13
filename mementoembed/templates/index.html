@@ -32,7 +32,7 @@
   
     <form>
       <input type="text" id="uri_submitted" class="form-control form-control-lg" size="100" placeholder="Type URI-M here">
-      <br>
+      <!-- <br>
       Select the type of Embed to Create:<br><br>
       <div class="row">
         <div class="col-md-6">
@@ -43,7 +43,7 @@
           <input type="radio" id="social_card_wo_image" name="surrogate_type" />
           <label for="social_card_wo_image">Social Card without Image</label>
         </div>
-      </div>
+      </div> -->
       
       <!-- <div class="row">
         <div class="col-md-6">
@@ -71,13 +71,7 @@
 
   function requestEmbed(uri) {
 
-    if (document.getElementById("social_card").checked) {
-      window.location.href = "/ui/product/socialcard/#" + uri;
-    } else if (document.getElementById("social_card_wo_image").checked) {
-      window.location.href = "/generate/socialcardnoimage/#" + uri;
-    } else {
-      console.error("how did we get here?");
-    }
+    window.location.href = "/ui/product/socialcard/" + uri;
   }
 
   // handlers for all input begin here
