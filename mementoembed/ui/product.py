@@ -2,6 +2,8 @@ import logging
 
 from flask import render_template, Blueprint, request, redirect, url_for
 
+from mementoembed.version import __appversion__
+
 module_logger = logging.getLogger('mementoembed.ui.product')
 
 bp = Blueprint('ui.product', __name__)
@@ -43,7 +45,8 @@ def generate_social_card(subpath):
         archivedata_endpoint="/services/memento/archivedata/",
         originalresourcedata_endpoint="/services/memento/originalresourcedata/",
         bestimage_endpoint="/services/memento/bestimage/",
-        social_card_template=social_card_template
+        social_card_template=social_card_template,
+        appversion = __appversion__
     ), 200
 
 @bp.route('/ui/product/thumbnail/<path:subpath>')
