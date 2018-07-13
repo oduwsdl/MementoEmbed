@@ -8,6 +8,7 @@ bp = Blueprint('ui.product', __name__)
 
 @bp.route('/ui/product/socialcard/')
 @bp.route('/ui/product/thumbnail/')
+@bp.route('/ui/')
 def ui_product_no_urim():
     return redirect(url_for('ui.main_page'))
 

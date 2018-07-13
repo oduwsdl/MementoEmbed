@@ -28,60 +28,82 @@ def handle_errors(function_name, urim):
     except NotAMementoError as e:
         attempt_cache_deletion(urim)
         module_logger.warning("The submitted URI is not a memento, returning instructions")
-        return json.dumps({
-            "content":
-                render_template(
-                'make_your_own_memento.html',
-                urim = urim
-                ),
-            "error details": repr(traceback.format_exc())
-            }), 404
+
+        response = make_response(
+            json.dumps({
+                "content":
+                    render_template(
+                    'make_your_own_memento.html',
+                    urim = urim
+                    ),
+                "error details": repr(traceback.format_exc())
+                }, indent=4))
+        response.headers['Content-Type'] = 'application/json'
+        return response, 404
 
     except MementoTimeoutError as e:
         attempt_cache_deletion(urim)
         module_logger.exception("The submitted URI request timed out")
-        return json.dumps({
-            "content": e.user_facing_error,
-            "error details": repr(traceback.format_exc())
-        }, indent=4), 504            
+        response = make_response(
+            json.dumps({
+                "content": e.user_facing_error,
+                "error details": repr(traceback.format_exc())
+            }, indent=4))
+        response.headers['Content-Type'] = 'application/json'
+        return response, 504
 
     except MementoInvalidURI as e:
         attempt_cache_deletion(urim)
-        module_logger.exception("There submitted URI is not valid")
-        return json.dumps({
-            "content": e.user_facing_error,
-            "error details": repr(traceback.format_exc())
-        }, indent=4), 400
+        module_logger.exception("The submitted URI is not valid")
+        response = make_response(
+            json.dumps({
+                "content": e.user_facing_error,
+                "error details": repr(traceback.format_exc())
+            }, indent=4))
+        response.headers['Content-Type'] = 'application/json'
+        return response, 400
 
     except MementoConnectionError as e:
         attempt_cache_deletion(urim)
         module_logger.exception("There was a problem connecting to the "
             "submitted URI: {}".format(e.user_facing_error))
-        return json.dumps({
-            "content": e.user_facing_error,
-            "error details": repr(traceback.format_exc())
-        }, indent=4), 502
+        response = make_response(
+            json.dumps({
+                "content": e.user_facing_error,
+                "error details": repr(traceback.format_exc())
+            }, indent=4))
+        response.headers['Content-Type'] = 'application/json'
+        return response, 502
 
     except (TextProcessingError, MementoContentError) as e:
         attempt_cache_deletion(urim)
         module_logger.exception("There was a problem processing the content of the submitted URI")
-        return json.dumps({
-            "content": e.user_facing_error,
-            "error details": repr(traceback.format_exc())
-        }, indent=4), 500
+        response = make_response(
+            json.dumps({
+                "content": e.user_facing_error,
+                "error details": repr(traceback.format_exc())
+            }, indent=4))
+        response.headers['Content-Type'] = 'application/json'
+        return response, 500
 
     except RedisError as e:
         attempt_cache_deletion(urim)
         module_logger.exception("A Redis problem has occured")
-        return json.dumps({
-            "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
-            "error details": repr(traceback.format_exc())
-        }, indent=4), 500
+        response = make_response(
+            json.dumps({
+                "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
+                "error details": repr(traceback.format_exc())
+            }, indent=4))
+        response.headers['Content-Type'] = 'application/json'
+        return response, 500
 
     except Exception:
         attempt_cache_deletion(urim)
         module_logger.exception("An unforeseen error has occurred")
-        return json.dumps({
-            "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
-            "error details": repr(traceback.format_exc())
-        }, indent=4), 500
+        response = make_response(
+            json.dumps({
+                "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
+                "error details": repr(traceback.format_exc())
+            }, indent=4))
+        response.headers['Content-Type'] = 'application/json'
+        return response, 500

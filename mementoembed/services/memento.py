@@ -101,6 +101,9 @@ def archivedata(urim):
         starting_uri=urim
         )
 
+    # TODO: only here because we need to detect NotAMemento, need a better solution
+    memento = memento_resource_factory(urim, httpcache) 
+
     archive = ArchiveResource(urim, httpcache)
 
     output = {}

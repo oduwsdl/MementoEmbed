@@ -113,14 +113,14 @@ function setError(outputdata) {
 function setGood(identifier) {
     status_indicator = document.getElementById(identifier);
     status_indicator.innerHTML = "";
-    status_indicator.innerHTML = "Done";
+    status_indicator.innerHTML = "✅";
     
 }
 
 function setBad(identifier) {
     status_indicator = document.getElementById(identifier);
     status_indicator.innerHTML = "";
-    status_indicator.innerHTML = "FAILED";
+    status_indicator.innerHTML = "❌";
 }
 
 function fill_social_card_area(html) {
@@ -166,8 +166,6 @@ function fill_social_card_area(html) {
     }
 
     document.getElementById("sc_display").appendChild(scriptnode);
-
-    // generate_cards();
 
 }
 
@@ -236,7 +234,7 @@ function handle_error(data) {
     }
 
     if (data.status == 0) {
-        message = '*The MementoEmbed Service is Down!*';
+        message = 'An Unexpected Error Occurred in the MementoEmbed Page';
         error = true;
     } else {
 
