@@ -67,4 +67,12 @@ def socialcard_endpoint(subpath):
 @bp.route('/services/product/thumbnail/<path:subpath>')
 def thumbnail_endpoint(subpath):
 
-    return "This service is not yet available", 500
+    try:
+
+        if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
+            return "The thumbnail service is not yet available", 500
+        else:
+            return "The thumbnail service has been disabled by the system administrator", 200
+
+    except KeyError:
+            return "The thumbnail service is disabled by default", 200
