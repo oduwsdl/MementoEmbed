@@ -219,8 +219,7 @@ def create_app():
 
     application_logger.info("Requests timeout is set to {}".format(app.config['REQUEST_TIMEOUT_FLOAT']))
     application_logger.info("All Configuration successfully loaded for MementoEmbed")
-    application_logger.info("MementoEmbed is now initialized and ready to receive requests")
-
+    
     from .services import oembed, memento, product
     app.register_blueprint(oembed.bp)
     app.register_blueprint(memento.bp)
@@ -231,6 +230,8 @@ def create_app():
 
     from .ui import product as pd
     app.register_blueprint(pd.bp)
+
+    application_logger.info("MementoEmbed is now initialized and ready to receive requests")
 
     #pylint: disable=unused-variable
     @app.after_request

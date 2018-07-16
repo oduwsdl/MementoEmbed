@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # to get pylint to shut up
 __appname__ = None
@@ -10,7 +10,7 @@ exec(open("mementoembed/version.py").read())
 setup(
     name=__appname__.lower(),
     version=__appversion__,
-    packages=[ __appname__.lower() ],
+    packages=find_packages(),
     include_package_data=True,
     install_requires=[
         'aiu',
