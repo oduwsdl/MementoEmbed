@@ -1,10 +1,14 @@
+import os
 import logging
 import json
+import subprocess
+import traceback
+import hashlib
 
 import htmlmin
 import requests_cache
 
-from flask import render_template, request, Blueprint, current_app
+from flask import render_template, request, Blueprint, current_app, make_response
 
 from mementoembed.mementosurrogate import MementoSurrogate
 from mementoembed.cachesession import CacheSession
@@ -69,8 +73,52 @@ def thumbnail_endpoint(subpath):
 
     try:
 
+        # TODO: test that subpath is actually a memento
+
         if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
-            return "The thumbnail service is not yet available", 500
+
+            if os.path.isdir(current_app.config['THUMBNAIL_WORKING_FOLDER']):
+                urim = subpath
+                os.environ['URIM'] = urim
+                m = hashlib.sha256()
+                m.update(urim.encode('utf8'))
+                thumbfile = m.hexdigest()
+                thumbfile = "{}/{}.png".format(current_app.config['THUMBNAIL_WORKING_FOLDER'], m.hexdigest())
+
+                os.environ['THUMBNAIL_OUTPUTFILE'] = thumbfile
+
+                p = subprocess.Popen(["node", current_app.config['THUMBNAIL_SCRIPT_PATH']])
+
+                try:
+                    p.wait(timeout=30)
+
+                    with open(thumbfile, 'rb') as f:
+                        data = f.read()
+
+                    response = make_response(data)
+                    response.headers['Content-Type'] = 'image/png'
+
+                    return response, 200
+
+                except TimeoutError:
+                    module_logger.exception("Thumbnail script failed to return after 30 seconds")
+                    
+                    output = {
+                        "error": "a thumbnail failed to generated in 30 seconds",
+                        "error details": repr(traceback.format_exc())
+                    }
+                    return json.dumps(output), 500
+
+            else:
+                msg = "Thumbnail folder {} does not exist".format(current_app.config['THUMBNAIL_WORKING_FOLDER'])
+                module_logger.exception(msg)
+                    
+                output = {
+                    "error": msg,
+                    "error details": repr(traceback.format_exc())
+                }
+                return json.dumps(output), 500
+            
         else:
             return "The thumbnail service has been disabled by the system administrator", 200
 

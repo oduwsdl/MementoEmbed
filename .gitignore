@@ -9,3 +9,4 @@ dist
 .web_cache
 *.sqlite
 *.bak
+node_modules
