@@ -221,15 +221,15 @@ def create_app():
     application_logger.info("All Configuration successfully loaded for MementoEmbed")
     application_logger.info("MementoEmbed is now initialized and ready to receive requests")
 
-    from mementoembed.services import oembed, memento, product
+    from .services import oembed, memento, product
     app.register_blueprint(oembed.bp)
     app.register_blueprint(memento.bp)
     app.register_blueprint(product.bp)
 
-    from mementoembed.ui import bp
+    from .ui import bp
     app.register_blueprint(bp)
 
-    from mementoembed.ui import product as pd
+    from .ui import product as pd
     app.register_blueprint(pd.bp)
 
     #pylint: disable=unused-variable
