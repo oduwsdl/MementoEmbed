@@ -2,10 +2,7 @@ import sys
 import os
 import json
 import logging
-import traceback
 
-import htmlmin
-import dicttoxml
 import redis
 import requests
 import requests_cache
@@ -14,14 +11,6 @@ from time import strftime
 
 from redis import RedisError
 from flask import Flask, request, render_template, make_response
-from flask.logging import default_handler
-
-from .cachesession import CacheSession
-from .mementosurrogate import MementoSurrogate
-from .mementoresource import NotAMementoError, MementoContentError, \
-    MementoConnectionError, MementoTimeoutError, MementoInvalidURI
-from .textprocessing import TextProcessingError
-from .version import __useragent__
 
 application_logger = logging.getLogger(__name__)
 access_logger = logging.getLogger('mementoembed_access')
@@ -226,11 +215,22 @@ def create_app():
     setup_logging_config(app.config)
     setup_cache(app.config)
 
-    timeout = get_requests_timeout(app.config)
+    app.config['REQUEST_TIMEOUT_FLOAT'] = get_requests_timeout(app.config)
 
-    application_logger.info("Requests timeout is set to {}".format(timeout))
+    application_logger.info("Requests timeout is set to {}".format(app.config['REQUEST_TIMEOUT_FLOAT']))
     application_logger.info("All Configuration successfully loaded for MementoEmbed")
     application_logger.info("MementoEmbed is now initialized and ready to receive requests")
+
+    from mementoembed.services import oembed, memento, product
+    app.register_blueprint(oembed.bp)
+    app.register_blueprint(memento.bp)
+    app.register_blueprint(product.bp)
+
+    from mementoembed.ui import bp
+    app.register_blueprint(bp)
+
+    from mementoembed.ui import product as pd
+    app.register_blueprint(pd.bp)
 
     #pylint: disable=unused-variable
     @app.after_request
@@ -247,158 +247,6 @@ def create_app():
             request.full_path,
             response.status
         )
-
-        return response
-
-    #pylint: disable=unused-variable
-    @app.route('/', methods=['GET', 'HEAD'])
-    def front_page():
-        return render_template('index.html')
-
-    #pylint: disable=unused-variable
-    @app.route('/services/oembed', methods=['GET', 'HEAD'])
-    def oembed_endpoint():
-
-        try:
-            urim = request.args.get("url")
-            responseformat = request.args.get("format")
-
-            application_logger.info("Starting oEmbed surrogate creation process")
-
-            # JSON is the default
-            if responseformat == None:
-                responseformat = "json"
-
-            if responseformat != "json":
-                if responseformat != "xml":
-                    application_logger.error("Requested response format "
-                        "is {}, which {} does not "
-                        "support".format(responseformat, app.name))
-                    return "The provider cannot return a response in the requested format.", 501
-
-            application_logger.debug("output format will be: {}".format(responseformat))
-            
-            httpcache = CacheSession(
-                timeout=timeout,
-                user_agent=__useragent__,
-                starting_uri=urim
-                )
-        
-            s = MementoSurrogate(
-                urim,
-                httpcache
-            )
-
-            output = {}
-
-            output["type"] = "rich"
-            output["version"] = "1.0"
-
-            output["url"] = urim
-            output["provider_name"] = s.archive_name
-            output["provider_uri"] = s.archive_uri
-
-            urlroot = request.url_root
-            urlroot = urlroot if urlroot[-1] != '/' else urlroot[0:-1]
-
-            application_logger.debug("generating oEmbed output for {}".format(urim))
-            output["html"] = htmlmin.minify( render_template(
-                "social_card.html",
-                urim = urim,
-                urir = s.original_uri,
-                image = s.striking_image,
-                archive_uri = s.archive_uri,
-                archive_favicon = s.archive_favicon,
-                archive_collection_id = s.collection_id,
-                archive_collection_uri = s.collection_uri,
-                archive_collection_name = s.collection_name,
-                archive_name = s.archive_name,
-                original_favicon = s.original_favicon,
-                original_domain = s.original_domain,
-                original_link_status = s.original_link_status,
-                surrogate_creation_time = s.creation_time,
-                memento_datetime = s.memento_datetime,
-                me_title = s.title,
-                me_snippet = s.text_snippet,
-                server_domain = urlroot
-            ), remove_empty_space=True, 
-            remove_optional_attribute_quotes=False )
-
-            output["width"] = 500
-
-            #TODO: fix this to the correct height!
-            output["height"] = 200
-
-            if responseformat == "json":
-                response = make_response(json.dumps(output, indent=4))
-                response.headers['Content-Type'] = 'application/json'
-            else:
-                response = make_response( dicttoxml.dicttoxml(output, custom_root='oembed') )
-                response.headers['Content-Type'] = 'text/xml'
-
-            application_logger.info("finished generating {} oEmbed output".format(responseformat))
-
-        except NotAMementoError as e:
-            requests_cache.get_cache().delete_url(urim)
-            application_logger.warning("The submitted URI is not a memento, returning instructions")
-            return json.dumps({
-                "content":
-                    render_template(
-                    'make_your_own_memento.html',
-                    urim = urim
-                    ),
-                "error details": repr(traceback.format_exc())
-                }), 404
-
-        except MementoTimeoutError as e:
-            requests_cache.get_cache().delete_url(urim)
-            application_logger.exception("The submitted URI request timed out")
-            return json.dumps({
-                "content": e.user_facing_error,
-                "error details": repr(traceback.format_exc())
-            }, indent=4), 504            
-
-        except MementoInvalidURI as e:
-            requests_cache.get_cache().delete_url(urim)
-            application_logger.exception("There submitted URI is not valid")
-            return json.dumps({
-                "content": e.user_facing_error,
-                "error details": repr(traceback.format_exc())
-            }, indent=4), 400
-
-        except MementoConnectionError as e:
-            requests_cache.get_cache().delete_url(urim)
-            application_logger.exception("There was a problem connecting to the "
-                "submitted URI: {}".format(e.user_facing_error))
-            return json.dumps({
-                "content": e.user_facing_error,
-                "error details": repr(traceback.format_exc())
-            }, indent=4), 502
-
-        except (TextProcessingError, MementoContentError) as e:
-            requests_cache.get_cache().delete_url(urim)
-            application_logger.exception("There was a problem processing the content of the submitted URI")
-            return json.dumps({
-                "content": e.user_facing_error,
-                "error details": repr(traceback.format_exc())
-            }, indent=4), 500
-
-        except RedisError as e:
-            requests_cache.get_cache().delete_url(urim)
-            application_logger.exception("A Redis problem has occured")
-            return json.dumps({
-                "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
-                "error details": repr(traceback.format_exc())
-            }, indent=4), 500
-
-        except Exception:
-            requests_cache.get_cache().delete_url(urim)
-            application_logger.exception("An unforeseen error has occurred")
-            return json.dumps({
-                "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
-                "error details": repr(traceback.format_exc())
-            }, indent=4), 500
-
 
         return response
 

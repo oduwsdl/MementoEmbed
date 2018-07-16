@@ -1,0 +1,356 @@
+{% include "pagetop.html" %}
+
+{% include "navbar_menu.html" %}
+
+<!-- Begin page content -->
+<main role="main" class="container">
+  <div class="row">
+    <h1 class="mt-5" id="workstatus">Create a {{ surrogate_type }}</h1>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+        <div id="urimform"></div>
+      <hr>
+    </div>
+  </div>
+  <hr>
+  <div class="row">
+    <div class="col-sm">
+        <div id="progressarea"></div>
+    </div>
+  </div>
+  <hr>
+  <div class="row">
+      <div class="col-sm">
+        <div id="embedWorkArea"></div>
+      </div>
+  </div>
+
+
+<!-- <div class="container"> -->
+{% include "footer.html" %}
+
+</main>
+
+<script>
+workarea = document.getElementById("embedWorkArea");
+formarea = document.getElementById("urimform");
+workstatus = document.getElementById("workstatus");
+progress = document.getElementById("progressarea");
+
+errorhandled = false;
+textdata = null;
+imagedata = null;
+archivedata = null;
+originaldata = null;
+
+urim = "{{ urim }}";
+console.log("urim: " + urim);
+
+workstatus.innerHTML = "";
+workstatus.innerHTML = "Generating {{ surrogate_type }}";
+formarea.innerHTML = "";
+formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
+setWorking();
+requestEmbed(urim);
+
+function create_bs_row(content) {
+    row = '<div class="row">' + content + '</div>';
+    return row;
+}
+
+function create_bs_column(content, width, id) {
+    col = '<div class="col-sm-' + width + '" id="' + id + '">' + content + '</div>';
+    return col;
+}
+
+function setWorking() {
+
+    progress.innerHTML = '';
+    progress.innerHTML += create_bs_row(
+        create_bs_column("Analyzing Memento Content", "6", "mc_label") +
+        create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "mc_status")
+        );
+
+    progress.innerHTML += create_bs_row(
+        create_bs_column("Acquiring Archive Information", "6", "ai_label") +
+        create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "ai_status")
+        );
+
+    progress.innerHTML += create_bs_row(
+        create_bs_column("Discovering Original Resource Information", "6", "or_label") +
+        create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "or_status")
+        );
+
+    progress.innerHTML += create_bs_row(
+        create_bs_column("Selecting Striking Image", "6", "si_label") +
+        create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "si_status")
+        );
+    
+}
+
+function setOutput(outputdata) {
+    workarea.style.backgroundColor = "#ffffff";
+    workarea.style.color = "#000000";
+    workarea.innerHTML = "";
+    workarea.innerHTML = outputdata;
+    workarea.style.padding = "5px";
+}
+
+function setError(outputdata) {
+    workstatus.innerHTML = "";
+    workstatus.innerHTML = "Failed to generate {{ surrogate_type }}";
+    workarea.style.backgroundColor = "#ffffff";
+    workarea.style.color = "#000000";
+    workarea.innerHTML = "";
+    workarea.innerHTML = outputdata + '<br><br>If you want to try again, <a href="/">click here</a>';
+    workarea.style.fontWeight = "bolder";
+    workarea.style.border = "thick solid #ff0000";
+    workarea.style.padding = "5px";
+    
+}
+
+function setGood(identifier) {
+    status_indicator = document.getElementById(identifier);
+    status_indicator.innerHTML = "";
+    status_indicator.innerHTML = "✅";
+    
+}
+
+function setBad(identifier) {
+    status_indicator = document.getElementById(identifier);
+    status_indicator.innerHTML = "";
+    status_indicator.innerHTML = "❌";
+}
+
+function fill_social_card_area(html) {
+
+    workstatus.innerHTML = "";
+    workstatus.innerHTML = "Social Card Generated";
+
+    formarea.innerHTML = "";
+    formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
+
+    social_card_area = "";
+    social_card_area += '<div class="row">';
+    social_card_area += '<div class="col-sm" id="sc_display">';
+    social_card_area += 'If you want to include this social card in your web page<br><br>';
+    social_card_area += html;
+    social_card_area += '</div>';
+    social_card_area += '<div class="col-sm">';
+    social_card_area += 'copy the code below and paste it into your page HTML.<br><br>'
+    social_card_area += '<textarea cols="50" rows="5" id="sc_code">';
+    social_card_area += html;
+
+    social_card_area += '&lt;script async src="';
+    if (window.location.port == "") {
+        social_card_area += "//" + window.location.hostname + "/static/js/mementoembed.js";
+    } else {
+        social_card_area += "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed.js";
+    }
+    social_card_area += '"&gt;&lt/script&gt;';
+
+    social_card_area += '</textarea>';
+    social_card_area += '</div>';
+    social_card_area += '</div>';
+    social_card_area += 'Does this not look right? <a href="https://github.com/oduwsdl/MementoEmbed/issues">Click here to report this URI-M with details of what didn\'t work</a>.'
+
+    setOutput(social_card_area);
+
+    var scriptnode = document.createElement("script");
+    scriptnode.setAttribute("async", "");
+
+    if (window.location.port == "") {
+        scriptnode.src = "//" + window.location.hostname + "/static/js/mementoembed.js";
+    } else {
+        scriptnode.src = "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed.js";
+    }
+
+    document.getElementById("sc_display").appendChild(scriptnode);
+
+
+
+}
+
+function generate_social_card_content() {
+
+    if (textdata == null || archivedata == null || originaldata == null || imagedata == null) {
+        console.log("not enough items set yet");
+        return;
+    } 
+
+    console.log("items are set, generating card");
+
+    urim = textdata['urim'];
+    title = textdata['title'];
+    snippet = textdata['snippet'];
+    creation_time = textdata['generation-time'];
+    memento_datetime = textdata['memento-datetime'];
+
+    urir = originaldata['original-uri'];
+    original_domain = originaldata['original-domain'];
+    original_favicon = originaldata['original-favicon'];
+    original_linkstatus = originaldata['original-linkstatus'];
+
+    archive_name = archivedata['archive-name'];
+    archive_uri = archivedata ['archive-uri'];
+    archive_collection_id = archivedata['archive-collection-id'];
+    archive_collection_name = archivedata['archive-collection-name'];
+    archive_collection_uri = archivedata['archive-collection-uri'];
+    archive_favicon = archivedata['archive-favicon'];
+
+    bestimage = imagedata['best-image-uri'];
+
+    social_card_content = `{{ social_card_template|safe }}`;
+
+    console.log("card content " + social_card_content);
+
+    social_card_content = social_card_content.replace("\{\{ urim \}\}", urim);
+    social_card_content = social_card_content.replace("\{\{ urim \}\}", urim); // yes, this must run twice
+    social_card_content = social_card_content.replace("\{\{ urir \}\}", urir);
+    social_card_content = social_card_content.replace("\{\{ me_title \}\}", title);
+    social_card_content = social_card_content.replace("\{\{ me_snippet \}\}", snippet);
+    social_card_content = social_card_content.replace("\{\{ surrogate_creation_time \}\}", creation_time);
+    social_card_content = social_card_content.replace("\{\{ image \}\}", bestimage);
+    social_card_content = social_card_content.replace("\{\{ archive_name \}\}", archive_name);
+    social_card_content = social_card_content.replace("\{\{ archive_favicon \}\}", archive_favicon);
+    social_card_content = social_card_content.replace("\{\{ archive_uri \}\}", archive_uri);
+    social_card_content = social_card_content.replace("\{\{ archive_collection_id \}\}", archive_collection_id);
+    social_card_content = social_card_content.replace("\{\{ archive_collection_name \}\}", archive_collection_name);
+    social_card_content = social_card_content.replace("\{\{ archive_collection_uri \}\}", archive_collection_uri);
+    social_card_content = social_card_content.replace("\{\{ original_favicon \}\}", original_favicon);
+    social_card_content = social_card_content.replace("\{\{ original_domain \}\}", original_domain);
+    social_card_content = social_card_content.replace("\{\{ original_link_status \}\}", original_linkstatus);
+    social_card_content = social_card_content.replace("\{\{ original_link_status \}\}", original_linkstatus);
+    social_card_content = social_card_content.replace("\{\{ memento_datetime \}\}", memento_datetime);
+    social_card_content = social_card_content.replace("\{\{ server_domain \}\}", "//" + window.location.hostname);
+
+    console.log("card content " + social_card_content);
+
+    fill_social_card_area(social_card_content);
+}
+
+function handle_error(data) {
+
+    if (errorhandled == true) {
+        return; // do nothing, someone else got it
+    }
+
+    if (data.status == 0) {
+        message = 'An Unexpected Error Occurred in the MementoEmbed Page';
+        error = true;
+    } else {
+
+        if (data.responseText === undefined) {
+            message = "MementoEmbed failed to generate an error message"
+            error = true;
+        } else {
+            responseJSON = jQuery.parseJSON(data.responseText);
+            message = responseJSON['content'];
+            console.log("response JSON: " + responseJSON);
+        }
+
+    }
+
+    setError(message);
+    errorhandled = true;
+}
+
+function requestEmbed(uri) {
+
+    // 1. textdata endpoint
+    textdata_svc = "{{ textdata_endpoint }}" + urim;
+    $.ajax({
+        type: "GET",
+        url: textdata_svc,
+        success: function(json) {
+            setGood("mc_status");
+            textdata = json;
+            console.log("textdata:" + textdata);
+            generate_social_card_content();
+        },
+        error: function(data, textStatus, errorThrown) {
+            setBad("mc_status");
+            handle_error(data);
+        }
+    });
+    // 2. archivedata endpoint
+    archivedata_svc = "{{ archivedata_endpoint }}" + urim;
+    $.ajax({
+        type: "GET",
+        url: archivedata_svc,
+        success: function(json) {
+            setGood("ai_status");
+            archivedata = json;
+            console.log("archivedata: " + archivedata);
+            generate_social_card_content();
+        },
+        error: function(data, textStatus, errorThrown) {
+            setBad("ai_status");
+            handle_error(data);
+        }
+    });
+    // 3. originalresourcedata endpoint
+    originaldata_svc = "{{ originalresourcedata_endpoint }}" + urim;
+    $.ajax({
+        type: "GET",
+        url: originaldata_svc,
+        success: function(json) {
+            setGood("or_status");
+            originaldata = json;
+            console.log("originadata" + originaldata);
+            generate_social_card_content();
+        },
+        error: function(data, textStatus, errorThrown) {
+            setBad("or_status");
+            handle_error(data);
+        }
+    });
+    // 4. bestimage endpoint
+    bestimage_svc = "{{ bestimage_endpoint }}" + urim;
+    $.ajax({
+        type: "GET",
+        url: bestimage_svc,
+        success: function(json) {
+            setGood("si_status");
+            imagedata = json;
+            console.log("imagedata: " + imagedata);
+            generate_social_card_content();
+        },
+        error: function(data, textStatus, errorThrown) {
+            setBad("si_status");
+            handle_error(data);
+        }
+    });
+    // if all are done, then call generate_social_card
+}
+
+// handlers for all input begin here
+$(function() {
+    $("form").submit(function() { return false; });
+});
+
+$( "#clearURL" ).bind( "click" , function() {
+    $('#uri_submitted').val("");
+    workarea.innerHTML = "";
+});
+
+$('#uri_submitted').keyup(function(e){
+    if(e.keyCode == 13) {
+        console.log("13 keyup");
+        // $(this).trigger("enterKey");
+        uri = document.getElementById('uri_submitted').value;
+        setWorking();
+        requestEmbed(uri);
+    }
+});
+
+$( "#createSocialCard" ).bind( "click" , function() {
+    uri = document.getElementById('uri_submitted').value;
+    setWorking();
+    requestEmbed(uri);
+});
+
+</script>
+
+{% include "pagebottom.html" %}
