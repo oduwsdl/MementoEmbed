@@ -86,6 +86,10 @@ def thumbnail_endpoint(subpath):
                 thumbfile = "{}/{}.png".format(current_app.config['THUMBNAIL_WORKING_FOLDER'], m.hexdigest())
 
                 os.environ['THUMBNAIL_OUTPUTFILE'] = thumbfile
+                os.environ['USER_AGENT'] = __useragent__
+
+                os.environ['VIEWPORT_WIDTH'] = current_app.config['THUMBNAIL_VIEWPORT_WIDTH']
+                os.environ['VIEWPORT_HEIGHT'] = current_app.config['THUMBNAIL_VIEWPORT_HEIGHT']
 
                 p = subprocess.Popen(["node", current_app.config['THUMBNAIL_SCRIPT_PATH']])
 
