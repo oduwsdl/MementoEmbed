@@ -32,7 +32,7 @@
   
     <form>
       <input type="text" id="uri_submitted" class="form-control form-control-lg" size="100" placeholder="Type URI-M here">
-      <!-- <br>
+      <br>
       Select the type of Embed to Create:<br><br>
       <div class="row">
         <div class="col-md-6">
@@ -40,25 +40,14 @@
           <label for="social_card">Social Card</label>
         </div>
         <div class="col-md-6">
-          <input type="radio" id="social_card_wo_image" name="surrogate_type" />
-          <label for="social_card_wo_image">Social Card without Image</label>
-        </div>
-      </div> -->
-      
-      <!-- <div class="row">
-        <div class="col-md-6">
           <input type="radio" id="thumbnail" name="surrogate_type" />
           <label for="thumbnail">Thumbnail</label>
         </div>
-        <div class="col-md-6">
-          <input type="radio" id="social_card_with_thumbnail" name="surrogate_type" />
-          <label for="social_card_with_thumbnail">Social Card with Thumbnail</label>
-        </div>
-      </div> -->
+      </div>
 
       <br>
       <br>
-      <button id="createSocialCard" type="button" class="btn btn-primary">Create an Embed for this URI-M</button>
+      <button id="createEmbed" type="button" class="btn btn-primary">Create an Embed for this URI-M</button>
       <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
     </form>
   </div>
@@ -71,7 +60,12 @@
 
   function requestEmbed(uri) {
 
-    window.location.href = "/ui/product/socialcard/" + uri.trim();
+    if (document.getElementById('social_card').checked) {
+      window.location.href = "/ui/product/socialcard/" + uri.trim();
+    } else if (document.getElementById('thumbnail').checked) {
+      window.location.href = "/ui/product/thumbnail/" + uri.trim();
+    }
+
   }
 
   // handlers for all input begin here
@@ -92,7 +86,7 @@
       }
   });
 
-  $( "#createSocialCard" ).bind( "click" , function() {
+  $( "#createEmbed" ).bind( "click" , function() {
       uri = document.getElementById('uri_submitted').value;
       // setWorking();
       requestEmbed(uri);
