@@ -91,10 +91,12 @@ def thumbnail_endpoint(subpath):
                 os.environ['VIEWPORT_WIDTH'] = current_app.config['THUMBNAIL_VIEWPORT_WIDTH']
                 os.environ['VIEWPORT_HEIGHT'] = current_app.config['THUMBNAIL_VIEWPORT_HEIGHT']
 
+                timeout = int(current_app.config['THUMBNAIL_TIMEOUT'])
+
                 p = subprocess.Popen(["node", current_app.config['THUMBNAIL_SCRIPT_PATH']])
 
                 try:
-                    p.wait(timeout=30)
+                    p.wait(timeout=timeout)
 
                     with open(thumbfile, 'rb') as f:
                         data = f.read()
@@ -104,11 +106,12 @@ def thumbnail_endpoint(subpath):
 
                     return response, 200
 
-                except TimeoutError:
-                    module_logger.exception("Thumbnail script failed to return after 30 seconds")
+                except subprocess.TimeoutExpired:
+
+                    module_logger.exception("Thumbnail script failed to return after {} seconds".format(timeout))
                     
                     output = {
-                        "error": "a thumbnail failed to generated in 30 seconds",
+                        "error": "a thumbnail failed to generated in {} seconds".format(timeout),
                         "error details": repr(traceback.format_exc())
                     }
                     return json.dumps(output), 500
