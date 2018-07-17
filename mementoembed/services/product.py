@@ -74,16 +74,22 @@ def thumbnail_endpoint(subpath):
     try:
 
         # TODO: test that subpath is actually a memento
+        module_logger.info("ummm...")
 
         if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
+            urim = subpath
+
+            module_logger.info("Beginning thumbnail generation")
 
             if os.path.isdir(current_app.config['THUMBNAIL_WORKING_FOLDER']):
-                urim = subpath
+                
                 os.environ['URIM'] = urim
                 m = hashlib.sha256()
                 m.update(urim.encode('utf8'))
                 thumbfile = m.hexdigest()
                 thumbfile = "{}/{}.png".format(current_app.config['THUMBNAIL_WORKING_FOLDER'], m.hexdigest())
+
+                module_logger.debug("Thumbnail will be stored in {}".format(thumbfile))
 
                 os.environ['THUMBNAIL_OUTPUTFILE'] = thumbfile
                 os.environ['USER_AGENT'] = __useragent__
@@ -93,13 +99,19 @@ def thumbnail_endpoint(subpath):
 
                 timeout = int(current_app.config['THUMBNAIL_TIMEOUT'])
 
-                p = subprocess.Popen(["node", current_app.config['THUMBNAIL_SCRIPT_PATH']])
+                module_logger.debug("Starting thumbnail generation script")
 
                 try:
-                    p.wait(timeout=timeout)
+
+                    # the beginning of some measure of caching
+                    if not os.path.exists(thumbfile):
+                        p = subprocess.Popen(["node", current_app.config['THUMBNAIL_SCRIPT_PATH']])
+                        p.wait(timeout=timeout)
 
                     with open(thumbfile, 'rb') as f:
                         data = f.read()
+
+                    module_logger.info("Thumbnail generation successful, returning image")
 
                     response = make_response(data)
                     response.headers['Content-Type'] = 'image/png'

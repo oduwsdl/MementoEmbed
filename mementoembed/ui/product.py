@@ -50,5 +50,12 @@ def generate_social_card(subpath):
     ), 200
 
 @bp.route('/ui/product/thumbnail/<path:subpath>')
-def generate_thumbnail():
-    return "Not yet implemented", 500
+def generate_thumbnail(subpath):
+
+    return render_template('generate_thumbnail.html', 
+        urim = subpath,
+        pagetitle="MementoEmbed - Generate a Thumbnail",
+        surrogate_type="Thumbnail",
+        thumbnail_endpoint="/services/product/thumbnail/",
+        appversion = __appversion__
+    ), 200

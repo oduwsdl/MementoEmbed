@@ -1,0 +1,176 @@
+{% include "pagetop.html" %}
+
+{% include "navbar_menu.html" %}
+
+<!-- Begin page content -->
+<main role="main" class="container">
+    <div class="row">
+      <h1 class="mt-5" id="workstatus">Create a {{ surrogate_type }}</h1>
+    </div>
+    <div class="row">
+      <div class="col-sm">
+          <div id="urimform"></div>
+        <hr>
+      </div>
+    </div>
+    <!-- <hr> -->
+    <div class="row">
+      <div class="col-sm">
+          <div id="progressarea"></div>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-sm">
+          <div id="embedWorkArea"></div>
+        </div>
+    </div>
+
+{% include "footer.html" %}
+
+</main>
+
+<script>
+    workarea = document.getElementById("embedWorkArea");
+    formarea = document.getElementById("urimform");
+    workstatus = document.getElementById("workstatus");
+    progress = document.getElementById("progressarea");
+    
+    errorhandled = false;
+
+    urim = "{{ urim }}";
+    console.log("urim: " + urim);
+
+    workstatus.innerHTML = "";
+    workstatus.innerHTML = "Generating {{ surrogate_type }}";
+    formarea.innerHTML = "";
+    formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
+    setWorking();
+    requestThumbnail(urim);
+
+    function setWorking() {
+        progress.innerHTML = '';
+        progress.innerHTML += '<img src="/static/images/activity.gif">';
+    }
+
+    function setOutput(outputdata) {
+        workarea.style.backgroundColor = "#ffffff";
+        workarea.style.color = "#000000";
+        workarea.innerHTML = "";
+        workarea.innerHTML = outputdata;
+        workarea.style.padding = "5px";
+    }
+
+    function setError(outputdata) {
+        workstatus.innerHTML = "";
+        workstatus.innerHTML = "Failed to generate {{ surrogate_type }}";
+        workarea.style.backgroundColor = "#ffffff";
+        workarea.style.color = "#000000";
+        workarea.innerHTML = "";
+        workarea.innerHTML = outputdata + '<br><br>If you want to try again, <a href="/">click here</a>';
+        workarea.style.fontWeight = "bolder";
+        workarea.style.border = "thick solid #ff0000";
+        workarea.style.padding = "5px";
+        
+    }
+
+    function handle_error(data) {
+
+        if (errorhandled == true) {
+            return; // do nothing, someone else got it
+        }
+
+        if (data.status == 0) {
+            message = 'An Unexpected Error Occurred in the MementoEmbed Page';
+            error = true;
+        } else {
+
+            if (data.responseText === undefined) {
+                message = "MementoEmbed failed to generate an error message"
+                error = true;
+            } else {
+                responseJSON = jQuery.parseJSON(data.responseText);
+                message = responseJSON['content'];
+                console.log("response JSON: " + responseJSON);
+            }
+
+        }
+
+        setError(message);
+        errorhandled = true;
+    }
+
+    function _arrayBufferToBase64(buffer) {
+        var binary = '';
+        var bytes = new Uint8Array(buffer);
+        var len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    };
+
+    function requestThumbnail(uri) {
+        thumbnail_svc = "{{ thumbnail_endpoint }}" + urim;
+        thumbnail_svc = window.location.protocol + '//' + window.location.host + thumbnail_svc
+
+        console.log("creating XHR object");
+
+        var xhr = new XMLHttpRequest();
+        console.log("XHR object created, issuing request to " + thumbnail_svc);
+        xhr.open('GET', thumbnail_svc, true);
+        xhr.responseType = 'arraybuffer';
+
+        console.log("done setting up AJAX request");
+
+        xhr.onload = function(e) {
+            console.log("xhr.onload called...");
+            if (xhr.readyState === 4) {
+                if (this.status === 200) {
+                    console.log("we got a 200 back!");
+                    progress.innerHTML = "Thumbnail Generation Complete";
+                    // workarea.innerHTML = "GOOD!!!";
+                    imagehtml = '<img src="data:image/png;base64,' + 
+                        _arrayBufferToBase64(this.response) + '">'
+
+                    workarea.innerHTML = '';
+                    workarea.innerHTML += '<div class="row">';
+                    workarea.innerHTML += '<div class="col-md-6">';
+                    workarea.innerHTML += '<p>If you want to include this thumbnail in your web page</p>:'
+                    workarea.innerHTML += imagehtml;
+                    workarea.innerHTML += '</div>';
+                    workarea.innerHTML += '<div class="col-md-6">';
+                    workarea.innerHTML += '<div class="row">';
+                    workarea.innerHTML += '<p>then copy and paste the following code into your page HTML:</p>';
+                    workarea.innerHTML += '<textarea>' + imagehtml + '</textarea>';
+                    workarea.innerHTML += '</div>';
+                    workarea.innerHTML += '</div>';
+                    
+                } else {
+                    console.log("things not so rosy, no 200 back");
+                    handle_error(this.response);
+                }
+            }
+        }
+
+        xhr.send(null);
+
+        // $.ajax({
+        //     type: "GET",
+        //     url: thumbnail_svc,
+        //     success: function(data) {
+        //         // var dataUri = "data:image/png;base64," + btoa(data);
+        //         progress.innerHTML = "Thumbnail Generation Complete";
+        //         workarea.innerHTML = "GOOD!!!";
+        //         var dataUri = "data:image/png;base64," + btoa(data);
+        //         // workarea.innerHTML += '<img src="' + dataUri + '>';
+        //     },
+        //     error: function(data, textStatus, errorThrown) {
+        //         handle_error(data);
+        //     }
+        // })
+    }
+
+</script>
+
+{% include "pagebottom.html" %}
