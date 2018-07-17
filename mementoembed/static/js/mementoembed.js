@@ -28,7 +28,7 @@ function generate_cards() {
             
             meImageHTML = '';
 
-            if (image != null) {
+            if ( (image != null) && (image != "null" ) ) {
                 meImageHTML += '<div class="me-image"><img style="max-width: 96px; max-height: 96px;" src="'+ image + '" /></div>';
             }            
 
@@ -49,7 +49,7 @@ function generate_cards() {
                     console.log("archive name is " + archiveName);
                     belowtitleHTML += 'Preserved by <a class="me-archive-link" href="' + archiveURI + '">' + archiveName + '</a>';
 
-                    if ((collectionName != null) && (collectionURI != null)) {
+                    if ((collectionName != null) && (collectionURI != null) && (collectionName != "null" && (collectionURI != "null"))) {
                         console.log("collection URI is " + collectionURI);
                         console.log("collection name is " + collectionName);
                         belowtitleHTML += '<br />Member of the Collection <a class="me-archive-link" style="text-decoration:none" href="' +
