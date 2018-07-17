@@ -35,8 +35,6 @@
     formarea = document.getElementById("urimform");
     workstatus = document.getElementById("workstatus");
     progress = document.getElementById("progressarea");
-    
-    errorhandled = false;
 
     urim = "{{ urim }}";
     console.log("urim: " + urim);
@@ -51,6 +49,10 @@
     function setWorking() {
         progress.innerHTML = '';
         progress.innerHTML += '<img src="/static/images/activity.gif">';
+    }
+
+    function unsetWorking() {
+        progress.innerHTML = '';
     }
 
     function setOutput(outputdata) {
@@ -75,10 +77,6 @@
     }
 
     function handle_error(data) {
-
-        if (errorhandled == true) {
-            return; // do nothing, someone else got it
-        }
 
         if (data.status == 0) {
             message = 'An Unexpected Error Occurred in the MementoEmbed Page';
@@ -147,8 +145,20 @@
                     workarea.innerHTML += '</div>';
                     
                 } else {
+                    unsetWorking();
                     console.log("things not so rosy, no 200 back");
-                    handle_error(this.response);
+                    console.log("response: " + this.response);
+
+                    console.log("length: " + this.response.length);
+                    console.log("byte length: " + this.response.byteLength);
+                    console.log("first entry: " + this.response[0]);
+                    console.log("response type: " + this.responseType);
+                    // console.log("response text: " + this.responseText);
+
+                    message = "There was an error produced while generating a thumbnail for this URI.";
+
+                    // handle_error(this.response);
+                    setError(message);
                 }
             }
         }

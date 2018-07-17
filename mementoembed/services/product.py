@@ -126,7 +126,12 @@ def thumbnail_endpoint(subpath):
                         "error": "a thumbnail failed to generated in {} seconds".format(timeout),
                         "error details": repr(traceback.format_exc())
                     }
-                    return json.dumps(output), 500
+
+                    response = make_response(json.dumps(output))
+                    # response.headers['Content-Type'] = 'application/json'
+                    response.headers['Content-Type'] = 'text/plain'
+
+                    return response, 500
 
             else:
                 msg = "Thumbnail folder {} does not exist".format(current_app.config['THUMBNAIL_WORKING_FOLDER'])
