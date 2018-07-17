@@ -53,7 +53,9 @@ def handle_errors(function_name, urim):
         return response, 504
 
     except MementoInvalidURI as e:
-        attempt_cache_deletion(urim)
+        # no need to delete from cache, requests will throw an exception again
+        # because the URI is invalid
+        # attempt_cache_deletion(urim)
         module_logger.exception("The submitted URI is not valid")
         response = make_response(
             json.dumps({
