@@ -29,7 +29,8 @@ class URIMFilter(logging.Filter):
         record.urim = "No requested URI"
 
         try:
-            record.urim = request.args.get("url")
+            record.urim = request.path
+
         except RuntimeError:
             # just use the defalt message if the flask request object isn't set
             pass
