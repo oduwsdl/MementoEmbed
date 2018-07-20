@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/oduwsdl/MementoEmbed.svg?branch=master)](https://travis-ci.org/oduwsdl/MementoEmbed)
-[![Doc Status](https://readthedocs.org/projects/mementoembed/badge/?version=latest&style=plastic)](https://mementoembed.readthedocs.io/en/latest/)
+[![Doc Status](https://readthedocs.org/projects/mementoembed/badge/?version=latest&style=flat)](https://mementoembed.readthedocs.io/en/latest/)
 
 # MementoEmbed
 
