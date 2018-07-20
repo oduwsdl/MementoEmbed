@@ -1,0 +1,18 @@
+{% include "pagetop.html" %}
+
+{% include "navbar_menu.html" %}
+
+<main role="main" class="container">
+
+    <div class="row">
+        <h1 class="mt-5">An Error Has Occurred</h1>
+    </div>
+    
+    <div class="row">
+        {{ app_error }}
+    </div>
+
+    {% include "footer.html" %}
+</main>
+
+{% include "pagebottom.html" %}

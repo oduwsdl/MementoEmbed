@@ -252,4 +252,9 @@ def create_app():
 
         return response
 
+    @app.errorhandler(404)
+    @app.errorhandler(500)
+    def handle_404(error):
+        return render_template("generic_error.html", app_error=error.description), error.code
+
     return app
