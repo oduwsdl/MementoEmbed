@@ -11,7 +11,9 @@ from flask import render_template, request, Blueprint, current_app, make_respons
 
 from mementoembed.mementosurrogate import MementoSurrogate
 from mementoembed.mementothumbnail import MementoThumbnail, \
-    MementoThumbnailGenerationError, MementoThumbnailFolderNotFound
+    MementoThumbnailGenerationError, MementoThumbnailFolderNotFound, \
+    MementoThumbnailSizeInvalid, MementoThumbnailViewportInvalid, \
+    MementoThumbnailTimeoutInvalid
 from mementoembed.cachesession import CacheSession
 from mementoembed.version import __useragent__
 
@@ -79,83 +81,125 @@ def thumbnail_endpoint(subpath):
     prefs['viewport_width'] = int(current_app.config['THUMBNAIL_VIEWPORT_WIDTH'])
     prefs['timeout'] = int(current_app.config['THUMBNAIL_TIMEOUT'])
     prefs['thumbnail_height'] = int(current_app.config['THUMBNAIL_HEIGHT'])
-    prefs['thumgnail_width'] = int(current_app.config['THUMBNAIL_WIDTH'])
+    prefs['thumbnail_width'] = int(current_app.config['THUMBNAIL_WIDTH'])
 
-    try:
+    module_logger.debug("current app config: {}".format(current_app.config))
 
-        # TODO: test that subpath is actually a memento
-        module_logger.info("Note: This service does not currently check that the resource is a memento")
+    # TODO: test that subpath is actually a memento
+    module_logger.info("Note: This service does not currently check that the resource is a memento")
 
-        if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
-            urim = subpath
+    if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
+        urim = subpath
 
-            if 'Prefer' in request.headers:
+        if 'Prefer' in request.headers:
 
-                preferences = request.headers['Prefer'].split(',')
+            preferences = request.headers['Prefer'].split(',')
 
-                for pref in preferences:
-                    key, value = pref.split('=')
-                    prefs[key] = int(value)
+            for pref in preferences:
+                key, value = pref.split('=')
+                prefs[key] = int(value)
 
-                module_logger.debug("The user hath preferences! ")
+            module_logger.debug("The user hath preferences! ")
 
-            mt = MementoThumbnail(
-                __useragent__,
-                current_app.config['THUMBNAIL_WORKING_FOLDER'],
-                current_app.config['THUMBNAIL_SCRIPT_PATH']
-            )
+        mt = MementoThumbnail(
+            __useragent__,
+            current_app.config['THUMBNAIL_WORKING_FOLDER'],
+            current_app.config['THUMBNAIL_SCRIPT_PATH']
+        )
 
-            try:
+        try:
 
-                mt.viewport_height = prefs['viewport_height']
-                mt.viewport_width = prefs['viewport_width']
-                mt.timeout = prefs['timeout']
-                mt.height = prefs['thumbnail_height']
-                mt.width = prefs['thumbnail_width']
+            mt.viewport_height = prefs['viewport_height']
+            mt.viewport_width = prefs['viewport_width']
+            mt.timeout = prefs['timeout']
+            mt.height = prefs['thumbnail_height']
+            mt.width = prefs['thumbnail_width']
 
-                data = mt.generate_thumbnail(urim)
+            data = mt.generate_thumbnail(urim)
 
-                response = make_response(data)
-                response.headers['Content-Type'] = 'image/png'
-                response.headers['Preference-Applied'] = \
-                    "viewport_width={},viewport_height={}," \
-                    "thumbnail_width={},thumbnail_height={}".format(
-                        mt.viewport_width, mt.viewport_height,
-                        mt.width, mt.height)
+            response = make_response(data)
+            response.headers['Content-Type'] = 'image/png'
+            response.headers['Preference-Applied'] = \
+                "viewport_width={},viewport_height={}," \
+                "thumbnail_width={},thumbnail_height={}".format(
+                    mt.viewport_width, mt.viewport_height,
+                    mt.width, mt.height)
 
-                module_logger.info("Finished with thumbnail generation")
+            module_logger.info("Finished with thumbnail generation")
 
-                return response, 200
+            return response, 200
 
-            except MementoThumbnailFolderNotFound:
+        except MementoThumbnailFolderNotFound:
 
-                msg = "Thumbnail folder {} does not exist".format(current_app.config['THUMBNAIL_WORKING_FOLDER'])
-                module_logger.exception(msg)
-                    
-                output = {
-                    "error": msg,
-                    "error details": repr(traceback.format_exc())
-                }
+            msg = "Thumbnail folder {} does not exist".format(current_app.config['THUMBNAIL_WORKING_FOLDER'])
+            module_logger.exception(msg)
+                
+            output = {
+                "error": msg,
+                "error details": repr(traceback.format_exc())
+            }
 
-                response = make_response(json.dumps(output))
-                response.headers['Content-Type'] = 'application/json'
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
 
-                return response, 500
+            return response, 500
 
-            except MementoThumbnailGenerationError:
+        except MementoThumbnailSizeInvalid:
 
-                output = {
-                    "error": "a thumbnail failed to generated in {} seconds".format(mt.timeout),
-                    "error details": repr(traceback.format_exc())
-                }
+            msg = "Requested Memento thumbnail size is invalid"
+            module_logger.exception(msg)
+                
+            output = {
+                "error": msg,
+                "error details": repr(traceback.format_exc())
+            }
 
-                response = make_response(json.dumps(output))
-                response.headers['Content-Type'] = 'application/json'
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
 
-                return response, 500
-            
-        else:
-            return "The thumbnail service has been disabled by the system administrator", 200
+            return response, 500
 
-    except KeyError:
-            return "The thumbnail service is disabled by default", 200
+        except MementoThumbnailViewportInvalid:
+
+            msg = "Requested Memento thumgnail viewport size is invalid"
+            module_logger.exception(msg)
+                
+            output = {
+                "error": msg,
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+
+        except MementoThumbnailTimeoutInvalid:
+
+            msg = "Requested Memento thumbnail timeout is invalid"
+            module_logger.exception(msg)
+                
+            output = {
+                "error": msg,
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+
+        except MementoThumbnailGenerationError:
+
+            output = {
+                "error": "a thumbnail failed to generated in {} seconds".format(mt.timeout),
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+        
+    else:
+        return "The thumbnail service has been disabled by the system administrator", 200
