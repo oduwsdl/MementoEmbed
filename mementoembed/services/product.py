@@ -1,7 +1,6 @@
 import os
 import logging
 import json
-import subprocess
 import traceback
 import hashlib
 
@@ -11,12 +10,14 @@ import requests_cache
 from flask import render_template, request, Blueprint, current_app, make_response
 
 from mementoembed.mementosurrogate import MementoSurrogate
+from mementoembed.mementothumbnail import MementoThumbnail, \
+    MementoThumbnailGenerationError, MementoThumbnailFolderNotFound
 from mementoembed.cachesession import CacheSession
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
 
-module_logger = logging.getLogger('mementoembed.services.socialcard')
+module_logger = logging.getLogger('mementoembed.services.product')
 
 bp = Blueprint('services.product', __name__)
 
@@ -81,59 +82,35 @@ def thumbnail_endpoint(subpath):
 
             module_logger.info("Beginning thumbnail generation")
 
-            if os.path.isdir(current_app.config['THUMBNAIL_WORKING_FOLDER']):
-                
-                os.environ['URIM'] = urim
-                m = hashlib.sha256()
-                m.update(urim.encode('utf8'))
-                thumbfile = m.hexdigest()
-                thumbfile = "{}/{}.png".format(current_app.config['THUMBNAIL_WORKING_FOLDER'], m.hexdigest())
+            mt = MementoThumbnail(
+                __useragent__,
+                current_app.config['THUMBNAIL_WORKING_FOLDER'],
+                current_app.config['THUMBNAIL_SCRIPT_PATH']
+            )
 
-                module_logger.debug("Thumbnail will be stored in {}".format(thumbfile))
+            try:
 
-                os.environ['THUMBNAIL_OUTPUTFILE'] = thumbfile
-                os.environ['USER_AGENT'] = __useragent__
+                mt.viewport_height = int(current_app.config['THUMBNAIL_VIEWPORT_HEIGHT'])
+                mt.viewport_width = int(current_app.config['THUMBNAIL_VIEWPORT_WIDTH'])
+                mt.timeout = int(current_app.config['THUMBNAIL_TIMEOUT'])
 
-                os.environ['VIEWPORT_WIDTH'] = current_app.config['THUMBNAIL_VIEWPORT_WIDTH']
-                os.environ['VIEWPORT_HEIGHT'] = current_app.config['THUMBNAIL_VIEWPORT_HEIGHT']
+                data = mt.generate_thumbnail(urim)
 
-                timeout = int(current_app.config['THUMBNAIL_TIMEOUT'])
+                response = make_response(data)
+                response.headers['Content-Type'] = 'image/png'
+                response.headers['Preference-Applied'] = \
+                    "viewport_width={},viewport_height={}".format(
+                        mt.viewport_width, mt.viewport_height)
+                    # "thumbnail_width={},thumbnail_height={}".format(
+                    #     mt.viewport_width, mt.viewport_height,
+                    #     mt.width, mt.height)
 
-                module_logger.debug("Starting thumbnail generation script")
+                module_logger.info("Finished with thumbnail generation")
 
-                try:
+                return response, 200
 
-                    # the beginning of some measure of caching
-                    if not os.path.exists(thumbfile):
-                        p = subprocess.Popen(["node", current_app.config['THUMBNAIL_SCRIPT_PATH']])
-                        p.wait(timeout=timeout)
+            except MementoThumbnailFolderNotFound:
 
-                    with open(thumbfile, 'rb') as f:
-                        data = f.read()
-
-                    module_logger.info("Thumbnail generation successful, returning image")
-
-                    response = make_response(data)
-                    response.headers['Content-Type'] = 'image/png'
-
-                    return response, 200
-
-                except subprocess.TimeoutExpired:
-
-                    module_logger.exception("Thumbnail script failed to return after {} seconds".format(timeout))
-                    
-                    output = {
-                        "error": "a thumbnail failed to generated in {} seconds".format(timeout),
-                        "error details": repr(traceback.format_exc())
-                    }
-
-                    response = make_response(json.dumps(output))
-                    # response.headers['Content-Type'] = 'application/json'
-                    response.headers['Content-Type'] = 'text/plain'
-
-                    return response, 500
-
-            else:
                 msg = "Thumbnail folder {} does not exist".format(current_app.config['THUMBNAIL_WORKING_FOLDER'])
                 module_logger.exception(msg)
                     
@@ -141,7 +118,23 @@ def thumbnail_endpoint(subpath):
                     "error": msg,
                     "error details": repr(traceback.format_exc())
                 }
-                return json.dumps(output), 500
+
+                response = make_response(json.dumps(output))
+                response.headers['Content-Type'] = 'application/json'
+
+                return response, 500
+
+            except MementoThumbnailGenerationError:
+
+                output = {
+                    "error": "a thumbnail failed to generated in {} seconds".format(mt.timeout),
+                    "error details": repr(traceback.format_exc())
+                }
+
+                response = make_response(json.dumps(output))
+                response.headers['Content-Type'] = 'application/json'
+
+                return response, 500
             
         else:
             return "The thumbnail service has been disabled by the system administrator", 200
