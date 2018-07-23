@@ -72,15 +72,32 @@ def socialcard_endpoint(subpath):
 @bp.route('/services/product/thumbnail/<path:subpath>')
 def thumbnail_endpoint(subpath):
 
+    module_logger.info("Beginning thumbnail generation")
+
+    prefs = {}
+    prefs['viewport_height'] = int(current_app.config['THUMBNAIL_VIEWPORT_HEIGHT'])
+    prefs['viewport_width'] = int(current_app.config['THUMBNAIL_VIEWPORT_WIDTH'])
+    prefs['timeout'] = int(current_app.config['THUMBNAIL_TIMEOUT'])
+    prefs['thumbnail_height'] = int(current_app.config['THUMBNAIL_HEIGHT'])
+    prefs['thumgnail_width'] = int(current_app.config['THUMBNAIL_WIDTH'])
+
     try:
 
         # TODO: test that subpath is actually a memento
-        module_logger.info("ummm...")
+        module_logger.info("Note: This service does not currently check that the resource is a memento")
 
         if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
             urim = subpath
 
-            module_logger.info("Beginning thumbnail generation")
+            if 'Prefer' in request.headers:
+
+                preferences = request.headers['Prefer'].split(',')
+
+                for pref in preferences:
+                    key, value = pref.split('=')
+                    prefs[key] = int(value)
+
+                module_logger.debug("The user hath preferences! ")
 
             mt = MementoThumbnail(
                 __useragent__,
@@ -90,16 +107,18 @@ def thumbnail_endpoint(subpath):
 
             try:
 
-                mt.viewport_height = int(current_app.config['THUMBNAIL_VIEWPORT_HEIGHT'])
-                mt.viewport_width = int(current_app.config['THUMBNAIL_VIEWPORT_WIDTH'])
-                mt.timeout = int(current_app.config['THUMBNAIL_TIMEOUT'])
+                mt.viewport_height = prefs['viewport_height']
+                mt.viewport_width = prefs['viewport_width']
+                mt.timeout = prefs['timeout']
+                mt.height = prefs['thumbnail_height']
+                mt.width = prefs['thumbnail_width']
 
                 data = mt.generate_thumbnail(urim)
 
                 response = make_response(data)
                 response.headers['Content-Type'] = 'image/png'
                 response.headers['Preference-Applied'] = \
-                    "viewport_width={},viewport_height={}" \
+                    "viewport_width={},viewport_height={}," \
                     "thumbnail_width={},thumbnail_height={}".format(
                         mt.viewport_width, mt.viewport_height,
                         mt.width, mt.height)

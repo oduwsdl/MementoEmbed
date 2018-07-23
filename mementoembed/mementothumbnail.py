@@ -47,14 +47,19 @@ class MementoThumbnail:
     def width(self, value):
 
         if value == "auto":
-            self._width = "auto"
-        elif type(value) != int:
-            raise MementoThumbnailSizeInvalid("Attempting to set a non-integer width for thumbnail")
-        elif value < 0:
-            raise MementoThumbnailSizeInvalid("Attempting to set a width of 0 or less for thumbnail")
+            self._thumbnail_width = "auto"
         else:
-            self._thumbnail_width = value
-    
+            try:
+                self._thumbnail_width = int(value)
+
+            except ValueError:
+                raise MementoThumbnailSizeInvalid("Attempting to set a non-integer width for thumbnail")
+
+        if self._thumbnail_width < 0:
+            raise MementoThumbnailSizeInvalid("Attempting to set a width of 0 or less for thumbnail")
+        elif self._thumbnail_width > 5120:
+            raise MementoThumbnailSizeInvalid("Attempting to set a height of greater than 2880 for thumbnail")
+
     @property
     def height(self):
         return self._thumbnail_height
@@ -64,12 +69,17 @@ class MementoThumbnail:
 
         if value == "auto":
             self._thumbnail_height = "auto"
-        elif type(value) != int:
-            raise MementoThumbnailSizeInvalid("Attempting to set a non-integer height for thumbnail")
-        elif value <= 0:
-            raise MementoThumbnailSizeInvalid("Attempting to set a height of 0 or less for thumbnail")
         else:
-            self._thumbnail_height = value
+            try:
+                self._thumbnail_height = int(value)
+
+            except ValueError:
+                raise MementoThumbnailSizeInvalid("Attempting to set a non-integer height for thumbnail")
+
+        if self._thumbnail_height < 0:
+            raise MementoThumbnailSizeInvalid("Attempting to set a height of 0 or less for thumbnail")
+        elif self._thumbnail_height > 2880:
+            raise MementoThumbnailSizeInvalid("Attempting to set a height of greater than 2880 for thumbnail")
 
     @property
     def viewport_width(self):
@@ -80,14 +90,17 @@ class MementoThumbnail:
 
         if value == "auto":
             self._viewport_width = "auto"
-        elif type(value) != int:
-            raise MementoThumbnailViewportInvalid("Attempting to set a non-integer viewport width for thumbnail")
-        elif value < 0:
-            raise MementoThumbnailViewportInvalid("Attempting to set a width of 0 or less for viewport")
-        elif value > 5120:
-            raise MementoThumbnailViewportInvalid("Attempting to set a width higher than 5120 for viewport")
         else:
-            self._viewport_width = value
+            try:
+                self._viewport_width = int(value)
+
+            except ValueError:
+                raise MementoThumbnailViewportInvalid("Attempting to set a non-integer viewport width for thumbnail")
+
+        if self._viewport_width < 0:
+            raise MementoThumbnailViewportInvalid("Attempting to set a width of 0 or less for viewport")
+        elif self._viewport_width > 5120:
+            raise MementoThumbnailViewportInvalid("Attempting to set a width higher than 5120 for viewport")
 
     @property
     def viewport_height(self):
@@ -98,14 +111,18 @@ class MementoThumbnail:
 
         if value == "auto":
             self._viewport_height = "auto"
-        elif type(value) != int:
-            raise MementoThumbnailViewportInvalid("Attempting to set a non-integer viewport width for thumbnail")
-        elif value < 0:
-            raise MementoThumbnailViewportInvalid("Attempting to set a height of 0 or less for viewport")
-        elif value > 2880:
-            raise MementoThumbnailViewportInvalid("Attempting to set a height higher than 2880 for viewport")
         else:
-            self._viewport_height = value
+            try:
+                self._viewport_height = int(value)
+
+            except ValueError:
+                raise MementoThumbnailViewportInvalid("Attempting to set a non-integer viewport width for thumbnail")
+
+        if self._viewport_height < 0:
+            raise MementoThumbnailViewportInvalid("Attempting to set a height of 0 or less for viewport")
+        elif self._viewport_height > 2880:
+            raise MementoThumbnailViewportInvalid("Attempting to set a height higher than 2880 for viewport")
+
 
     @property
     def timeout(self):
@@ -116,14 +133,17 @@ class MementoThumbnail:
 
         if value == "auto":
             self._timeout = 15
-        elif type(value) != int:
-            raise MementoThumbnailViewportInvalid("Attempting to set a non-integer timeout for thumbnail generation")
-        elif value < 0:
-            raise MementoThumbnailViewportInvalid("Attempting to set timeout of 0 or less for thumbnail generation")
-        elif value > 300:
-            raise MementoThumbnailViewportInvalid("Attempting to set a value higher than 5 minutes for thumbnail generation")
         else:
-            self._timeout = value
+            try:
+                self._timeout = int(value)
+
+            except ValueError:
+                raise MementoThumbnailTimeoutInvalid("Attempting to set a non-integer timeout for thumbnail generation")
+           
+        if self._timeout < 0:
+            raise MementoThumbnailTimeoutInvalid("Attempting to set timeout of 0 or less for thumbnail generation")
+        elif self._timeout > 300:
+            raise MementoThumbnailTimeoutInvalid("Attempting to set a value higher than 5 minutes for thumbnail generation")
 
     def generate_thumbnail(self, urim):
         
@@ -155,29 +175,35 @@ class MementoThumbnail:
             os.environ['VIEWPORT_HEIGHT'] = str(self.viewport_height)
 
             module_logger.debug("Starting thumbnail generation script with: "
-                "viewport_width={}, viewport_height={}, user_agent={},"
-                "thumbnail_outputfile={}".format(
+                "viewport_width={}, viewport_height={}, user_agent={}, "
+                "thumbnail_outputfile={}, thumbnail_width={}, thumbnail_height={}".format(
                     self.viewport_width, self.viewport_height, self.user_agent,
-                    thumbfile))
+                    thumbfile, self.width, self.height))
 
             try:
 
                 # the beginning of some measure of caching
-                if not os.path.exists(thumbfile):
-                    p = subprocess.Popen(["node", self.thumbnail_script])
-                    p.wait(timeout=self.timeout)
+                # if not os.path.exists(thumbfile):
+                p = subprocess.Popen(["node", self.thumbnail_script])
+                p.wait(timeout=self.timeout)
 
                 im = Image.open(thumbfile)
 
                 height = self.height
                 
-                if self.height == "auto":
+                if self.height == "auto" or self.height < self.width:
                     ratio = self.viewport_height / self.viewport_width
                     height = ratio * self.width
+                
+                # module_logger.debug("image width is {}".format(int(self.width)))
+                # module_logger.debug("using height of {}".format(int(height)))
 
                 im.thumbnail(
-                    (int(self.width), int(height)
-                    ), Image.ANTIALIAS)
+                    ( int(self.width), int(height) ),
+                     Image.ANTIALIAS)
+
+                module_logger.debug("thumbnail images size is {}".format(im.size))
+
                 im.save(thumbfile)
 
                 with open(thumbfile, 'rb') as f:
