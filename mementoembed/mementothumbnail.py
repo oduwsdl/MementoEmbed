@@ -183,9 +183,9 @@ class MementoThumbnail:
             try:
 
                 # the beginning of some measure of caching
-                # if not os.path.exists(thumbfile):
-                p = subprocess.Popen(["node", self.thumbnail_script])
-                p.wait(timeout=self.timeout)
+                if not os.path.exists(thumbfile):
+                    p = subprocess.Popen(["node", self.thumbnail_script])
+                    p.wait(timeout=self.timeout)
 
                 im = Image.open(thumbfile)
 
@@ -194,9 +194,6 @@ class MementoThumbnail:
                 if self.height == "auto" or self.height < self.width:
                     ratio = self.viewport_height / self.viewport_width
                     height = ratio * self.width
-                
-                # module_logger.debug("image width is {}".format(int(self.width)))
-                # module_logger.debug("using height of {}".format(int(height)))
 
                 im.thumbnail(
                     ( int(self.width), int(height) ),
