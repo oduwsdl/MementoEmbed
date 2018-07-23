@@ -10,3 +10,4 @@ dist
 *.sqlite
 *.bak
 node_modules
+_build

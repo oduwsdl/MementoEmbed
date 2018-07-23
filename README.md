@@ -1,10 +1,15 @@
 [![Build Status](https://travis-ci.org/oduwsdl/MementoEmbed.svg?branch=master)](https://travis-ci.org/oduwsdl/MementoEmbed)
+[![Doc Status](https://readthedocs.org/projects/mementoembed/badge/?version=latest&style=flat)](https://mementoembed.readthedocs.io/en/latest/)
 
 # MementoEmbed
 
-A tool to create archive-aware [oEmbed](https://oembed.com/)-compatible embeddable surrogates for archived web pages (mementos). The system currently creates social cards for mementos but will be expanded to include other surrogates like thumbnails. MementoEmbed is different from other surrogate-generation systems in that it provides access to archive-specific information, such as the original domain of the URI-M, its memento-datetime, and to which collection a memento belongs.
+![Image of a Social Card](docs/source/images/socialcard-example.png?raw=true "Social Card Example for http://arquivo.pt/wayback/19980205082901/http://www.caleida.pt/saramago/")
 
-**⚠️ NOTE: This tool is still in its early prototyping stage!**
+A tool to create archive-aware [oEmbed](https://oembed.com/)-compatible embeddable surrogates for archived web pages (mementos). The system currently creates social cards like the one shown above and thumbnails like the one shown below. MementoEmbed is different from other surrogate-generation systems in that it provides access to archive-specific information, such as the original domain of the URI-M, its memento-datetime, and to which collection a memento belongs.
+
+![Image of a Social Card](docs/source/images/thumbnail-example.png?raw=true "Thumbnail Example for http://arquivo.pt/wayback/19980205082901/http://www.caleida.pt/saramago/")
+
+For more information on this application, please visit our [Documentation Page](https://mementoembed.readthedocs.io/en/latest/).
 
 ## Run Using Docker
 
