@@ -99,11 +99,10 @@ def thumbnail_endpoint(subpath):
                 response = make_response(data)
                 response.headers['Content-Type'] = 'image/png'
                 response.headers['Preference-Applied'] = \
-                    "viewport_width={},viewport_height={}".format(
-                        mt.viewport_width, mt.viewport_height)
-                    # "thumbnail_width={},thumbnail_height={}".format(
-                    #     mt.viewport_width, mt.viewport_height,
-                    #     mt.width, mt.height)
+                    "viewport_width={},viewport_height={}" \
+                    "thumbnail_width={},thumbnail_height={}".format(
+                        mt.viewport_width, mt.viewport_height,
+                        mt.width, mt.height)
 
                 module_logger.info("Finished with thumbnail generation")
 

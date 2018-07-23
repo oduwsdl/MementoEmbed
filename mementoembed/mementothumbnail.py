@@ -3,6 +3,8 @@ import hashlib
 import logging
 import subprocess
 
+from PIL import Image
+
 module_logger = logging.getLogger('mementoembed.mementothumbnail')
 
 class MementoThumbnailTimeoutInvalid(ValueError):
@@ -33,7 +35,7 @@ class MementoThumbnail:
         self._viewport_height = 768
 
         self._thumbnail_width = 208
-        self._thumbnail_height = 0 # TODO: need a way to just specify width
+        self._thumbnail_height = "auto"
 
         self._timeout = 30
 
@@ -129,7 +131,18 @@ class MementoThumbnail:
             
             os.environ['URIM'] = urim
             m = hashlib.sha256()
-            m.update(urim.encode('utf8'))
+
+            m.update(
+                '/'.join(
+                    [   str(self.viewport_width), 
+                        str(self.viewport_height), 
+                        str(self.width), 
+                        str(self.height), 
+                        urim
+                    ]
+                    ).encode('utf8')
+                    )
+
             thumbfile = m.hexdigest()
             thumbfile = "{}/{}.png".format(self.working_directory, m.hexdigest())
 
@@ -153,6 +166,19 @@ class MementoThumbnail:
                 if not os.path.exists(thumbfile):
                     p = subprocess.Popen(["node", self.thumbnail_script])
                     p.wait(timeout=self.timeout)
+
+                im = Image.open(thumbfile)
+
+                height = self.height
+                
+                if self.height == "auto":
+                    ratio = self.viewport_height / self.viewport_width
+                    height = ratio * self.width
+
+                im.thumbnail(
+                    (int(self.width), int(height)
+                    ), Image.ANTIALIAS)
+                im.save(thumbfile)
 
                 with open(thumbfile, 'rb') as f:
                     data = f.read()
