@@ -36,19 +36,76 @@
       Select the type of Embed to Create:<br><br>
       <div class="row">
         <div class="col-md-6">
-          <input type="radio" id="social_card" name="surrogate_type" checked />
+          <input type="radio" id="social_card" name="surrogate_type" value="thumbnail" checked />
           <label for="social_card">Social Card</label>
         </div>
         <div class="col-md-6">
-          <input type="radio" id="thumbnail" name="surrogate_type" />
+          <input type="radio" id="thumbnail" name="surrogate_type" value="thumbnail" />
           <label for="thumbnail">Thumbnail</label>
         </div>
       </div>
 
+      <hr>
+
+      <div id="options">
+
+        <div class="row" style="text-align: center;">
+          <div class="col-md-12">
+            Click here for advanced options<br>
+            <img src="/static/images/downarrow.png">
+          </div>
+        </div>
+
+        <div id="socialcard_options" style="display: none;">
+            No advanced options available yet for social cards in this version of MementoEmbed.
+        </div>
+
+        <div id="thumbnail_options" style="display: none;">
+          <hr>
+          <div class="row">
+          Options for Thumbnails
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <label for="thumbnail_width">Thumbnail Width (in pixels)</label>
+              <input type="text" id="thumbnail_width" name="thumbnail_width" class="form-control" value="{{ thumbnail_width }}">
+            </div>
+            <div class="col-md-6">
+              <label for="thumbnail_height">Thumbnail Height (in pixels)</label>
+              <input type="text" id="thumbnail_height" name="thumbnail_height" class="form-control" value="{{ thumbnail_height }}">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <label for="thumbnail_viewport_width">Thumbnail Viewport Width (in pixels)</label>
+              <input type="text" id="viewport_width" name="thumbnail_viewport_width" class="form-control" value="{{ thumbnail_viewport_width }}">
+            </div>
+            <div class="col-md-6">
+              <label for="thumbnail_viewport_height">Thumbnail Viewport Height (in pixels)</label>
+              <input type="text" id="viewport_height" name="thumbnail_viewport_height" class="form-control" value="{{ thumbnail_viewport_height }}">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <label for="thumbnail_timeout">Thumbnail Timeout (in seconds)</label>
+              <input type="text" id="thumbnail_timeout" name="thumbnail_timeout" class="form-control" value="{{ thumbnail_timeout }}">
+            </div>
+            <div class="col-md-6">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       <br>
       <br>
-      <button id="createEmbed" type="button" class="btn btn-primary">Create an Embed for this URI-M</button>
-      <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
+      <div class="row">
+        <button id="createEmbed" type="submit" class="btn btn-primary">Create an Embed for this URI-M</button>
+        <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
+      </div>
     </form>
   </div>
 
@@ -68,28 +125,76 @@
 
   }
 
+  t_opts = document.getElementById('thumbnail_options');
+  s_opts = document.getElementById('socialcard_options');
+
   // handlers for all input begin here
   $(function() {
-      $("form").submit(function() { return false; });
-  });
+    $("form").submit(function( event ) { 
+        console.log("handler for .submit() called.");
+        uri = document.getElementById('uri_submitted').value;
+
+        if (document.getElementById('social_card').checked) {
+          action = "/ui/product/socialcard/" + uri.trim();
+        } else if (document.getElementById('thumbnail').checked) {
+          action = "/ui/product/thumbnail/" + uri.trim();
+        }
+
+        $("form").attr("action", action);
+        $("form").attr("method", "POST");
+
+        // console.log( event );
+        
+        // return false;
+    });
+  })
 
   $( "#clearURL" ).bind( "click" , function() {
       $('#uri_submitted').val("");
-      workarea.innerHTML = "";
+      // workarea.innerHTML = "";
   });
 
   $('#uri_submitted').keyup(function(e){
       if(e.keyCode == 13) {
           $(this).trigger("enterKey");
           uri = document.getElementById('uri_submitted').value;
-          requestEmbed(uri);
+          // requestEmbed(uri);
       }
   });
 
   $( "#createEmbed" ).bind( "click" , function() {
       uri = document.getElementById('uri_submitted').value;
       // setWorking();
-      requestEmbed(uri);
+      // requestEmbed(uri);
+  });
+
+  $( "#thumbnail" ).bind( "click", function() {
+    console.log("thumbnail clicked!");
+    s_opts.style.display = "none";
+    t_opts.style.display = "none";
+  });
+
+  $( "#social_card" ).bind( "click", function() {
+    console.log("social card clicked!");
+    s_opts.style.display = "none";
+    t_opts.style.display = "none";
+  });
+
+  $( "#options" ).bind( "click", function() {
+
+
+    console.log("t_opts: " + t_opts);
+    console.log("s_opts: " + s_opts);
+
+    if (document.getElementById('thumbnail').checked) {
+      s_opts.style.display = "none";
+      t_opts.style.display = "block";
+
+    } else if (document.getElementById('social_card').checked) {
+      t_opts.style.display = "none";
+      s_opts.style.display = "block";
+    }
+
   });
 </script>
 
