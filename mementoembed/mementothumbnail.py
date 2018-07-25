@@ -201,6 +201,9 @@ class MementoThumbnail:
 
                 module_logger.debug("thumbnail images size is {}".format(im.size))
 
+                self.width = im.size[0]
+                self.height = im.size[1]
+
                 im.save(thumbfile)
 
                 with open(thumbfile, 'rb') as f:

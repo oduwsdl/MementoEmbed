@@ -181,8 +181,12 @@ MementoEmbed supports several options for specifying desired options for thumbna
 
 The following options are supported:
 
-* ``viewport_width`` - the width of the viewport of the browser capturing the snapshot
-* ``viewport_height`` - the height of the viewport of the browser capturing the snapshot
-* ``thumbnail_width`` - the width of the thumbnail in pixels, the thumbnail will be reduced in size to meet this requirement
-* ``thumbnail_height`` - the height of the thumbnail in pixels, the thumbnail will be reduced in size to meet this requirement
-* ``timeout`` - how long MementoEmbed should wait for the thumbnail to finish generating before issuing an error
+* ``viewport_width`` - the width of the viewport of the browser capturing the snapshot (upper bound is 5120px)
+* ``viewport_height`` - the height of the viewport of the browser capturing the snapshot (upper bound is 2880px)
+* ``thumbnail_width`` - the width of the thumbnail in pixels, the thumbnail will be reduced in size to meet this requirement (upper bound is 5210px)
+* ``thumbnail_height`` - the height of the thumbnail in pixels, the thumbnail will be reduced in size to meet this requirement (upper bound is 2880px)
+* ``timeout`` - how long MementoEmbed should wait for the thumbnail to finish generating before issuing an error (upper bound is 5 minutes)
+
+If the viewport size requested is less than the thumbnail size, the thumbnail size will match the viewport size.
+
+If the thumbnail height is not specified, the ratio of width to height of the viewport will be used to calculate the height of the thumbnail.
