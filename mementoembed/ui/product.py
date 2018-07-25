@@ -14,7 +14,7 @@ bp = Blueprint('ui.product', __name__)
 def ui_product_no_urim():
     return redirect(url_for('ui.main_page'))
 
-@bp.route('/ui/product/socialcard/<path:subpath>')
+@bp.route('/ui/product/socialcard/<path:subpath>', methods=['HEAD', 'GET'])
 def generate_social_card(subpath):
 
     social_card_template = render_template("new_social_card.html",
@@ -49,7 +49,7 @@ def generate_social_card(subpath):
         appversion = __appversion__
     ), 200
 
-@bp.route('/ui/product/thumbnail/<path:subpath>', methods=['GET', 'POST'])
+@bp.route('/ui/product/thumbnail/<path:subpath>', methods=['HEAD', 'GET'])
 def generate_thumbnail(subpath):
 
     prefs = {}
@@ -59,28 +59,35 @@ def generate_thumbnail(subpath):
     prefs['thumbnail_height'] = int(current_app.config['THUMBNAIL_HEIGHT'])
     prefs['thumbnail_width'] = int(current_app.config['THUMBNAIL_WIDTH'])
 
-    if request.method == 'POST':
+    if 'Prefer' in request.headers:
 
-        prefs['viewport_height'] = request.form['thumbnail_viewport_height']
-        prefs['viewport_width'] = request.form['thumbnail_viewport_width']
-        prefs['thumbnail_height'] = request.form['thumbnail_height']
-        prefs['thumbnail_width'] = request.form['thumbnail_width']
-        prefs['timeout'] = request.form['thumbnail_timeout']
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = int(value)
+
+        module_logger.debug("The user hath preferences! ")
 
     else:
 
-        if 'Prefer' in request.headers:
+        module_logger.debug("received path {}".format(subpath))
+        pathprefs, urim = subpath.split('/', 1)
+        module_logger.debug("prefs: {}".format(pathprefs))
+        module_logger.debug("urim: {}".format(urim))
 
-            preferences = request.headers['Prefer'].split(',')
+        for entry in pathprefs.split(','):
+            module_logger.debug("examining entry {}".format(entry))
+            key, value = entry.split('=')
+            module_logger.debug("setting preference {} to value {}".format(key, value))
 
-            for pref in preferences:
-                key, value = pref.split('=')
+            try:
                 prefs[key] = int(value)
-
-            module_logger.debug("The user hath preferences! ")
+            except ValueError:
+                module_logger.exception("failed to set value for preference {}".format(key))
 
     return render_template('generate_thumbnail.html', 
-        urim = subpath,
+        urim = urim,
         pagetitle="MementoEmbed - Generate a Thumbnail",
         surrogate_type="Thumbnail",
         thumbnail_endpoint="/services/product/thumbnail/",

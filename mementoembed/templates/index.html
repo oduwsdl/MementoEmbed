@@ -103,7 +103,7 @@
       <br>
       <br>
       <div class="row">
-        <button id="createEmbed" type="submit" class="btn btn-primary">Create an Embed for this URI-M</button>
+        <button id="createEmbed" type="button" class="btn btn-primary">Create an Embed for this URI-M</button>
         <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
       </div>
     </form>
@@ -115,12 +115,28 @@
 
 <script>
 
-  function requestEmbed(uri) {
+  function requestEmbed() {
+
+    uri = document.getElementById('uri_submitted').value;
+
+    prefs = "";
+
+    prefs += "timeout=" + $( "input#thumbnail_timeout" ).val();
+    prefs += ",viewport_width=" + $( "input#viewport_width" ).val();
+    prefs += ",viewport_height=" + $( "input#viewport_height" ).val();
+    prefs += ",thumbnail_width=" + $( "input#thumbnail_width" ).val();
+    prefs += ",thumbnail_height=" + $( "input#thumbnail_height" ).val();
+
+    console.log("prefs are " + prefs);
 
     if (document.getElementById('social_card').checked) {
-      window.location.href = "/ui/product/socialcard/" + uri.trim();
+      window.location.href = "/ui/product/socialcard/" 
+        + prefs + "/"
+        + uri.trim();
     } else if (document.getElementById('thumbnail').checked) {
-      window.location.href = "/ui/product/thumbnail/" + uri.trim();
+      window.location.href = "/ui/product/thumbnail/" 
+      + prefs + "/"
+      + uri.trim();
     }
 
   }
@@ -131,41 +147,22 @@
   // handlers for all input begin here
   $(function() {
     $("form").submit(function( event ) { 
-        console.log("handler for .submit() called.");
-        uri = document.getElementById('uri_submitted').value;
-
-        if (document.getElementById('social_card').checked) {
-          action = "/ui/product/socialcard/" + uri.trim();
-        } else if (document.getElementById('thumbnail').checked) {
-          action = "/ui/product/thumbnail/" + uri.trim();
-        }
-
-        $("form").attr("action", action);
-        $("form").attr("method", "POST");
-
-        // console.log( event );
-        
-        // return false;
+        return false;
     });
   })
 
   $( "#clearURL" ).bind( "click" , function() {
-      $('#uri_submitted').val("");
-      // workarea.innerHTML = "";
+    $('#uri_submitted').val("");
+    s_opts.style.display = "none";
+    t_opts.style.display = "none";
   });
 
   $('#uri_submitted').keyup(function(e){
       if(e.keyCode == 13) {
           $(this).trigger("enterKey");
           uri = document.getElementById('uri_submitted').value;
-          // requestEmbed(uri);
+          requestEmbed(uri);
       }
-  });
-
-  $( "#createEmbed" ).bind( "click" , function() {
-      uri = document.getElementById('uri_submitted').value;
-      // setWorking();
-      // requestEmbed(uri);
   });
 
   $( "#thumbnail" ).bind( "click", function() {
@@ -182,20 +179,26 @@
 
   $( "#options" ).bind( "click", function() {
 
-
     console.log("t_opts: " + t_opts);
     console.log("s_opts: " + s_opts);
 
     if (document.getElementById('thumbnail').checked) {
       s_opts.style.display = "none";
       t_opts.style.display = "block";
-
     } else if (document.getElementById('social_card').checked) {
       t_opts.style.display = "none";
       s_opts.style.display = "block";
+    } else {
+      t_opts.style.display = "none";
+      s_opts.style.display = "none";
     }
 
   });
+
+  $( "#createEmbed" ).bind( "click" , function() {
+      requestEmbed();
+  });
+
 </script>
 
 {% include "pagebottom.html" %}
