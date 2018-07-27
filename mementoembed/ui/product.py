@@ -72,19 +72,25 @@ def generate_thumbnail(subpath):
     else:
 
         module_logger.debug("received path {}".format(subpath))
-        pathprefs, urim = subpath.split('/', 1)
-        module_logger.debug("prefs: {}".format(pathprefs))
-        module_logger.debug("urim: {}".format(urim))
 
-        for entry in pathprefs.split(','):
-            module_logger.debug("examining entry {}".format(entry))
-            key, value = entry.split('=')
-            module_logger.debug("setting preference {} to value {}".format(key, value))
+        if subpath[0:4] != "http":
 
-            try:
-                prefs[key] = int(value)
-            except ValueError:
-                module_logger.exception("failed to set value for preference {}".format(key))
+            pathprefs, urim = subpath.split('/', 1)
+            module_logger.debug("prefs: {}".format(pathprefs))
+            module_logger.debug("urim: {}".format(urim))
+
+            for entry in pathprefs.split(','):
+                module_logger.debug("examining entry {}".format(entry))
+                key, value = entry.split('=')
+                module_logger.debug("setting preference {} to value {}".format(key, value))
+
+                try:
+                    prefs[key] = int(value)
+                except ValueError:
+                    module_logger.exception("failed to set value for preference {}".format(key))
+
+        else:
+            urim = subpath
 
     return render_template('generate_thumbnail.html', 
         urim = urim,

@@ -1,5 +1,9 @@
+import logging
+
 import requests
 import requests_cache
+
+module_logger = logging.getLogger('mementoembed.cachesession')
 
 class CacheSession:
 
@@ -20,6 +24,13 @@ class CacheSession:
             req_headers[key] = headers[key]
 
         if use_referrer:
-            req_headers['Referer'] = self.starting_uri
+            if uri != self.starting_uri:
+                req_headers['Referer'] = self.starting_uri
 
-        return self.session.get(uri, headers=req_headers, timeout=self.timeout)
+        response = self.session.get(uri, headers=req_headers, timeout=self.timeout)
+
+        module_logger.debug("request headers sent were {}".format(response.request.headers))
+        module_logger.debug("response status: {}".format(response.status_code))
+        module_logger.debug("response headers: {}".format(response.headers))
+
+        return response

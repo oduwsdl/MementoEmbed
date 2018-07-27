@@ -180,11 +180,14 @@ class MementoThumbnail:
                     self.viewport_width, self.viewport_height, self.user_agent,
                     thumbfile, self.width, self.height))
 
+            if not os.path.exists(thumbfile):
+                module_logger.debug("running script, output should be in {}".format(thumbfile))
+                p = subprocess.Popen(["node", self.thumbnail_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
             try:
 
                 # the beginning of some measure of caching
                 if not os.path.exists(thumbfile):
-                    p = subprocess.Popen(["node", self.thumbnail_script])
                     p.wait(timeout=self.timeout)
 
                 im = Image.open(thumbfile)
@@ -220,6 +223,18 @@ class MementoThumbnail:
                 
                 raise MementoThumbnailGenerationError(
                     "Thumbnail script failed to return after {} seconds".format(self.timeout))
+
+            except Exception:
+
+                script_output_out = p.stdout.read()
+                script_output_err = p.stderr.read()
+
+                msg = "Unexpected exception when running thumbnail script, output was {}, error was {}".format(
+                    script_output_out, script_output_err)
+
+                module_logger.exception(msg)
+
+                raise MementoThumbnailGenerationError(msg)
 
         else:
             msg = "Thumbmnail folder {} not found".format(self.working_directory)
