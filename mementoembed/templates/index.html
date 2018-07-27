@@ -103,8 +103,12 @@
       <br>
       <br>
       <div class="row">
-        <button id="createEmbed" type="button" class="btn btn-primary">Create an Embed for this URI-M</button>
-        <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
+        <div class="col-md-12">
+          <span style="text-align: center;">
+          <button id="createEmbed" type="button" class="btn btn-primary">Create Embed for this URI-M</button>
+          <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
+          </span>
+        </div>
       </div>
     </form>
   </div>
@@ -121,18 +125,19 @@
 
     prefs = "";
 
-    prefs += "timeout=" + $( "input#thumbnail_timeout" ).val();
-    prefs += ",viewport_width=" + $( "input#viewport_width" ).val();
-    prefs += ",viewport_height=" + $( "input#viewport_height" ).val();
-    prefs += ",thumbnail_width=" + $( "input#thumbnail_width" ).val();
-    prefs += ",thumbnail_height=" + $( "input#thumbnail_height" ).val();
-
     console.log("prefs are " + prefs);
 
     if (document.getElementById('social_card').checked) {
       window.location.href = "/ui/product/socialcard/" 
         + uri.trim();
     } else if (document.getElementById('thumbnail').checked) {
+
+      prefs += "timeout=" + $( "input#thumbnail_timeout" ).val();
+      prefs += ",viewport_width=" + $( "input#viewport_width" ).val();
+      prefs += ",viewport_height=" + $( "input#viewport_height" ).val();
+      prefs += ",thumbnail_width=" + $( "input#thumbnail_width" ).val();
+      prefs += ",thumbnail_height=" + $( "input#thumbnail_height" ).val();
+
       window.location.href = "/ui/product/thumbnail/" 
       + prefs + "/"
       + uri.trim();
@@ -142,6 +147,7 @@
 
   t_opts = document.getElementById('thumbnail_options');
   s_opts = document.getElementById('socialcard_options');
+  opts_open = false;
 
   // handlers for all input begin here
   $(function() {
@@ -180,13 +186,32 @@
 
     console.log("t_opts: " + t_opts);
     console.log("s_opts: " + s_opts);
+    console.log("opts_open: " + opts_open);
 
     if (document.getElementById('thumbnail').checked) {
-      s_opts.style.display = "none";
-      t_opts.style.display = "block";
+
+      if (opts_open == true) {
+        t_opts.style.display = "none";
+        s_opts.style.display = "none";
+        opts_open = false;
+      } else {
+        s_opts.style.display = "none";
+        t_opts.style.display = "block";
+        opts_open = true;
+      }
+
     } else if (document.getElementById('social_card').checked) {
-      t_opts.style.display = "none";
-      s_opts.style.display = "block";
+
+      if (opts_open == true) {
+        t_opts.style.display = "none";
+        s_opts.style.display = "none";
+        opts_open = false;
+      } else {
+        t_opts.style.display = "none";
+        s_opts.style.display = "block";
+        opts_open = true;
+      }
+
     } else {
       t_opts.style.display = "none";
       s_opts.style.display = "none";
