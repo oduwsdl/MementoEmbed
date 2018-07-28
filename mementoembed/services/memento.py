@@ -13,7 +13,7 @@ from mementoembed.originalresource import OriginalResource
 from mementoembed.textprocessing import extract_text_snippet, extract_title
 from mementoembed.cachesession import CacheSession
 from mementoembed.archiveresource import ArchiveResource
-from mementoembed.imageselection import get_best_image
+from mementoembed.imageselection import get_best_image, convert_imageuri_to_pngdata_uri
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
@@ -59,12 +59,19 @@ def originaldata(urim, preferences):
 
     originalresource = OriginalResource(memento, httpcache)
 
+    if preferences['datauri_favicon'].lower() == 'yes':
+        original_favicon = convert_imageuri_to_pngdata_uri(
+            originalresource.favicon, httpcache, 16, 16
+        )
+    else:
+        original_favicon = originalresource.favicon
+
     output['urim'] = urim
     output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     output['original-uri'] = originalresource.uri
     output['original-domain'] = originalresource.domain
-    output['original-favicon'] = originalresource.favicon
+    output['original-favicon'] = original_favicon
     output['original-linkstatus'] = originalresource.link_status
 
     response = make_response(json.dumps(output, indent=4))
@@ -82,6 +89,11 @@ def bestimage(urim, preferences):
     memento = memento_resource_factory(urim, httpcache)
 
     best_image_uri = get_best_image(memento.urim, httpcache)
+
+    if preferences['datauri_image'].lower() == 'yes':
+        best_image_uri = convert_imageuri_to_pngdata_uri(
+            best_image_uri, httpcache, 96
+        )
 
     output = {}
 
@@ -106,6 +118,13 @@ def archivedata(urim, preferences):
 
     archive = ArchiveResource(urim, httpcache)
 
+    if preferences['datauri_favicon'].lower() == 'yes':
+        archive_favicon = convert_imageuri_to_pngdata_uri(
+            archive.favicon, httpcache, 16, 16
+        )
+    else:
+        archive_favicon = archive.favicon
+
     output = {}
 
     output['urim'] = urim
@@ -113,7 +132,7 @@ def archivedata(urim, preferences):
 
     output['archive-uri'] = archive.home_uri
     output['archive-name'] = archive.name
-    output['archive-favicon'] = archive.favicon
+    output['archive-favicon'] = archive_favicon
     output['archive-collection-id'] = archive.collection_id
     output['archive-collection-name'] = archive.collection_name
     output['archive-collection-uri'] = archive.collection_uri
@@ -140,17 +159,47 @@ def textinformation_endpoint(subpath):
 @bp.route('/services/memento/bestimage/<path:subpath>')
 def bestimage_endpoint(subpath):
     urim = subpath
-    preferences = {}
-    return handle_errors(bestimage, urim, preferences)
+    prefs = {}
+    prefs['datauri_image'] = 'no'
+
+    if 'Prefer' in request.headers:
+
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = value.lower()
+
+    return handle_errors(bestimage, urim, prefs)
 
 @bp.route('/services/memento/archivedata/<path:subpath>')
 def archivedata_endpoint(subpath):
     urim = subpath
-    preferences = {}
-    return handle_errors(archivedata, urim, preferences)
+    prefs = {}
+    prefs['datauri_favicon'] = 'no'
+
+    if 'Prefer' in request.headers:
+
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = value.lower()
+
+    return handle_errors(archivedata, urim, prefs)
 
 @bp.route('/services/memento/originalresourcedata/<path:subpath>')
 def originaldata_endpoint(subpath):
     urim = subpath
-    preferences = {}
-    return handle_errors(originaldata, urim, preferences)
+    prefs = {}
+    prefs['datauri_favicon'] = 'no'
+
+    if 'Prefer' in request.headers:
+
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = value.lower()
+
+    return handle_errors(originaldata, urim, prefs)

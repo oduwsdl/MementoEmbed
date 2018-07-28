@@ -14,6 +14,7 @@ module_logger = logging.getLogger('mementoembed.imageselection')
 
 def convert_imageuri_to_pngdata_uri(imageuri, httpcache, width, height=None):
     
+    # TODO: throw an exception when things go wrong, what could go wrong?
     response = httpcache.get(imageuri)
     imagedata = response.content
 
