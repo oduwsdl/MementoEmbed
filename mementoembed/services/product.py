@@ -14,6 +14,7 @@ from mementoembed.mementothumbnail import MementoThumbnail, \
     MementoThumbnailGenerationError, MementoThumbnailFolderNotFound, \
     MementoThumbnailSizeInvalid, MementoThumbnailViewportInvalid, \
     MementoThumbnailTimeoutInvalid
+from mementoembed.mementoresource import MementoURINotAtArchiveFailure
 from mementoembed.cachesession import CacheSession
 from mementoembed.version import __useragent__
 
@@ -85,9 +86,6 @@ def thumbnail_endpoint(subpath):
 
     module_logger.debug("current app config: {}".format(current_app.config))
 
-    # TODO: test that subpath is actually a memento
-    module_logger.info("Note: This service does not currently check that the resource is a memento")
-
     if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
         urim = subpath
 
@@ -101,10 +99,17 @@ def thumbnail_endpoint(subpath):
 
             module_logger.debug("The user hath preferences! ")
 
+        httpcache = CacheSession(
+            timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+            user_agent=__useragent__,
+            starting_uri=urim
+            )
+
         mt = MementoThumbnail(
             __useragent__,
             current_app.config['THUMBNAIL_WORKING_FOLDER'],
-            current_app.config['THUMBNAIL_SCRIPT_PATH']
+            current_app.config['THUMBNAIL_SCRIPT_PATH'],
+            httpcache
         )
 
         try:
@@ -202,5 +207,17 @@ def thumbnail_endpoint(subpath):
 
             return response, 500
         
+        except MementoURINotAtArchiveFailure as e:
+
+            output = {
+                "error": e.user_facing_error,
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+
     else:
         return "The thumbnail service has been disabled by the system administrator", 200

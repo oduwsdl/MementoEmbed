@@ -5,7 +5,35 @@ import subprocess
 
 from PIL import Image
 
+from .mementoresource import memento_resource_factory, WaybackMemento, \
+    ArchiveIsMemento, IMFMemento, wayback_pattern
+
 module_logger = logging.getLogger('mementoembed.mementothumbnail')
+
+def get_urim_for_thumbnail(urim, httpcache):
+
+    thumbnail_urim = None
+
+    # this should eliminate non-mementos
+    mr = memento_resource_factory(urim, httpcache)
+
+    module_logger.info("generating thumbnail for memento of type {}".format(type(mr)))
+
+    if type(mr) == WaybackMemento:
+        thumbnail_urim = wayback_pattern.sub(r'\1if_/', urim)
+    # elif type(mr) == ArchiveIsMemento:
+    #     TODO: Archive.is screenshot URI
+    #     pass
+    elif type(mr) == IMFMemento:
+        module_logger.info("memento resource of type {}".format(type(mr)))
+        # TODO: fix IMFMemento class so this is generated differently
+        mr.raw_content # this sets raw_urim
+        thumbnail_urim = mr.raw_urim
+    else:
+        thumbnail_urim = urim
+
+    return thumbnail_urim
+
 
 class MementoThumbnailTimeoutInvalid(ValueError):
     pass
@@ -24,11 +52,12 @@ class MementoThumbnailFolderNotFound(MementoThumbnailGenerationError):
 
 class MementoThumbnail:
 
-    def __init__(self, user_agent, working_directory, thumbnail_script):
+    def __init__(self, user_agent, working_directory, thumbnail_script, httpcache):
 
         self.user_agent = user_agent
         self.working_directory = working_directory
         self.thumbnail_script = thumbnail_script
+        self.httpcache = httpcache
 
         # defaults
         self._viewport_width = 1024
@@ -149,7 +178,9 @@ class MementoThumbnail:
         
         if os.path.isdir(self.working_directory):
             
-            os.environ['URIM'] = urim
+            thumb_urim = get_urim_for_thumbnail(urim, self.httpcache)
+
+            os.environ['URIM'] = thumb_urim
             m = hashlib.sha256()
 
             m.update(
@@ -158,7 +189,7 @@ class MementoThumbnail:
                         str(self.viewport_height), 
                         str(self.width), 
                         str(self.height), 
-                        urim
+                        thumb_urim
                     ]
                     ).encode('utf8')
                     )

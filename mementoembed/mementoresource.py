@@ -530,6 +530,7 @@ class IMFMemento(MementoResource):
                 "failed to parse document using BeautifulSoup",
                 original_exception=e)
 
+        # TODO: create a function that returns the raw_urim without doing this request afterward
         self.raw_urim = twp.get('src')
 
         response = self.http_cache.get(self.raw_urim)
