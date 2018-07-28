@@ -69,19 +69,53 @@ def generate_socialcard_response(urim, preferences):
     archive_favicon_uri = s.archive_favicon
     original_favicon_uri = s.original_favicon
     striking_image_uri = s.striking_image
-    
-    return generate_social_card_html(
-        urim, s, urlroot, archive_favicon_uri, original_favicon_uri, striking_image_uri
-        ), 200
+
+    if preferences['datauri_favicon'].lower() == 'yes':
+        original_favicon_uri = convert_imageuri_to_pngdata_uri(
+            original_favicon_uri, httpcache, 16, 16
+        )
+        archive_favicon_uri = convert_imageuri_to_pngdata_uri(
+            archive_favicon_uri, httpcache, 16, 16
+        )
+
+    if preferences['datauri_image'].lower() == 'yes':
+        striking_image_uri = convert_imageuri_to_pngdata_uri(
+            striking_image_uri, httpcache, 96
+        )
+
+    data = generate_social_card_html(
+        urim, s, urlroot, archive_favicon_uri, 
+        original_favicon_uri, striking_image_uri
+        )
+
+    response = make_response(data)
+    response.headers['Content-Type'] = 'text/html'
+    response.headers['Preference-Applied'] = \
+        "datauri_favicon={},datauri_image={}".format(
+            preferences['datauri_favicon'],
+            preferences['datauri_image']
+        )
+
+    return response, 200
 
 @bp.route('/services/product/socialcard/<path:subpath>')
 def socialcard_endpoint(subpath):
 
     urim = subpath
 
-    preferences = {}
+    prefs = {}
+    prefs['datauri_favicon'] = 'no'
+    prefs['datauri_image'] = 'no'
 
-    return handle_errors(generate_socialcard_response, urim, preferences)
+    if 'Prefer' in request.headers:
+
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = value.lower()
+
+    return handle_errors(generate_socialcard_response, urim, prefs)
 
 @bp.route('/services/product/thumbnail/<path:subpath>')
 def thumbnail_endpoint(subpath):

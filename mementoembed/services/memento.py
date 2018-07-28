@@ -76,6 +76,10 @@ def originaldata(urim, preferences):
 
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
+
+    response.headers['Preference-Applied'] = \
+        "datauri_favicon={}".format(preferences['datauri_favicon'])
+
     return response, 200
 
 def bestimage(urim, preferences):
@@ -103,6 +107,9 @@ def bestimage(urim, preferences):
 
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
+    response.headers['Preference-Applied'] = \
+        "datauri_image={}".format(preferences['datauri_image'])
+
     return response, 200
 
 def archivedata(urim, preferences):
@@ -139,6 +146,10 @@ def archivedata(urim, preferences):
 
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
+
+    response.headers['Preference-Applied'] = \
+        "datauri_favicon={}".format(preferences['datauri_favicon'])
+
     return response, 200
 
 @bp.route('/services/memento/contentdata/')
