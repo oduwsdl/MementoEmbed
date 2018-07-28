@@ -51,6 +51,9 @@ workstatus.innerHTML = "";
 workstatus.innerHTML = "Generating {{ surrogate_type }}";
 formarea.innerHTML = "";
 formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
+formarea.innerHTML += '<p>with these settings:</p>';
+formarea.innerHTML += 'Use data URIs for favicons: {{ datauri_favicon }}<br>';
+formarea.innerHTML += 'Use data URIs for striking image: {{ datauri_image }}<br>';
 setWorking();
 requestEmbed(urim);
 
@@ -130,6 +133,9 @@ function fill_social_card_area(html) {
 
     formarea.innerHTML = "";
     formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
+    formarea.innerHTML += '<p>with these settings:</p>';
+    formarea.innerHTML += 'Use data URIs for favicons: {{ datauri_favicon }}<br>';
+    formarea.innerHTML += 'Use data URIs for striking image: {{ datauri_image }}<br>';
 
     social_card_area = "";
     social_card_area += '<div class="row">';
@@ -167,8 +173,6 @@ function fill_social_card_area(html) {
     }
 
     document.getElementById("sc_display").appendChild(scriptnode);
-
-
 
 }
 
@@ -279,6 +283,12 @@ function requestEmbed(uri) {
     $.ajax({
         type: "GET",
         url: archivedata_svc,
+        beforeSend: function(xhr){
+            xhr.setRequestHeader(
+                'Prefer', 
+                'datauri_favicon={{ datauri_favicon }}'
+            );
+        },
         success: function(json) {
             setGood("ai_status");
             archivedata = json;
@@ -295,6 +305,12 @@ function requestEmbed(uri) {
     $.ajax({
         type: "GET",
         url: originaldata_svc,
+        beforeSend: function(xhr){
+            xhr.setRequestHeader(
+                'Prefer', 
+                'datauri_favicon={{ datauri_favicon }}'
+            );
+        },
         success: function(json) {
             setGood("or_status");
             originaldata = json;
@@ -311,6 +327,12 @@ function requestEmbed(uri) {
     $.ajax({
         type: "GET",
         url: bestimage_svc,
+        beforeSend: function(xhr){
+            xhr.setRequestHeader(
+                'Prefer', 
+                'datauri_image={{ datauri_image }}'
+            );
+        },
         success: function(json) {
             setGood("si_status");
             imagedata = json;

@@ -65,9 +65,48 @@
             </div>
   
             <div class="row">
-                <div class="col-md-12">
-                  <strong>No advanced options available yet for social cards in this version of MementoEmbed.</strong><br>
+              <div class="col-md-6">
+                Provide data URIs for favicons?<br>
+                (experimental)
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="datauri_favicon">Yes</label> &nbsp;&nbsp;
+                    <input type="radio" id="datauri_favicon_yes" name="datauri_favicon" value="yes" />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="keep_banner">No</label> &nbsp;&nbsp;
+                    <input type="radio" id="datauri_favicon_no" name="datauri_favicon" value="no" checked="checked" />
+                  </div>
                 </div>
+                <ul>
+                  <li><strong>Benefit:</strong> the favicons on the card will persist, even if they no longer exists on the web</li>
+                  <li><strong>Drawback:</strong> embed is larger</li>
+                </ul>
+
+                <br>
+              </div>
+              <div class="col-md-6">
+                Provide data URIs for striking images?<br>
+                (experimental)
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="datauri_favicon">Yes</label> &nbsp;&nbsp;
+                    <input type="radio" id="datauri_image_yes" name="datauri_images" />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="keep_banner">No</label> &nbsp;&nbsp;
+                    <input type="radio" id="datauri_image_no" name="datauri_images" checked="checked" />
+                  </div>
+                </div>
+
+                <ul>
+                  <li><strong>Benefit:</strong> the image in the card will persist, even if it no longer exists on the web</li>
+                  <li><strong>Drawback:</strong> embed is larger</li>
+                </ul>
+
+              </div>
             </div>
         </div>
 
@@ -150,7 +189,7 @@
                 </div>
                 <div class="col-md-6">
                   <label for="keep_banner">No</label> &nbsp;&nbsp;
-                  <input type="radio" id="keep_banner" name="banner_status" checked />
+                  <input type="radio" id="keep_banner" name="banner_status" checked="checked" />
                 </div>
               </div>
             </div>
@@ -189,8 +228,25 @@
     console.log("prefs are " + prefs);
 
     if (document.getElementById('social_card').checked) {
+
+      if (document.getElementById('datauri_favicon_yes').checked) {
+        prefs += "datauri_favicon=yes";
+      } else {
+        prefs += "datauri_favicon=no";
+      }
+
+      prefs += ',';
+
+      if (document.getElementById('datauri_image_yes').checked) {
+        prefs += "datauri_image=yes";
+      } else {
+        prefs += "datauri_image=no";
+      }
+
       window.location.href = "/ui/product/socialcard/" 
-        + uri.trim();
+      + prefs + "/"
+      + uri.trim();      
+
     } else if (document.getElementById('thumbnail').checked) {
 
       prefs += "timeout=" + $( "input#thumbnail_timeout" ).val();
