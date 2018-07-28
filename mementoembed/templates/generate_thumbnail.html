@@ -49,6 +49,7 @@
     formarea.innerHTML += 'Viewport Width: {{ viewport_width }}px<br>';
     formarea.innerHTML += 'Viewport Height: {{ viewport_height }}px<br>';
     formarea.innerHTML += 'Timeout: {{ timeout }}s<br>';
+    formarea.innerHTML += 'Remove Archive Banner: {{ remove_banner }}';
     setWorking();
     requestThumbnail(urim);
 
@@ -127,7 +128,9 @@
             ",thumbnail_height={{ thumbnail_height }}" + 
             ",viewport_width={{ viewport_width }}" + 
             ",viewport_height={{ viewport_height }}" +
-            ",timeout={{ timeout }}";
+            ",timeout={{ timeout }}" +
+            ",remove_banner={{ remove_banner }}";
+        console.log("preference_string is " + preference_string);
         xhr.setRequestHeader("Prefer", preference_string);
         xhr.responseType = 'arraybuffer';
 
@@ -153,6 +156,7 @@
                     formarea.innerHTML += 'Viewport Height: {{ viewport_height }}px<br>';
                     formarea.innerHTML += 'Viewport Width: {{ viewport_width }}px<br>';
                     formarea.innerHTML += 'Timeout: {{ timeout }}s<br>';
+                    formarea.innerHTML += 'Remove Archive Banner: {{ remove_banner }}';
 
                     thumbnail_output = '';
                     thumbnail_output += '<div class="row">';

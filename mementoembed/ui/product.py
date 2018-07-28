@@ -58,6 +58,7 @@ def generate_thumbnail(subpath):
     prefs['timeout'] = int(current_app.config['THUMBNAIL_TIMEOUT'])
     prefs['thumbnail_height'] = int(current_app.config['THUMBNAIL_HEIGHT'])
     prefs['thumbnail_width'] = int(current_app.config['THUMBNAIL_WIDTH'])
+    prefs['remove_banner'] = current_app.config['THUMBNAIL_REMOVE_BANNERS'].lower()
 
     if 'Prefer' in request.headers:
 
@@ -87,7 +88,11 @@ def generate_thumbnail(subpath):
                 try:
                     prefs[key] = int(value)
                 except ValueError:
-                    module_logger.exception("failed to set value for preference {}".format(key))
+
+                    if key == 'remove_banner':
+                        prefs[key] = value
+                    else:
+                        module_logger.exception("failed to set value for preference {}".format(key))
 
         else:
             urim = subpath
@@ -102,5 +107,6 @@ def generate_thumbnail(subpath):
         viewport_width=prefs['viewport_width'],
         timeout=prefs['timeout'],
         thumbnail_height=prefs['thumbnail_height'],
-        thumbnail_width=prefs['thumbnail_width']
+        thumbnail_width=prefs['thumbnail_width'],
+        remove_banner=prefs['remove_banner']
     ), 200
