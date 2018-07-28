@@ -142,7 +142,7 @@
               <br>
             </div>
             <div class="col-md-6">
-              Remove Archive Banner?<br>
+              Remove Archive Banner? (not available for all archives)<br>
               <div class="row">
                 <div class="col-md-6">
                   <label for="remove_banner">Yes</label> &nbsp;&nbsp;
@@ -239,12 +239,14 @@
     console.log("thumbnail clicked!");
     s_opts.style.display = "none";
     t_opts.style.display = "none";
+    opts_open = false;
   });
 
   $( "#social_card" ).bind( "click", function() {
     console.log("social card clicked!");
     s_opts.style.display = "none";
     t_opts.style.display = "none";
+    opts_open = false;
   });
 
   $( "#options" ).bind( "click", function() {
@@ -281,6 +283,8 @@
       t_opts.style.display = "none";
       s_opts.style.display = "none";
     }
+
+    console.log("opts_open now: " + opts_open);
 
   });
 
