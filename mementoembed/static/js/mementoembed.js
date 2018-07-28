@@ -152,6 +152,7 @@ function generate_cards() {
 
     me_textright.forEach(element =>{
         element.style.clear = "right";
+        element.style.overflow = "auto";
     });
 
     var me_belowtitle = [].slice.call(document.querySelectorAll('[class~=me-belowtitle]'));
