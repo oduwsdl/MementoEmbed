@@ -57,43 +57,102 @@
         </div>
 
         <div id="socialcard_options" style="display: none;">
-            No advanced options available yet for social cards in this version of MementoEmbed.
+            <hr>
+            <div class="row">
+              <div class="col-md-12">
+              <strong>Options for Social Cards</strong><br>
+              </div>
+            </div>
+  
+            <div class="row">
+                <div class="col-md-12">
+                  <strong>No advanced options available yet for social cards in this version of MementoEmbed.</strong><br>
+                </div>
+            </div>
         </div>
 
         <div id="thumbnail_options" style="display: none;">
           <hr>
           <div class="row">
-          Options for Thumbnails
-          </div>
-
-          <div class="row">
-            <div class="col-md-6">
-              <label for="thumbnail_width">Thumbnail Width (in pixels)</label>
-              <input type="text" id="thumbnail_width" name="thumbnail_width" class="form-control" value="{{ thumbnail_width }}">
-            </div>
-            <div class="col-md-6">
-              <label for="thumbnail_height">Thumbnail Height (in pixels)</label>
-              <input type="text" id="thumbnail_height" name="thumbnail_height" class="form-control" value="{{ thumbnail_height }}">
+            <div class="col-md-12">
+            <strong>Options for Thumbnails</strong><br><br>
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-6">
-              <label for="thumbnail_viewport_width">Thumbnail Viewport Width (in pixels)</label>
-              <input type="text" id="viewport_width" name="thumbnail_viewport_width" class="form-control" value="{{ thumbnail_viewport_width }}">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="thumbnail_width">Thumbnail Width<br>(in pixels)</label>
+                  </div>
+                  <div class="col-md-6">  
+                    <input type="text" id="thumbnail_width" name="thumbnail_width" value="{{ thumbnail_width }}">
+                  </div>
+                </div>
+              <br>
             </div>
             <div class="col-md-6">
-              <label for="thumbnail_viewport_height">Thumbnail Viewport Height (in pixels)</label>
-              <input type="text" id="viewport_height" name="thumbnail_viewport_height" class="form-control" value="{{ thumbnail_viewport_height }}">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="thumbnail_height">Thumbnail Height<br>(in pixels)</label>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="text" id="thumbnail_height" name="thumbnail_height" value="{{ thumbnail_height }}">
+                  </div>
+                </div>
+              <br>
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-6">
-              <label for="thumbnail_timeout">Thumbnail Timeout (in seconds)</label>
-              <input type="text" id="thumbnail_timeout" name="thumbnail_timeout" class="form-control" value="{{ thumbnail_timeout }}">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="thumbnail_viewport_width">Thumbnail Viewport Width<br>(in pixels)</label>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="text" id="viewport_width" name="thumbnail_viewport_width" value="{{ thumbnail_viewport_width }}">
+                  </div>
+                </div>
+              <br>
             </div>
             <div class="col-md-6">
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="thumbnail_viewport_height">Thumbnail Viewport Height<br>(in pixels)</label>
+                </div>
+                <div class="col-md-6">
+                  <input type="text" id="viewport_height" name="thumbnail_viewport_height" value="{{ thumbnail_viewport_height }}">
+                </div>
+              </div>
+              <br>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="thumbnail_timeout">Thumbnail Timeout<br>(in seconds)</label>
+                </div>
+                <div class="col-md-6">
+                  <input type="text" id="thumbnail_timeout" name="thumbnail_timeout" value="{{ thumbnail_timeout }}">
+                </div>
+              </div>
+              <br>
+            </div>
+            <div class="col-md-6">
+              Remove Archive Banner?<br>
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="remove_banner">Yes</label> &nbsp;&nbsp;
+                  <input type="radio" id="remove_banner" name="banner_status" />
+                </div>
+                <div class="col-md-6">
+                  <label for="keep_banner">No</label> &nbsp;&nbsp;
+                  <input type="radio" id="keep_banner" name="banner_status" checked />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -137,6 +196,12 @@
       prefs += ",viewport_height=" + $( "input#viewport_height" ).val();
       prefs += ",thumbnail_width=" + $( "input#thumbnail_width" ).val();
       prefs += ",thumbnail_height=" + $( "input#thumbnail_height" ).val();
+
+      if (document.getElementById('remove_banner').checked) {
+        prefs += ",remove_banner=yes"
+      } else {
+        prefs += ",remove_banner=no"
+      }
 
       window.location.href = "/ui/product/thumbnail/" 
       + prefs + "/"
