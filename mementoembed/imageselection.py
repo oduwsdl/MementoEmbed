@@ -1,15 +1,47 @@
 import logging
 import base64
 import traceback
+import io
 
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
-from PIL import ImageFile
+from PIL import ImageFile, Image
 from requests.exceptions import RequestException
 
 from .mementoresource import MementoParsingError
 
 module_logger = logging.getLogger('mementoembed.imageselection')
+
+def convert_imageuri_to_pngdata_uri(imageuri, httpcache, width, height=None):
+    
+    response = httpcache.get(imageuri)
+    imagedata = response.content
+
+    ifp = io.BytesIO(imagedata)
+
+    im = Image.open(ifp)
+
+    im_width, im_height = im.size
+
+    if height is None:
+        ratio = im_height / im_width
+        height = int(ratio * width)
+
+    im.thumbnail((width, height))
+
+    ofp = io.BytesIO()
+
+    im.save(ofp, format='PNG')
+
+    ofp.seek(0)
+
+    newimagedata = ofp.read()
+
+    b64img = base64.b64encode(newimagedata).decode('utf-8')
+
+    datauri = "data:image/png;base64,{}".format(b64img)
+
+    return datauri
 
 def score_image(imagecontent, n, N):
 
