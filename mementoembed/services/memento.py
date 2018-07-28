@@ -22,7 +22,7 @@ bp = Blueprint('services.memento', __name__)
 
 module_logger = logging.getLogger('mementoembed.services.memento')
 
-def contentdata(urim):
+def contentdata(urim, preferences):
 
     output = {}
 
@@ -45,7 +45,7 @@ def contentdata(urim):
     response.headers['Content-Type'] = 'application/json'
     return response, 200
 
-def originaldata(urim):
+def originaldata(urim, preferences):
 
     output = {}
 
@@ -71,7 +71,7 @@ def originaldata(urim):
     response.headers['Content-Type'] = 'application/json'
     return response, 200
 
-def bestimage(urim):
+def bestimage(urim, preferences):
 
     httpcache = CacheSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
@@ -93,7 +93,7 @@ def bestimage(urim):
     response.headers['Content-Type'] = 'application/json'
     return response, 200
 
-def archivedata(urim):
+def archivedata(urim, preferences):
 
     httpcache = CacheSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
@@ -134,19 +134,23 @@ Example: {}/https://web.archive.org/web/20180515130056/http://www.cs.odu.edu/~ml
 @bp.route('/services/memento/contentdata/<path:subpath>')
 def textinformation_endpoint(subpath):
     urim = subpath
-    return handle_errors(contentdata, urim)
+    preferences = {}
+    return handle_errors(contentdata, urim, preferences)
 
 @bp.route('/services/memento/bestimage/<path:subpath>')
 def bestimage_endpoint(subpath):
     urim = subpath
-    return handle_errors(bestimage, urim)
+    preferences = {}
+    return handle_errors(bestimage, urim, preferences)
 
 @bp.route('/services/memento/archivedata/<path:subpath>')
 def archivedata_endpoint(subpath):
     urim = subpath
-    return handle_errors(archivedata, urim)
+    preferences = {}
+    return handle_errors(archivedata, urim, preferences)
 
 @bp.route('/services/memento/originalresourcedata/<path:subpath>')
 def originaldata_endpoint(subpath):
     urim = subpath
-    return handle_errors(originaldata, urim)
+    preferences = {}
+    return handle_errors(originaldata, urim, preferences)
