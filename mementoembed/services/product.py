@@ -1,7 +1,6 @@
 import os
 import logging
 import json
-import subprocess
 import traceback
 import hashlib
 
@@ -11,12 +10,17 @@ import requests_cache
 from flask import render_template, request, Blueprint, current_app, make_response
 
 from mementoembed.mementosurrogate import MementoSurrogate
+from mementoembed.mementothumbnail import MementoThumbnail, \
+    MementoThumbnailGenerationError, MementoThumbnailFolderNotFound, \
+    MementoThumbnailSizeInvalid, MementoThumbnailViewportInvalid, \
+    MementoThumbnailTimeoutInvalid
+from mementoembed.mementoresource import MementoURINotAtArchiveFailure
 from mementoembed.cachesession import CacheSession
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
 
-module_logger = logging.getLogger('mementoembed.services.socialcard')
+module_logger = logging.getLogger('mementoembed.services.product')
 
 bp = Blueprint('services.product', __name__)
 
@@ -71,80 +75,160 @@ def socialcard_endpoint(subpath):
 @bp.route('/services/product/thumbnail/<path:subpath>')
 def thumbnail_endpoint(subpath):
 
-    try:
+    module_logger.info("Beginning thumbnail generation")
 
-        # TODO: test that subpath is actually a memento
-        module_logger.info("ummm...")
+    prefs = {}
+    prefs['viewport_height'] = int(current_app.config['THUMBNAIL_VIEWPORT_HEIGHT'])
+    prefs['viewport_width'] = int(current_app.config['THUMBNAIL_VIEWPORT_WIDTH'])
+    prefs['timeout'] = int(current_app.config['THUMBNAIL_TIMEOUT'])
+    prefs['thumbnail_height'] = int(current_app.config['THUMBNAIL_HEIGHT'])
+    prefs['thumbnail_width'] = int(current_app.config['THUMBNAIL_WIDTH'])
+    prefs['remove_banner'] = current_app.config['THUMBNAIL_REMOVE_BANNERS'].lower()
 
-        if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
-            urim = subpath
+    module_logger.debug("current app config: {}".format(current_app.config))
 
-            module_logger.info("Beginning thumbnail generation")
+    if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
+        urim = subpath
 
-            if os.path.isdir(current_app.config['THUMBNAIL_WORKING_FOLDER']):
-                
-                os.environ['URIM'] = urim
-                m = hashlib.sha256()
-                m.update(urim.encode('utf8'))
-                thumbfile = m.hexdigest()
-                thumbfile = "{}/{}.png".format(current_app.config['THUMBNAIL_WORKING_FOLDER'], m.hexdigest())
+        if 'Prefer' in request.headers:
 
-                module_logger.debug("Thumbnail will be stored in {}".format(thumbfile))
+            preferences = request.headers['Prefer'].split(',')
 
-                os.environ['THUMBNAIL_OUTPUTFILE'] = thumbfile
-                os.environ['USER_AGENT'] = __useragent__
+            for pref in preferences:
+                key, value = pref.split('=')
 
-                os.environ['VIEWPORT_WIDTH'] = current_app.config['THUMBNAIL_VIEWPORT_WIDTH']
-                os.environ['VIEWPORT_HEIGHT'] = current_app.config['THUMBNAIL_VIEWPORT_HEIGHT']
+                if key != 'remove_banner':
+                    prefs[key] = int(value)
+                else:
+                    prefs[key] = value.lower()
 
-                timeout = int(current_app.config['THUMBNAIL_TIMEOUT'])
+            module_logger.debug("The user hath preferences! ")
 
-                module_logger.debug("Starting thumbnail generation script")
+        httpcache = CacheSession(
+            timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+            user_agent=__useragent__,
+            starting_uri=urim
+            )
 
-                try:
+        mt = MementoThumbnail(
+            __useragent__,
+            current_app.config['THUMBNAIL_WORKING_FOLDER'],
+            current_app.config['THUMBNAIL_SCRIPT_PATH'],
+            httpcache
+        )
 
-                    # the beginning of some measure of caching
-                    if not os.path.exists(thumbfile):
-                        p = subprocess.Popen(["node", current_app.config['THUMBNAIL_SCRIPT_PATH']])
-                        p.wait(timeout=timeout)
+        try:
 
-                    with open(thumbfile, 'rb') as f:
-                        data = f.read()
+            mt.viewport_height = prefs['viewport_height']
+            mt.viewport_width = prefs['viewport_width']
+            mt.timeout = prefs['timeout']
+            mt.height = prefs['thumbnail_height']
+            mt.width = prefs['thumbnail_width']
 
-                    module_logger.info("Thumbnail generation successful, returning image")
-
-                    response = make_response(data)
-                    response.headers['Content-Type'] = 'image/png'
-
-                    return response, 200
-
-                except subprocess.TimeoutExpired:
-
-                    module_logger.exception("Thumbnail script failed to return after {} seconds".format(timeout))
-                    
-                    output = {
-                        "error": "a thumbnail failed to generated in {} seconds".format(timeout),
-                        "error details": repr(traceback.format_exc())
-                    }
-
-                    response = make_response(json.dumps(output))
-                    # response.headers['Content-Type'] = 'application/json'
-                    response.headers['Content-Type'] = 'text/plain'
-
-                    return response, 500
-
+            if prefs['remove_banner'].lower() == 'yes':
+                remove_banner = True
             else:
-                msg = "Thumbnail folder {} does not exist".format(current_app.config['THUMBNAIL_WORKING_FOLDER'])
-                module_logger.exception(msg)
-                    
-                output = {
-                    "error": msg,
-                    "error details": repr(traceback.format_exc())
-                }
-                return json.dumps(output), 500
-            
-        else:
-            return "The thumbnail service has been disabled by the system administrator", 200
+                remove_banner = False
 
-    except KeyError:
-            return "The thumbnail service is disabled by default", 200
+            data = mt.generate_thumbnail(urim, remove_banner=remove_banner)
+
+            response = make_response(data)
+            response.headers['Content-Type'] = 'image/png'
+            response.headers['Preference-Applied'] = \
+                "viewport_width={},viewport_height={}," \
+                "thumbnail_width={},thumbnail_height={}," \
+                "timeout={},remove_banner={}".format(
+                    mt.viewport_width, mt.viewport_height,
+                    mt.width, mt.height, mt.timeout,
+                    prefs['remove_banner'])
+
+            module_logger.info("Finished with thumbnail generation")
+
+            return response, 200
+
+        except MementoThumbnailFolderNotFound:
+
+            msg = "Thumbnail folder {} does not exist".format(current_app.config['THUMBNAIL_WORKING_FOLDER'])
+            module_logger.exception(msg)
+                
+            output = {
+                "error": msg,
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+
+        except MementoThumbnailSizeInvalid:
+
+            msg = "Requested Memento thumbnail size is invalid"
+            module_logger.exception(msg)
+                
+            output = {
+                "error": msg,
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+
+        except MementoThumbnailViewportInvalid:
+
+            msg = "Requested Memento thumgnail viewport size is invalid"
+            module_logger.exception(msg)
+                
+            output = {
+                "error": msg,
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+
+        except MementoThumbnailTimeoutInvalid:
+
+            msg = "Requested Memento thumbnail timeout is invalid"
+            module_logger.exception(msg)
+                
+            output = {
+                "error": msg,
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+
+        except MementoThumbnailGenerationError:
+
+            output = {
+                "error": "a thumbnail failed to generated in {} seconds".format(mt.timeout),
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+        
+        except MementoURINotAtArchiveFailure as e:
+
+            output = {
+                "error": e.user_facing_error,
+                "error details": repr(traceback.format_exc())
+            }
+
+            response = make_response(json.dumps(output))
+            response.headers['Content-Type'] = 'application/json'
+
+            return response, 500
+
+    else:
+        return "The thumbnail service has been disabled by the system administrator", 200

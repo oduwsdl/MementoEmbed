@@ -8,7 +8,8 @@ from flask import render_template, request, make_response, Blueprint, current_ap
 from redis import RedisError
 
 from mementoembed.mementoresource import NotAMementoError, MementoContentError, \
-    MementoConnectionError, MementoTimeoutError, MementoInvalidURI
+    MementoConnectionError, MementoTimeoutError, MementoInvalidURI, \
+    MementoURINotAtArchiveFailure
 from mementoembed.textprocessing import TextProcessingError
 
 module_logger = logging.getLogger('mementoembed.services.errors')
@@ -40,6 +41,21 @@ def handle_errors(function_name, urim):
                 }, indent=4))
         response.headers['Content-Type'] = 'application/json'
         return response, 404
+
+    except MementoURINotAtArchiveFailure as e:
+
+        attempt_cache_deletion(urim)
+        module_logger.warning("The submitted URI was not successfully located in an archive")
+
+        response = make_response(
+            json.dumps({
+                "content": e.user_facing_error,
+                "response headers": dict(e.response.headers),
+                "response status": e.response.status_code,
+                "error details": repr(traceback.format_exc())
+            }, indent=4))
+        response.headers['Content-Type'] = 'application/json'
+        return response, 502
 
     except MementoTimeoutError as e:
         attempt_cache_deletion(urim)

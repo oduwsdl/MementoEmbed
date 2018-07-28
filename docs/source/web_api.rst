@@ -155,3 +155,38 @@ This response contains two keys:
 
 * ``error`` - this provides an explanation of the failure
 * ``error details`` - this provides a Traceback of the MementoEmbed application that may be useful for diagnosing the error if it is a failure in the application
+
+**Specifying desired options for the thumbnail with HTTP Prefer**
+
+Using the HTTP ``Prefer`` header specified in `RFC 7240 <https://tools.ietf.org/html/rfc7240>`_, a client can request a thumbnail with specific features. For example, this client has contacted MementoEmbed at endpoint ``/services/product/thumbnail/``, requesting a thumbnail of URI-M ``http://web.archive.org/web/20180128152127/http://www.cs.odu.edu/~mkelly/`` with a viewport width of 4096 pixels and a thumbnail width of 2048 pixels::
+
+    GET /services/product/thumbnail/http://web.archive.org/web/20180128152127/http://www.cs.odu.edu/~mkelly/ HTTP/1.1
+    Host: mementoembed.ws-dl.cs.odu.edu
+    User-Agent: curl/7.54.0
+    Accept: */*
+    Prefer: viewport_width=4096,thumbnail_width=2048
+
+The response from MementoEmbed uses the ``Preference-Applied`` header to indicate which preferences have been applied, as shown in the following headers::
+
+    HTTP/1.0 200 OK
+    Content-Type: image/png
+    Content-Length: 437589
+    Preference-Applied: viewport_width=4096,viewport_height=768,thumbnail_width=2048,thumbnail_height=156,timeout=60
+    Server: Werkzeug/0.14.1 Python/3.6.5
+    Date: Wed, 25 Jul 2018 20:59:21 GMT
+
+    ...437589 bytes of data follows...
+
+MementoEmbed supports several options for specifying desired options for thumbnails.
+
+The following options are supported:
+
+* ``viewport_width`` - the width of the viewport of the browser capturing the snapshot (upper bound is 5120px)
+* ``viewport_height`` - the height of the viewport of the browser capturing the snapshot (upper bound is 2880px)
+* ``thumbnail_width`` - the width of the thumbnail in pixels, the thumbnail will be reduced in size to meet this requirement (upper bound is 5210px)
+* ``thumbnail_height`` - the height of the thumbnail in pixels, the thumbnail will be reduced in size to meet this requirement (upper bound is 2880px)
+* ``timeout`` - how long MementoEmbed should wait for the thumbnail to finish generating before issuing an error (upper bound is 5 minutes)
+
+If the viewport size requested is less than the thumbnail size, the thumbnail size will match the viewport size.
+
+If the thumbnail height is not specified, the ratio of width to height of the viewport will be used to calculate the height of the thumbnail.

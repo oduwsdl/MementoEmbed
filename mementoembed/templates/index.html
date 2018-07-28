@@ -36,19 +36,141 @@
       Select the type of Embed to Create:<br><br>
       <div class="row">
         <div class="col-md-6">
-          <input type="radio" id="social_card" name="surrogate_type" checked />
+          <input type="radio" id="social_card" name="surrogate_type" value="thumbnail" checked />
           <label for="social_card">Social Card</label>
         </div>
         <div class="col-md-6">
-          <input type="radio" id="thumbnail" name="surrogate_type" />
+          <input type="radio" id="thumbnail" name="surrogate_type" value="thumbnail" />
           <label for="thumbnail">Thumbnail</label>
         </div>
       </div>
 
+      <hr>
+
+      <div>
+
+        <div class="row" style="text-align: center;">
+          <div class="col-md-12" id="options">
+            Click here for advanced options<br>
+            <img src="/static/images/downarrow.png">
+          </div>
+        </div>
+
+        <div id="socialcard_options" style="display: none;">
+            <hr>
+            <div class="row">
+              <div class="col-md-12">
+              <strong>Options for Social Cards</strong><br>
+              </div>
+            </div>
+  
+            <div class="row">
+                <div class="col-md-12">
+                  <strong>No advanced options available yet for social cards in this version of MementoEmbed.</strong><br>
+                </div>
+            </div>
+        </div>
+
+        <div id="thumbnail_options" style="display: none;">
+          <hr>
+          <div class="row">
+            <div class="col-md-12">
+            <strong>Options for Thumbnails</strong><br><br>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="thumbnail_width">Thumbnail Width<br>(in pixels)</label>
+                  </div>
+                  <div class="col-md-6">  
+                    <input type="text" id="thumbnail_width" name="thumbnail_width" value="{{ thumbnail_width }}">
+                  </div>
+                </div>
+              <br>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="thumbnail_height">Thumbnail Height<br>(in pixels)</label>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="text" id="thumbnail_height" name="thumbnail_height" value="{{ thumbnail_height }}">
+                  </div>
+                </div>
+              <br>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="thumbnail_viewport_width">Thumbnail Viewport Width<br>(in pixels)</label>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="text" id="viewport_width" name="thumbnail_viewport_width" value="{{ thumbnail_viewport_width }}">
+                  </div>
+                </div>
+              <br>
+            </div>
+            <div class="col-md-6">
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="thumbnail_viewport_height">Thumbnail Viewport Height<br>(in pixels)</label>
+                </div>
+                <div class="col-md-6">
+                  <input type="text" id="viewport_height" name="thumbnail_viewport_height" value="{{ thumbnail_viewport_height }}">
+                </div>
+              </div>
+              <br>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="thumbnail_timeout">Thumbnail Timeout<br>(in seconds)</label>
+                </div>
+                <div class="col-md-6">
+                  <input type="text" id="thumbnail_timeout" name="thumbnail_timeout" value="{{ thumbnail_timeout }}">
+                </div>
+              </div>
+              <br>
+            </div>
+            <div class="col-md-6">
+              Remove Archive Banner? (not available for all archives)<br>
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="remove_banner">Yes</label> &nbsp;&nbsp;
+                  <input type="radio" id="remove_banner" name="banner_status" />
+                </div>
+                <div class="col-md-6">
+                  <label for="keep_banner">No</label> &nbsp;&nbsp;
+                  <input type="radio" id="keep_banner" name="banner_status" checked />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><em>Reload page to reset option values to defaults</em>
+        </div>
+
+      </div>
+
       <br>
       <br>
-      <button id="createEmbed" type="button" class="btn btn-primary">Create an Embed for this URI-M</button>
-      <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
+      <div class="row">
+        <div class="col-md-12">
+          <span style="text-align: center;">
+          <button id="createEmbed" type="button" class="btn btn-primary">Create Embed for this URI-M</button>
+          <button id="clearURL" type="reset" class="btn btn-secondary">Clear URI-M</button>
+          </span>
+        </div>
+      </div>
     </form>
   </div>
 
@@ -58,24 +180,53 @@
 
 <script>
 
-  function requestEmbed(uri) {
+  function requestEmbed() {
+
+    uri = document.getElementById('uri_submitted').value;
+
+    prefs = "";
+
+    console.log("prefs are " + prefs);
 
     if (document.getElementById('social_card').checked) {
-      window.location.href = "/ui/product/socialcard/" + uri.trim();
+      window.location.href = "/ui/product/socialcard/" 
+        + uri.trim();
     } else if (document.getElementById('thumbnail').checked) {
-      window.location.href = "/ui/product/thumbnail/" + uri.trim();
+
+      prefs += "timeout=" + $( "input#thumbnail_timeout" ).val();
+      prefs += ",viewport_width=" + $( "input#viewport_width" ).val();
+      prefs += ",viewport_height=" + $( "input#viewport_height" ).val();
+      prefs += ",thumbnail_width=" + $( "input#thumbnail_width" ).val();
+      prefs += ",thumbnail_height=" + $( "input#thumbnail_height" ).val();
+
+      if (document.getElementById('remove_banner').checked) {
+        prefs += ",remove_banner=yes"
+      } else {
+        prefs += ",remove_banner=no"
+      }
+
+      window.location.href = "/ui/product/thumbnail/" 
+      + prefs + "/"
+      + uri.trim();
     }
 
   }
 
+  t_opts = document.getElementById('thumbnail_options');
+  s_opts = document.getElementById('socialcard_options');
+  opts_open = false;
+
   // handlers for all input begin here
   $(function() {
-      $("form").submit(function() { return false; });
-  });
+    $("form").submit(function( event ) { 
+        return false;
+    });
+  })
 
   $( "#clearURL" ).bind( "click" , function() {
-      $('#uri_submitted').val("");
-      workarea.innerHTML = "";
+    $('#uri_submitted').val("");
+    s_opts.style.display = "none";
+    t_opts.style.display = "none";
   });
 
   $('#uri_submitted').keyup(function(e){
@@ -86,11 +237,63 @@
       }
   });
 
-  $( "#createEmbed" ).bind( "click" , function() {
-      uri = document.getElementById('uri_submitted').value;
-      // setWorking();
-      requestEmbed(uri);
+  $( "#thumbnail" ).bind( "click", function() {
+    console.log("thumbnail clicked!");
+    s_opts.style.display = "none";
+    t_opts.style.display = "none";
+    opts_open = false;
   });
+
+  $( "#social_card" ).bind( "click", function() {
+    console.log("social card clicked!");
+    s_opts.style.display = "none";
+    t_opts.style.display = "none";
+    opts_open = false;
+  });
+
+  $( "#options" ).bind( "click", function() {
+
+    console.log("t_opts: " + t_opts);
+    console.log("s_opts: " + s_opts);
+    console.log("opts_open: " + opts_open);
+
+    if (document.getElementById('thumbnail').checked) {
+
+      if (opts_open == true) {
+        t_opts.style.display = "none";
+        s_opts.style.display = "none";
+        opts_open = false;
+      } else {
+        s_opts.style.display = "none";
+        t_opts.style.display = "block";
+        opts_open = true;
+      }
+
+    } else if (document.getElementById('social_card').checked) {
+
+      if (opts_open == true) {
+        t_opts.style.display = "none";
+        s_opts.style.display = "none";
+        opts_open = false;
+      } else {
+        t_opts.style.display = "none";
+        s_opts.style.display = "block";
+        opts_open = true;
+      }
+
+    } else {
+      t_opts.style.display = "none";
+      s_opts.style.display = "none";
+    }
+
+    console.log("opts_open now: " + opts_open);
+
+  });
+
+  $( "#createEmbed" ).bind( "click" , function() {
+      requestEmbed();
+  });
+
 </script>
 
 {% include "pagebottom.html" %}

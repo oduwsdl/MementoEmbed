@@ -35,6 +35,14 @@ class MementoParsingError(MementoContentError):
     user_facing_error = "There was a problem processing the text content of memento."
     pass
 
+class MementoURINotAtArchiveFailure(MementoResourceError):
+    user_facing_error = "The archive did not respond properly for this memento. Maybe it does not exist at this archive?"
+
+    def __init__(self, message, response, original_exception=None):
+        self.message = message
+        self.response = response
+        self.original_exception = original_exception
+
 class NotAMementoError(MementoContentError):
     user_facing_error = "The URI submitted does not appear to belong to a memento."
     
@@ -81,8 +89,14 @@ def get_memento_datetime_from_response(response):
                 "%a, %d %b %Y %H:%M:%S GMT"
             )
     except KeyError as e:
-        raise NotAMementoError("no memento-datetime header", 
-            response=response, original_exception=e)
+
+        if response.status_code != 200:
+            raise MementoURINotAtArchiveFailure("non-200 status code returned",
+                response=response, original_exception=e)
+
+        else:
+            raise NotAMementoError("no memento-datetime header", 
+                response=response, original_exception=e)
 
     return memento_dt
 
@@ -516,6 +530,7 @@ class IMFMemento(MementoResource):
                 "failed to parse document using BeautifulSoup",
                 original_exception=e)
 
+        # TODO: create a function that returns the raw_urim without doing this request afterward
         self.raw_urim = twp.get('src')
 
         response = self.http_cache.get(self.raw_urim)

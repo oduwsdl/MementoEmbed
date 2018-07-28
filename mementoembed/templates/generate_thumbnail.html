@@ -43,6 +43,13 @@
     workstatus.innerHTML = "Generating {{ surrogate_type }}";
     formarea.innerHTML = "";
     formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
+    formarea.innerHTML += '<p>with these settings:</p>';
+    formarea.innerHTML += 'Width: {{ thumbnail_width }}px<br>';
+    formarea.innerHTML += 'Height: {{ thumbnail_height }}px<br>';
+    formarea.innerHTML += 'Viewport Width: {{ viewport_width }}px<br>';
+    formarea.innerHTML += 'Viewport Height: {{ viewport_height }}px<br>';
+    formarea.innerHTML += 'Timeout: {{ timeout }}s<br>';
+    formarea.innerHTML += 'Remove Archive Banner: {{ remove_banner }}';
     setWorking();
     requestThumbnail(urim);
 
@@ -117,6 +124,14 @@
         var xhr = new XMLHttpRequest();
         console.log("XHR object created, issuing request to " + thumbnail_svc);
         xhr.open('GET', thumbnail_svc, true);
+        preference_string = "thumbnail_width={{ thumbnail_width }}" + 
+            ",thumbnail_height={{ thumbnail_height }}" + 
+            ",viewport_width={{ viewport_width }}" + 
+            ",viewport_height={{ viewport_height }}" +
+            ",timeout={{ timeout }}" +
+            ",remove_banner={{ remove_banner }}";
+        console.log("preference_string is " + preference_string);
+        xhr.setRequestHeader("Prefer", preference_string);
         xhr.responseType = 'arraybuffer';
 
         console.log("done setting up AJAX request");
@@ -131,18 +146,33 @@
                     imagehtml = '<img src="data:image/png;base64,' + 
                         _arrayBufferToBase64(this.response) + '">'
 
-                    workarea.innerHTML = '';
-                    workarea.innerHTML += '<div class="row">';
-                    workarea.innerHTML += '<div class="col-md-6">';
-                    workarea.innerHTML += '<p>If you want to include this thumbnail in your web page</p>:'
-                    workarea.innerHTML += imagehtml;
-                    workarea.innerHTML += '</div>';
-                    workarea.innerHTML += '<div class="col-md-6">';
-                    workarea.innerHTML += '<div class="row">';
-                    workarea.innerHTML += '<p>then copy and paste the following code into your page HTML:</p>';
-                    workarea.innerHTML += '<textarea>' + imagehtml + '</textarea>';
-                    workarea.innerHTML += '</div>';
-                    workarea.innerHTML += '</div>';
+                    workstatus.innerHTML = "";
+                    workstatus.innerHTML = "{{ surrogate_type }} Generated";
+                    formarea.innerHTML = "";
+                    formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
+                    formarea.innerHTML += '<p>with these settings:</p>';
+                    formarea.innerHTML += 'Width: {{ thumbnail_width }}px<br>';
+                    formarea.innerHTML += 'Height: {{ thumbnail_height }}px<br>';
+                    formarea.innerHTML += 'Viewport Height: {{ viewport_height }}px<br>';
+                    formarea.innerHTML += 'Viewport Width: {{ viewport_width }}px<br>';
+                    formarea.innerHTML += 'Timeout: {{ timeout }}s<br>';
+                    formarea.innerHTML += 'Remove Archive Banner: {{ remove_banner }}';
+
+                    thumbnail_output = '';
+                    thumbnail_output += '<div class="row">';
+                    thumbnail_output += '<div class="col-md-6">';
+                    thumbnail_output += '<p>If you want to include this thumbnail in your web page</p>:'
+                    thumbnail_output += imagehtml;
+                    thumbnail_output += '</div>';
+                    thumbnail_output += '<div class="col-md-6">';
+                    thumbnail_output += '<div class="row">';
+                    thumbnail_output += '<p>then copy and paste the following code into your page HTML:</p>';
+                    thumbnail_output += '<textarea rows="6" cols="40">' + imagehtml + '</textarea>';
+                    thumbnail_output += '</div>';
+                    thumbnail_output += '</div>';
+                    thumbnail_output += 'Does this not look right? &nbsp;<a href="https://github.com/oduwsdl/MementoEmbed/issues">Click here to report this URI-M with details of what didn\'t work</a>.'
+
+                    workarea.innerHTML += thumbnail_output
                     
                 } else {
                     unsetWorking();
