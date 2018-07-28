@@ -83,6 +83,7 @@ def thumbnail_endpoint(subpath):
     prefs['timeout'] = int(current_app.config['THUMBNAIL_TIMEOUT'])
     prefs['thumbnail_height'] = int(current_app.config['THUMBNAIL_HEIGHT'])
     prefs['thumbnail_width'] = int(current_app.config['THUMBNAIL_WIDTH'])
+    prefs['remove_banner'] = current_app.config['THUMBNAIL_REMOVE_BANNERS'].lower()
 
     module_logger.debug("current app config: {}".format(current_app.config))
 
@@ -95,7 +96,11 @@ def thumbnail_endpoint(subpath):
 
             for pref in preferences:
                 key, value = pref.split('=')
-                prefs[key] = int(value)
+
+                if key != 'remove_banner':
+                    prefs[key] = int(value)
+                else:
+                    prefs[key] = value.lower()
 
             module_logger.debug("The user hath preferences! ")
 
@@ -120,16 +125,22 @@ def thumbnail_endpoint(subpath):
             mt.height = prefs['thumbnail_height']
             mt.width = prefs['thumbnail_width']
 
-            data = mt.generate_thumbnail(urim)
+            if prefs['remove_banner'].lower() == 'yes':
+                remove_banner = True
+            else:
+                remove_banner = False
+
+            data = mt.generate_thumbnail(urim, remove_banner=remove_banner)
 
             response = make_response(data)
             response.headers['Content-Type'] = 'image/png'
             response.headers['Preference-Applied'] = \
                 "viewport_width={},viewport_height={}," \
                 "thumbnail_width={},thumbnail_height={}," \
-                "timeout={}".format(
+                "timeout={},remove_banner={}".format(
                     mt.viewport_width, mt.viewport_height,
-                    mt.width, mt.height, mt.timeout)
+                    mt.width, mt.height, mt.timeout,
+                    prefs['remove_banner'])
 
             module_logger.info("Finished with thumbnail generation")
 

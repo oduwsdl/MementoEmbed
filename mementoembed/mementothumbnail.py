@@ -174,11 +174,14 @@ class MementoThumbnail:
         elif self._timeout > 300:
             raise MementoThumbnailTimeoutInvalid("Attempting to set a value higher than 5 minutes for thumbnail generation")
 
-    def generate_thumbnail(self, urim):
+    def generate_thumbnail(self, urim, remove_banner=True):
         
         if os.path.isdir(self.working_directory):
             
-            thumb_urim = get_urim_for_thumbnail(urim, self.httpcache)
+            if remove_banner == True:
+                thumb_urim = get_urim_for_thumbnail(urim, self.httpcache)
+            else:
+                thumb_urim = urim
 
             os.environ['URIM'] = thumb_urim
             m = hashlib.sha256()
@@ -189,6 +192,7 @@ class MementoThumbnail:
                         str(self.viewport_height), 
                         str(self.width), 
                         str(self.height), 
+                        str(remove_banner),
                         thumb_urim
                     ]
                     ).encode('utf8')
