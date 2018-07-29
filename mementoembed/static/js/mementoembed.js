@@ -6,6 +6,11 @@ function generate_cards() {
     for (var i = 0; i < me_cards.length; i++) {
 
         element = me_cards[i];
+        element.style.background = "#ffffff no-repeat fixed center";
+        element.style.margin = "0";
+        element.style.padding = "0";
+        element.style.width = "445px";
+        element.style.height = "200px";
 
         if (element.dataset["processed"] == "true") {
             console.log("alredy processed element for " + element.dataset["urim"]);
@@ -41,7 +46,7 @@ function generate_cards() {
                 belowtitleHTML = '<div class="me-belowtitle">';
 
                 if (archiveFavicon != null) {
-                    belowtitleHTML += '<img src="' + archiveFavicon + '" alt="' + archiveName + '" width="16">&nbsp;&nbsp;';
+                    belowtitleHTML += '<img class="me-favicon" src="' + archiveFavicon + '" alt="' + archiveName + '" width="16">&nbsp;&nbsp;';
                 }
 
                 if ((archiveName) != null) {
@@ -71,6 +76,7 @@ function generate_cards() {
                 me_titles[j].style.padding = "0px";
                 me_titles[j].style.margin = "0px";
                 me_titles[j].style.marginBottom = "1px";
+                me_titles[j].style.background = "#ffffff no-repeat fixed center";
                 
             }
 
@@ -81,7 +87,7 @@ function generate_cards() {
                 belowTextRight = '<div class="me-footer">';
 
                 if (originalFavicon != null) {
-                    belowTextRight += '&nbsp;&nbsp;<img src="' + originalFavicon + '" width="16" />&nbsp;&nbsp;'
+                    belowTextRight += '&nbsp;&nbsp;<img class="me-favicon" src="' + originalFavicon + '" width="16" />&nbsp;&nbsp;'
                 }
 
                 if ((pubDate != null) && (domain != null)) {
@@ -95,7 +101,7 @@ function generate_cards() {
                 date_components = datetime_components[0].split("-");
                 time_components = datetime_components[1].split(":");
                 datestring = date_components[0] + date_components[1] + date_components[2] + time_components[0] + time_components[1] + time_components[2];
-                belowTextRight += '&nbsp; || <a class="me-allversions" href="http://timetravel.mementoweb.org/list/' + datestring + '/' + urir + '">Other Versions</a>';
+                belowTextRight += '<br > &nbsp; <a class="me-allversions" href="http://timetravel.mementoweb.org/list/' + datestring + '/' + urir + '">Other Versions</a>';
 
                 if (linkStatus != null) {
                     belowTextRight += "&nbsp;";
@@ -106,7 +112,6 @@ function generate_cards() {
                         belowTextRight += "Current version unavailable";
                         belowTextRight += '</span>';
 
-
                     } else {
 
                         if (urir != null) {
@@ -114,8 +119,6 @@ function generate_cards() {
                         }
 
                     }
-
-                    // belowtitleHTML += "<br /><br />";
 
                     me_textright[j].insertAdjacentHTML("afterend", belowTextRight);
 
@@ -138,14 +141,16 @@ function generate_cards() {
         element.style.color = "rgb(51, 51, 51)";
         element.style.display = "inline";
         element.style.float = "left";
+        element.style.margin = "0";
+        element.style.padding = "0";
         element.style.marginBottom = "5px";
         element.style.marginLeft = "0px";
         element.style.marginRight = "30px";
-        element.style.marginTop = "0px";
         element.style.maxHeight = "96px";
         element.style.maxWidth = "96px";
         element.style.padding = "1px";
         element.style.width = "96px";
+        element.style.background = "#ffffff no-repeat fixed center";
     });
 
     var me_textright = [].slice.call(document.querySelectorAll('[class^=me-textright]'));
@@ -162,7 +167,9 @@ function generate_cards() {
         element.style.fontFamily = '"Museo Sans", "Helvetica Neue", sans-serif';
         element.style.fontSize = "10px";
         element.style.textAlign = "left";
-        element.style.padding = "0px";
+        element.style.margin = "0";
+        element.style.padding = "0";
+        element.style.background = "#ffffff no-repeat fixed center";
     });
 
     var me_snippets = [].slice.call(document.querySelectorAll('[class^=me-snippet]'));
@@ -173,9 +180,10 @@ function generate_cards() {
         element.style.fontSize = "12px";
         element.style.lineHeight = "18px";
         element.style.textAlign = "left";
-        element.style.padding = "0px";
-        element.style.margin = "0px";
+        element.style.margin = "0";
+        element.style.padding = "0";
         element.style.color = "rgb(51, 51, 51)";
+        element.style.background = "#ffffff no-repeat fixed center";
     });
 
     var me_footer = [].slice.call(document.querySelectorAll('[class~=me-footer]'));
@@ -185,8 +193,11 @@ function generate_cards() {
         element.style.fontFamily = '"Museo Sans", "Helvetica Neue", sans-serif';
         element.style.fontSize = "10px";
         element.style.textAlign = "left";
+        element.style.margin = "0";
+        element.style.padding = "0";
         element.style.marginTop = "10px";
         element.style.paddingTop = "10px";
+        element.style.background = "#ffffff no-repeat fixed center";
     });
 
     var me_title_links = [].slice.call(document.querySelectorAll('[class~=me-title-link]'));
@@ -194,28 +205,68 @@ function generate_cards() {
     me_title_links.forEach(element =>{
         element.style.textDecoration = "none";
         element.style.color = "rgb(9, 116, 283)";
-    })
+        element.style.background = "#ffffff no-repeat fixed center";
+        element.style.margin = "0";
+        element.style.padding = "0";
+    });
 
     var me_pubdate_links = [].slice.call(document.querySelectorAll('[class~=me-pubdate]'));
 
     me_pubdate_links.forEach(element =>{
         element.style.textDecoration = "none";
         element.style.color = "rgb(9, 116, 283)";
-    })
+        element.style.background = "#ffffff no-repeat fixed center";
+        element.style.margin = "0";
+        element.style.padding = "0";
+    });
+
+    var me_allversions = [].slice.call(document.querySelectorAll('[class~=me-allversions]'));
+
+    me_allversions.forEach(element =>{
+        element.style.textDecoration = "none";
+        element.style.color = "rgb(9, 116, 283)";
+        element.style.background = "#ffffff no-repeat fixed center";
+        element.style.margin = "0";
+        element.style.padding = "0";
+    });
 
     var me_livestatus_links = [].slice.call(document.querySelectorAll('[class~=me-livestatus]'));
 
     me_livestatus_links.forEach(element =>{
         element.style.textDecoration = "none";
         element.style.color = "rgb(9, 116, 283)";
-    })
+        element.style.background = "#ffffff no-repeat fixed center";
+        element.style.margin = "0";
+        element.style.padding = "0";
+    });
 
     var me_archive_links = [].slice.call(document.querySelectorAll('[class~=me-archive-link]'));
     
     me_archive_links.forEach(element =>{
         element.style.textDecoration = "none";
         element.style.color = "rgb(9, 116, 283)";
-    })
+        element.style.background = "#ffffff no-repeat fixed center";
+        element.style.margin = "0";
+        element.style.padding = "0";
+    });
+
+    var me_favicon_links = [].slice.call(document.querySelectorAll('[class~=me-favicon]'));
+
+    me_favicon_links.forEach(element =>{
+        element.style.background = "#ffffff no-repeat fixed center";
+        element.style.margin = "0";
+        element.style.padding = "0";
+        element.style.fontSize = "10px";
+        element.style.borderWidth = "0";
+        element.style.borderStyle = "none";
+        element.style.lineHeight = "15px";
+        element.style.borderImageRepeat = "initial";
+        element.style.borderImageWidth = "0";
+        element.style.fontFamily = '"Museo Sans", "Helvetica Neue", sans-serif';
+        element.style.fontStretch = "initial";
+        element.style.fontWeight = "400";
+        element.style.verticalAlign = "middle";
+    });
 
     console.log("all MementoEmbed social cards generated...");
 }
