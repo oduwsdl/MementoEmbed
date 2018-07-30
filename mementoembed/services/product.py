@@ -15,6 +15,7 @@ from mementoembed.mementothumbnail import MementoThumbnail, \
     MementoThumbnailSizeInvalid, MementoThumbnailViewportInvalid, \
     MementoThumbnailTimeoutInvalid
 from mementoembed.mementoresource import MementoURINotAtArchiveFailure
+from mementoembed.imageselection import convert_imageuri_to_pngdata_uri
 from mementoembed.cachesession import CacheSession
 from mementoembed.version import __useragent__
 
@@ -24,31 +25,32 @@ module_logger = logging.getLogger('mementoembed.services.product')
 
 bp = Blueprint('services.product', __name__)
 
-def generate_social_card_html(urim, surrogate, urlroot):
+def generate_social_card_html(urim, surrogate, urlroot, 
+    archive_favicon_uri, original_favicon_uri, striking_image_uri):
 
     return htmlmin.minify( render_template(
         "new_social_card.html",
         urim = urim,
         urir = surrogate.original_uri,
-        image = surrogate.striking_image,
+        image = striking_image_uri,
         archive_uri = surrogate.archive_uri,
-        archive_favicon = surrogate.archive_favicon,
+        archive_favicon = archive_favicon_uri,
         archive_collection_id = surrogate.collection_id,
         archive_collection_uri = surrogate.collection_uri,
         archive_collection_name = surrogate.collection_name,
         archive_name = surrogate.archive_name,
-        original_favicon = surrogate.original_favicon,
+        original_favicon = original_favicon_uri,
         original_domain = surrogate.original_domain,
         original_link_status = surrogate.original_link_status,
         surrogate_creation_time = surrogate.creation_time,
-        memento_datetime = surrogate.memento_datetime,
+        memento_datetime = surrogate.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
         me_title = surrogate.title,
         me_snippet = surrogate.text_snippet
     ) + '<script async src="{}/static/js/mementoembed.js" charset="utf-8"></script>'.format(urlroot), 
     remove_empty_space=True, 
     remove_optional_attribute_quotes=False )
 
-def generate_socialcard_response(urim):
+def generate_socialcard_response(urim, preferences):
 
     httpcache = CacheSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
@@ -63,14 +65,57 @@ def generate_socialcard_response(urim):
 
     urlroot = request.url_root
     urlroot = urlroot if urlroot[-1] != '/' else urlroot[0:-1]
-    
-    return generate_social_card_html(urim, s, urlroot), 200
+
+    archive_favicon_uri = s.archive_favicon
+    original_favicon_uri = s.original_favicon
+    striking_image_uri = s.striking_image
+
+    if preferences['datauri_favicon'].lower() == 'yes':
+        original_favicon_uri = convert_imageuri_to_pngdata_uri(
+            original_favicon_uri, httpcache, 16, 16
+        )
+        archive_favicon_uri = convert_imageuri_to_pngdata_uri(
+            archive_favicon_uri, httpcache, 16, 16
+        )
+
+    if preferences['datauri_image'].lower() == 'yes':
+        striking_image_uri = convert_imageuri_to_pngdata_uri(
+            striking_image_uri, httpcache, 96
+        )
+
+    data = generate_social_card_html(
+        urim, s, urlroot, archive_favicon_uri, 
+        original_favicon_uri, striking_image_uri
+        )
+
+    response = make_response(data)
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    response.headers['Preference-Applied'] = \
+        "datauri_favicon={},datauri_image={}".format(
+            preferences['datauri_favicon'],
+            preferences['datauri_image']
+        )
+
+    return response, 200
 
 @bp.route('/services/product/socialcard/<path:subpath>')
 def socialcard_endpoint(subpath):
 
     urim = subpath
-    return handle_errors(generate_socialcard_response, urim)
+
+    prefs = {}
+    prefs['datauri_favicon'] = 'no'
+    prefs['datauri_image'] = 'no'
+
+    if 'Prefer' in request.headers:
+
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = value.lower()
+
+    return handle_errors(generate_socialcard_response, urim, prefs)
 
 @bp.route('/services/product/thumbnail/<path:subpath>')
 def thumbnail_endpoint(subpath):

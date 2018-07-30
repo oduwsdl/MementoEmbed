@@ -17,6 +17,10 @@ def ui_product_no_urim():
 @bp.route('/ui/product/socialcard/<path:subpath>', methods=['HEAD', 'GET'])
 def generate_social_card(subpath):
 
+    prefs = {}
+    prefs['datauri_favicon'] = 'no'
+    prefs['datauri_image'] = 'no'
+
     social_card_template = render_template("new_social_card.html",
         urim = "{{ urim }}",
         urir = "{{ urir }}",
@@ -37,8 +41,23 @@ def generate_social_card(subpath):
         server_domain = "{{ server_domain }}"
     )
 
+    urim = subpath
+
+    if subpath[0:4] != "http":
+
+        pathprefs, urim = subpath.split('/', 1)
+        module_logger.debug("prefs: {}".format(pathprefs))
+        module_logger.debug("urim: {}".format(urim))
+
+        for entry in pathprefs.split(','):
+            module_logger.debug("examining entry {}".format(entry))
+            key, value = entry.split('=')
+            module_logger.debug("setting preference {} to value {}".format(key, value))
+            prefs[key] = value
+
+
     return render_template('generate_social_card.html', 
-        urim = subpath,
+        urim = urim,
         pagetitle="MementoEmbed - Generate a Social Card",
         surrogate_type="Social Card",
         textdata_endpoint="/services/memento/contentdata/",
@@ -46,7 +65,9 @@ def generate_social_card(subpath):
         originalresourcedata_endpoint="/services/memento/originalresourcedata/",
         bestimage_endpoint="/services/memento/bestimage/",
         social_card_template=social_card_template,
-        appversion = __appversion__
+        appversion = __appversion__,
+        datauri_favicon = prefs['datauri_favicon'],
+        datauri_image = prefs['datauri_image']
     ), 200
 
 @bp.route('/ui/product/thumbnail/<path:subpath>', methods=['HEAD', 'GET'])

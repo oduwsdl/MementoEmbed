@@ -21,10 +21,10 @@ def attempt_cache_deletion(urim):
     if urim not in baduris:
         requests_cache.get_cache().delete_url(urim)
 
-def handle_errors(function_name, urim):
+def handle_errors(function_name, urim, preferences):
 
     try:
-        return function_name(urim)
+        return function_name(urim, preferences)
 
     except NotAMementoError as e:
         attempt_cache_deletion(urim)
