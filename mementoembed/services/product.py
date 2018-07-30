@@ -89,7 +89,7 @@ def generate_socialcard_response(urim, preferences):
         )
 
     response = make_response(data)
-    response.headers['Content-Type'] = 'text/html'
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'
     response.headers['Preference-Applied'] = \
         "datauri_favicon={},datauri_image={}".format(
             preferences['datauri_favicon'],
