@@ -54,9 +54,13 @@ function generate_cards() {
                     console.log("archive name is " + archiveName);
                     belowtitleHTML += 'Preserved by <a class="me-archive-link" href="' + archiveURI + '">' + archiveName + '</a>';
 
-                    if ((collectionName != null) && (collectionURI != null) && (collectionName != "null" && (collectionURI != "null"))) {
-                        console.log("collection URI is " + collectionURI);
-                        console.log("collection name is " + collectionName);
+                    console.log("collection URI is " + collectionURI);
+                    console.log("collection name is " + collectionName);
+                    
+
+                    if ( (collectionName != null) && (collectionURI != null) 
+                        && (collectionURI != "None") && (collectionName != "None")
+                        && (collectionName != "null") && (collectionURI != "null") ) {
                         belowtitleHTML += '<br />Member of the Collection <a class="me-archive-link" style="text-decoration:none" href="' +
                              collectionURI + '">' + collectionName + '</a>';
                     }        
