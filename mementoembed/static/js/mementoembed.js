@@ -97,9 +97,10 @@ function generate_cards() {
                 }
 
                 // urldate, urltime, tzone = pubdate.split(" ");
-                datetime_components = pubDate.split(" ");
+                datetime_components = pubDate.split("T");
                 date_components = datetime_components[0].split("-");
                 time_components = datetime_components[1].split(":");
+                
                 datestring = date_components[0] + date_components[1] + date_components[2] + time_components[0] + time_components[1] + time_components[2];
                 belowTextRight += '<br > &nbsp; <a class="me-allversions" href="http://timetravel.mementoweb.org/list/' + datestring + '/' + urir + '">Other Versions</a>';
 
