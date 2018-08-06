@@ -16,8 +16,8 @@ function generate_cards() {
             console.log("alredy processed element for " + element.dataset["urim"]);
         } else {
 
-            urim = element.dataset["urim"];
-            urir = element.dataset["urir"];
+            urim = element.dataset["versionurl"];
+            urir = element.dataset["originalurl"];
             image = element.dataset["image"];
             collectionid = element.dataset["archiveCollectionId"];
             archiveFavicon = element.dataset["archiveFavicon"];
@@ -27,9 +27,13 @@ function generate_cards() {
             archiveName = element.dataset["archiveName"];
             originalFavicon = element.dataset["originalFavicon"];
             creationDate = element.dataset["surrogateCreationDate"];
-            pubDate = element.dataset["date"];
+            pubDate = element.dataset["versiondate"];
             domain = element.dataset["originalDomain"];
             linkStatus = element.dataset["originalLinkStatus"];
+
+            console.log("pubDate is " + pubDate);
+            console.log("versionurl is " + urim);
+            console.log("originalurl is " + urir);
             
             meImageHTML = '';
 
