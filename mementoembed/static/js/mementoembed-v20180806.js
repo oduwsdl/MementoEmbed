@@ -101,7 +101,10 @@ function generate_cards() {
                 if ((pubDate != null) && (domain != null)) {
                     uPubDate = pubDate.toUpperCase();
                     uDomain = domain.toUpperCase();
-                    belowTextRight += '<a class="me-pubdate" href="' + urim + '">' + uDomain + '&nbsp;&nbsp;@&nbsp;&nbsp;' + uPubDate + '</a>';                
+                    belowTextRight += '<a class="me-pubdate" ' +
+                        'data-originalurl="' + urir + '" data-versiondate="' + pubDate +'"' +
+                        'href="' + urim + '">' 
+                        + uDomain + '&nbsp;&nbsp;@&nbsp;&nbsp;' + uPubDate + '</a>';                
                 }
 
                 // urldate, urltime, tzone = pubdate.split(" ");
@@ -124,7 +127,9 @@ function generate_cards() {
                     } else {
 
                         if (urir != null) {
-                            belowTextRight += ' || <a class="me-livestatus" href="' + urir + '">Current version</a>';
+                            belowTextRight += ' || <a class="me-livestatus" data-versionurl="' + 
+                                urim + '" data-versiondate="' + pubDate + '" href="' + 
+                                urir + '">Current version</a>';
                         }
 
                     }

@@ -212,6 +212,7 @@ function generate_social_card_content() {
     social_card_content = social_card_content.replace("\{\{ urim \}\}", urim);
     social_card_content = social_card_content.replace("\{\{ urim \}\}", urim); // yes, this must run twice
     social_card_content = social_card_content.replace("\{\{ urir \}\}", urir);
+    social_card_content = social_card_content.replace("\{\{ urir \}\}", urir); // yes, this must run twice
     social_card_content = social_card_content.replace("\{\{ me_title \}\}", title);
     social_card_content = social_card_content.replace("\{\{ me_snippet \}\}", snippet);
     social_card_content = social_card_content.replace("\{\{ surrogate_creation_time \}\}", creation_time);
@@ -227,6 +228,7 @@ function generate_social_card_content() {
     social_card_content = social_card_content.replace("\{\{ original_link_status \}\}", original_linkstatus);
     social_card_content = social_card_content.replace("\{\{ original_link_status \}\}", original_linkstatus);
     social_card_content = social_card_content.replace("\{\{ memento_datetime \}\}", memento_datetime);
+    social_card_content = social_card_content.replace("\{\{ memento_datetime \}\}", memento_datetime); // yes, this must run twice
     social_card_content = social_card_content.replace("\{\{ server_domain \}\}", "//" + window.location.hostname);
 
     console.log("card content " + social_card_content);
