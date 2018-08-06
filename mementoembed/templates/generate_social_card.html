@@ -150,9 +150,9 @@ function fill_social_card_area(html) {
 
     social_card_area += '&lt;script async src="';
     if (window.location.port == "") {
-        social_card_area += "//" + window.location.hostname + "/static/js/mementoembed.js";
+        social_card_area += "//" + window.location.hostname + "/static/js/mementoembed-v20180806.js";
     } else {
-        social_card_area += "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed.js";
+        social_card_area += "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed-v20180806.js";
     }
     social_card_area += '"&gt;&lt/script&gt;';
 
@@ -167,9 +167,9 @@ function fill_social_card_area(html) {
     scriptnode.setAttribute("async", "");
 
     if (window.location.port == "") {
-        scriptnode.src = "//" + window.location.hostname + "/static/js/mementoembed.js";
+        scriptnode.src = "//" + window.location.hostname + "/static/js/mementoembed-v20180806.js";
     } else {
-        scriptnode.src = "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed.js";
+        scriptnode.src = "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed-v20180806.js";
     }
 
     document.getElementById("sc_display").appendChild(scriptnode);
