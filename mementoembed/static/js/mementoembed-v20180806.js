@@ -170,10 +170,10 @@ function generate_cards() {
 
     var me_textright = [].slice.call(document.querySelectorAll('[class^=me-textright]'));
 
-    me_textright.forEach(element =>{
-        element.style.clear = "right";
-        element.style.overflow = "auto";
-    });
+    // me_textright.forEach(element =>{
+    //     element.style.clear = "right";
+    //     element.style.overflow = "auto";
+    // });
 
     var me_belowtitle = [].slice.call(document.querySelectorAll('[class~=me-belowtitle]'));
 
@@ -217,12 +217,18 @@ function generate_cards() {
 
     var me_title_links = [].slice.call(document.querySelectorAll('[class~=me-title-link]'));
 
+    // data-originalurl="{{ urir }}"
+    // data-versiondate="{{ memento_datetime }}"
+
+
     me_title_links.forEach(element =>{
         element.style.textDecoration = "none";
         element.style.color = "rgb(9, 116, 283)";
         element.style.background = "#ffffff no-repeat fixed center";
         element.style.margin = "0";
         element.style.padding = "0";
+        element.setAttribute("data-originalurl", urir);
+        element.setAttribute("data-versiondate", pubDate);
     });
 
     var me_pubdate_links = [].slice.call(document.querySelectorAll('[class~=me-pubdate]'));
