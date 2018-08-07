@@ -18,6 +18,7 @@ Guide
 
    user_interface
    web_api
+   robust_links
    license
 
 

@@ -158,3 +158,8 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+
+def setup(app):
+    app.add_stylesheet("http://robustlinks.mementoweb.org/tools/js/robustlinks.css")
+    app.add_javascript("http://robustlinks.mementoweb.org/tools/js/robustlinks-min.js")
+    
