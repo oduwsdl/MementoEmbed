@@ -46,7 +46,7 @@ def generate_social_card_html(urim, surrogate, urlroot,
         memento_datetime = surrogate.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
         me_title = surrogate.title,
         me_snippet = surrogate.text_snippet
-    ) + '<script async src="{}/static/js/mementoembed.js" charset="utf-8"></script>'.format(urlroot), 
+    ) + '<script async src="{}/static/js/mementoembed-v20180806.js" charset="utf-8"></script>'.format(urlroot), 
     remove_empty_space=True, 
     remove_optional_attribute_quotes=False )
 

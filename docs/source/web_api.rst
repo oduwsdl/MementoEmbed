@@ -122,7 +122,7 @@ On success, the social card service produces an HTTP 200 status response contain
             </p>
             </div>
     </blockquote>
-    <script async src="http://mementoembed.ws-dl.cs.odu.edu/static/js/mementoembed.js" charset="utf-8"></script>
+    <script async src="http://mementoembed.ws-dl.cs.odu.edu/static/js/mementoembed-v20180806.js" charset="utf-8"></script>
 
 
 One could conceivably use the output of this endpoint as an argument to the ``src`` attribute in an HTML ``<iframe>`` tag, but we do not recommend this. The HTML is intended to be downloaded and included separately.

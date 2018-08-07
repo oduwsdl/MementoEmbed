@@ -11,13 +11,14 @@ function generate_cards() {
         element.style.padding = "0";
         element.style.width = "445px";
         element.style.height = "200px";
+        element.style.lineHeight = "19.6px";
 
         if (element.dataset["processed"] == "true") {
             console.log("alredy processed element for " + element.dataset["urim"]);
         } else {
 
-            urim = element.dataset["urim"];
-            urir = element.dataset["urir"];
+            urim = element.dataset["versionurl"];
+            urir = element.dataset["originalurl"];
             image = element.dataset["image"];
             collectionid = element.dataset["archiveCollectionId"];
             archiveFavicon = element.dataset["archiveFavicon"];
@@ -27,9 +28,13 @@ function generate_cards() {
             archiveName = element.dataset["archiveName"];
             originalFavicon = element.dataset["originalFavicon"];
             creationDate = element.dataset["surrogateCreationDate"];
-            pubDate = element.dataset["date"];
+            pubDate = element.dataset["versiondate"];
             domain = element.dataset["originalDomain"];
             linkStatus = element.dataset["originalLinkStatus"];
+
+            console.log("pubDate is " + pubDate);
+            console.log("versionurl is " + urim);
+            console.log("originalurl is " + urir);
             
             meImageHTML = '';
 
@@ -97,7 +102,10 @@ function generate_cards() {
                 if ((pubDate != null) && (domain != null)) {
                     uPubDate = pubDate.toUpperCase();
                     uDomain = domain.toUpperCase();
-                    belowTextRight += '<a class="me-pubdate" href="' + urim + '">' + uDomain + '&nbsp;&nbsp;@&nbsp;&nbsp;' + uPubDate + '</a>';                
+                    belowTextRight += '<a class="me-pubdate" ' +
+                        'data-originalurl="' + urir + '" data-versiondate="' + pubDate +'"' +
+                        'href="' + urim + '">' 
+                        + uDomain + '&nbsp;&nbsp;@&nbsp;&nbsp;' + uPubDate + '</a>';                
                 }
 
                 // urldate, urltime, tzone = pubdate.split(" ");
@@ -120,7 +128,9 @@ function generate_cards() {
                     } else {
 
                         if (urir != null) {
-                            belowTextRight += ' || <a class="me-livestatus" href="' + urir + '">Current version</a>';
+                            belowTextRight += ' || <a class="me-livestatus" data-versionurl="' + 
+                                urim + '" data-versiondate="' + pubDate + '" href="' + 
+                                urir + '">Current version</a>';
                         }
 
                     }
@@ -160,10 +170,10 @@ function generate_cards() {
 
     var me_textright = [].slice.call(document.querySelectorAll('[class^=me-textright]'));
 
-    me_textright.forEach(element =>{
-        element.style.clear = "right";
-        element.style.overflow = "auto";
-    });
+    // me_textright.forEach(element =>{
+    //     element.style.clear = "right";
+    //     element.style.overflow = "auto";
+    // });
 
     var me_belowtitle = [].slice.call(document.querySelectorAll('[class~=me-belowtitle]'));
 
@@ -207,12 +217,18 @@ function generate_cards() {
 
     var me_title_links = [].slice.call(document.querySelectorAll('[class~=me-title-link]'));
 
+    // data-originalurl="{{ urir }}"
+    // data-versiondate="{{ memento_datetime }}"
+
+
     me_title_links.forEach(element =>{
         element.style.textDecoration = "none";
         element.style.color = "rgb(9, 116, 283)";
         element.style.background = "#ffffff no-repeat fixed center";
         element.style.margin = "0";
         element.style.padding = "0";
+        element.setAttribute("data-originalurl", urir);
+        element.setAttribute("data-versiondate", pubDate);
     });
 
     var me_pubdate_links = [].slice.call(document.querySelectorAll('[class~=me-pubdate]'));
