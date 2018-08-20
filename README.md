@@ -66,6 +66,37 @@ $ export FLASK_APP=mementoembed
 $ flask run
 ```
 
+## Directory Layout
+
+The following directory structure exists for organizing MementoEmbed:
+* /bin/ - scripts using MementoEmbed libraries (was used for early development, to be removed at some future point)
+* /config/ - default Flask configuration for MementoEmbed
+* /docs/ - source for documentation of MementoEmbed, products can be viewed at the project [Documentation Page](https://mementoembed.readthedocs.io/en/latest/).
+* /githooks/ - hooks for use with Git in development (was an experiment, not currently used)
+* /instance/ - default Flask configuration for MementoEmbed
+* /mementoembed/ - main MementoEmbed application
+* /mementoembed/services/ - code containing source code for the machine-accessible MementoEmbed endpoints
+* /mementoembed/static/ - JavaScript and CSS used for the MementoEmbed application
+* /mementoembed/templates/ - Jinja2 templates for the MementoEmbed application
+* /mementoembed/ui/ - code for the user interface MementoEmbed endpoints
+* /tests/ - automated unit tests for core MementoEmbed functionality
+* .dockerignore - used to indicate which files Docker should ignore when building an image
+* .gitignore - used to indicate which files Git should not commit during development
+* .travis.yml - configuration for executing unit tests and testing build of MementoEmbed
+* CONTRIBUTING.md - instructions for contributing to this project
+* Dockerfile - used to build the docker image
+* LICENSE - the license for this project
+* MANIFEST.in - used to ensure additional files are installed on the system when pip is run
+* Pipfile - package information used by pipenv
+* Pipfile.lock - package version information used by pipenv
+* README.md - this file
+* dockerstart.sh - the script run by Docker to start MementoEmbed once a container is started
+* package-lock.json - pakcage version information used by npm
+* raiseversion.sh - a script run to raise the version of MementoEmbed in both documentation and source code
+* release.sh - script planned for use when releasing MementoEmbed (not currently used, may be removed at some point)
+* sample_appconfig.cfg - MementoEmbed configuration used by the Docker container
+* setup.py - standard Python installation configuration file
+
 ## Run unit tests
 
 The unit tests are designed to be easily run from the setup.py file.
