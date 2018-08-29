@@ -7,6 +7,8 @@ import hashlib
 import htmlmin
 import requests_cache
 
+from urllib.parse import urlparse
+
 from flask import render_template, request, Blueprint, current_app, make_response
 
 from mementoembed.mementosurrogate import MementoSurrogate
@@ -28,6 +30,10 @@ bp = Blueprint('services.product', __name__)
 def generate_social_card_html(urim, surrogate, urlroot, 
     archive_favicon_uri, original_favicon_uri, striking_image_uri):
 
+    # TODO: find a solution that does not require a scheme-less URI
+    u = urlroot
+    u = u.replace(urlparse(urlroot).scheme, '')[1:]
+
     return htmlmin.minify( render_template(
         "new_social_card.html",
         urim = urim,
@@ -46,7 +52,7 @@ def generate_social_card_html(urim, surrogate, urlroot,
         memento_datetime = surrogate.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
         me_title = surrogate.title,
         me_snippet = surrogate.text_snippet
-    ) + '<script async src="{}/static/js/mementoembed-v20180806.js" charset="utf-8"></script>'.format(urlroot), 
+    ) + '<script async src="{}/static/js/mementoembed-v20180806.js" charset="utf-8"></script>'.format(u), 
     remove_empty_space=True, 
     remove_optional_attribute_quotes=False )
 
