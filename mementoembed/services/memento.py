@@ -163,13 +163,20 @@ Example: {}/https://web.archive.org/web/20180515130056/http://www.cs.odu.edu/~ml
 
 @bp.route('/services/memento/contentdata/<path:subpath>')
 def textinformation_endpoint(subpath):
-    urim = subpath
+
+    module_logger.debug("full path: {}".format(request.full_path))
+
+    # because Flask trims off query strings
+    urim = request.full_path[len('/services/memento/contentdata/'):]
+
     preferences = {}
+    module_logger.debug("URI-M for content data is {}".format(urim))
     return handle_errors(contentdata, urim, preferences)
 
 @bp.route('/services/memento/bestimage/<path:subpath>')
 def bestimage_endpoint(subpath):
-    urim = subpath
+    # because Flask trims off query strings
+    urim = request.full_path[len('/services/memento/bestimage/'):]
     prefs = {}
     prefs['datauri_image'] = 'no'
 
@@ -185,7 +192,8 @@ def bestimage_endpoint(subpath):
 
 @bp.route('/services/memento/archivedata/<path:subpath>')
 def archivedata_endpoint(subpath):
-    urim = subpath
+    # because Flask trims off query strings
+    urim = request.full_path[len('/services/memento/archivedata/'):]
     prefs = {}
     prefs['datauri_favicon'] = 'no'
 
@@ -201,7 +209,8 @@ def archivedata_endpoint(subpath):
 
 @bp.route('/services/memento/originalresourcedata/<path:subpath>')
 def originaldata_endpoint(subpath):
-    urim = subpath
+    # because Flask trims off query strings
+    urim = request.full_path[len('/services/memento/originalresourcedata/'):]
     prefs = {}
     prefs['datauri_favicon'] = 'no'
 
