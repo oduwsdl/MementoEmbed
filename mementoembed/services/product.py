@@ -107,7 +107,8 @@ def generate_socialcard_response(urim, preferences):
 @bp.route('/services/product/socialcard/<path:subpath>')
 def socialcard_endpoint(subpath):
 
-    urim = subpath
+    # because Flask trims off query strings
+    urim = request.full_path[len('/services/product/socialcard/'):]
 
     prefs = {}
     prefs['datauri_favicon'] = 'no'
@@ -139,7 +140,8 @@ def thumbnail_endpoint(subpath):
     module_logger.debug("current app config: {}".format(current_app.config))
 
     if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
-        urim = subpath
+        # because Flask trims off query strings
+        urim = request.full_path[len('/services/product/thumbnail/'):]
 
         if 'Prefer' in request.headers:
 
