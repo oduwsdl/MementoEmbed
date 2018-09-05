@@ -109,6 +109,7 @@ def socialcard_endpoint(subpath):
 
     # because Flask trims off query strings
     urim = request.full_path[len('/services/product/socialcard/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
 
     prefs = {}
     prefs['datauri_favicon'] = 'no'
@@ -142,6 +143,7 @@ def thumbnail_endpoint(subpath):
     if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
         # because Flask trims off query strings
         urim = request.full_path[len('/services/product/thumbnail/'):]
+        urim = urim[:-1] if urim[-1] == '?' else urim
 
         if 'Prefer' in request.headers:
 

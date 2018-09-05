@@ -43,6 +43,7 @@ def generate_social_card(subpath):
 
     # because Flask trims off query strings
     urim = request.full_path[len('/ui/product/socialcard/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
 
     if urim[0:4] != "http":
 
@@ -98,6 +99,7 @@ def generate_thumbnail(subpath):
 
         # because Flask trims off query strings
         urim = request.full_path[len('/ui/product/thumbnail/'):]
+        urim = urim[:-1] if urim[-1] == '?' else urim
 
         if urim[0:4] != "http":
 

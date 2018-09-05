@@ -168,6 +168,7 @@ def textinformation_endpoint(subpath):
 
     # because Flask trims off query strings
     urim = request.full_path[len('/services/memento/contentdata/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
 
     preferences = {}
     module_logger.debug("URI-M for content data is {}".format(urim))
@@ -177,6 +178,7 @@ def textinformation_endpoint(subpath):
 def bestimage_endpoint(subpath):
     # because Flask trims off query strings
     urim = request.full_path[len('/services/memento/bestimage/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
     prefs = {}
     prefs['datauri_image'] = 'no'
 
@@ -194,6 +196,7 @@ def bestimage_endpoint(subpath):
 def archivedata_endpoint(subpath):
     # because Flask trims off query strings
     urim = request.full_path[len('/services/memento/archivedata/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
     prefs = {}
     prefs['datauri_favicon'] = 'no'
 
@@ -211,6 +214,7 @@ def archivedata_endpoint(subpath):
 def originaldata_endpoint(subpath):
     # because Flask trims off query strings
     urim = request.full_path[len('/services/memento/originalresourcedata/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
     prefs = {}
     prefs['datauri_favicon'] = 'no'
 
