@@ -17,6 +17,7 @@ from mementoembed.imageselection import get_best_image, convert_imageuri_to_pngd
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
+from . import extract_urim_from_request_path
 
 bp = Blueprint('services.memento', __name__)
 
@@ -167,8 +168,7 @@ def textinformation_endpoint(subpath):
     module_logger.debug("full path: {}".format(request.full_path))
 
     # because Flask trims off query strings
-    urim = request.full_path[len('/services/memento/contentdata/'):]
-    urim = urim[:-1] if urim[-1] == '?' else urim
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/contentdata/')
 
     preferences = {}
     module_logger.debug("URI-M for content data is {}".format(urim))
@@ -176,9 +176,10 @@ def textinformation_endpoint(subpath):
 
 @bp.route('/services/memento/bestimage/<path:subpath>')
 def bestimage_endpoint(subpath):
+
     # because Flask trims off query strings
-    urim = request.full_path[len('/services/memento/bestimage/'):]
-    urim = urim[:-1] if urim[-1] == '?' else urim
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/bestimage/')
+
     prefs = {}
     prefs['datauri_image'] = 'no'
 
@@ -195,8 +196,8 @@ def bestimage_endpoint(subpath):
 @bp.route('/services/memento/archivedata/<path:subpath>')
 def archivedata_endpoint(subpath):
     # because Flask trims off query strings
-    urim = request.full_path[len('/services/memento/archivedata/'):]
-    urim = urim[:-1] if urim[-1] == '?' else urim
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/archivedata/')
+
     prefs = {}
     prefs['datauri_favicon'] = 'no'
 
@@ -213,8 +214,7 @@ def archivedata_endpoint(subpath):
 @bp.route('/services/memento/originalresourcedata/<path:subpath>')
 def originaldata_endpoint(subpath):
     # because Flask trims off query strings
-    urim = request.full_path[len('/services/memento/originalresourcedata/'):]
-    urim = urim[:-1] if urim[-1] == '?' else urim
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/originalresourcedata/')
     prefs = {}
     prefs['datauri_favicon'] = 'no'
 
