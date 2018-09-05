@@ -41,11 +41,13 @@ def generate_social_card(subpath):
         server_domain = "{{ server_domain }}"
     )
 
-    urim = subpath
+    # because Flask trims off query strings
+    urim = request.full_path[len('/ui/product/socialcard/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
 
-    if subpath[0:4] != "http":
+    if urim[0:4] != "http":
 
-        pathprefs, urim = subpath.split('/', 1)
+        pathprefs, urim = urim.split('/', 1)
         module_logger.debug("prefs: {}".format(pathprefs))
         module_logger.debug("urim: {}".format(urim))
 
@@ -95,9 +97,13 @@ def generate_thumbnail(subpath):
 
         module_logger.debug("received path {}".format(subpath))
 
-        if subpath[0:4] != "http":
+        # because Flask trims off query strings
+        urim = request.full_path[len('/ui/product/thumbnail/'):]
+        urim = urim[:-1] if urim[-1] == '?' else urim
 
-            pathprefs, urim = subpath.split('/', 1)
+        if urim[0:4] != "http":
+
+            pathprefs, urim = urim.split('/', 1)
             module_logger.debug("prefs: {}".format(pathprefs))
             module_logger.debug("urim: {}".format(urim))
 
@@ -114,9 +120,6 @@ def generate_thumbnail(subpath):
                         prefs[key] = value
                     else:
                         module_logger.exception("failed to set value for preference {}".format(key))
-
-        else:
-            urim = subpath
 
     return render_template('generate_thumbnail.html', 
         urim = urim,

@@ -22,6 +22,7 @@ from mementoembed.cachesession import CacheSession
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
+from . import extract_urim_from_request_path
 
 module_logger = logging.getLogger('mementoembed.services.product')
 
@@ -107,7 +108,8 @@ def generate_socialcard_response(urim, preferences):
 @bp.route('/services/product/socialcard/<path:subpath>')
 def socialcard_endpoint(subpath):
 
-    urim = subpath
+    # because Flask trims off query strings
+    urim = extract_urim_from_request_path(request.full_path, '/services/product/socialcard/')
 
     prefs = {}
     prefs['datauri_favicon'] = 'no'
@@ -139,7 +141,8 @@ def thumbnail_endpoint(subpath):
     module_logger.debug("current app config: {}".format(current_app.config))
 
     if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
-        urim = subpath
+        # because Flask trims off query strings
+        urim = extract_urim_from_request_path(request.full_path, '/services/product/thumbnail/')
 
         if 'Prefer' in request.headers:
 
