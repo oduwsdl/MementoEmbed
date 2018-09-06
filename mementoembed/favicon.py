@@ -52,18 +52,20 @@ def get_favicon_from_html(content):
 
     for link in links:
 
-        if 'icon' in link['rel']:
-            favicon_uri = link['href']
-            break
+        if 'rel' in link:
+            if 'icon' in link['rel']:
+                favicon_uri = link['href']
+                break
 
     # if that fails, try the older, nonstandard relation 'shortcut'
     if favicon_uri == None:
 
         for link in links:
 
-            if 'shortcut' in link['rel']:
-                favicon_uri = link['href']
-                break
+            if 'rel' in link:
+                if 'shortcut' in link['rel']:
+                    favicon_uri = link['href']
+                    break
 
     return favicon_uri
 
