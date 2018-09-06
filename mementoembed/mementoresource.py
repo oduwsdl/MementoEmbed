@@ -125,6 +125,8 @@ def get_original_uri_from_response(response):
         raise NotAMementoError(
             "link header coult not be parsed for original URI",
             response=response, original_exception=e)
+    except aiu.timemap.MalformedLinkFormatTimeMap as e:
+        module_logger.exception("Failed to process link header for URI-R, link header: {}".format(response.headers['link']))
 
     return urir
 
