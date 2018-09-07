@@ -77,6 +77,14 @@ def generate_socialcard_response(urim, preferences):
     original_favicon_uri = s.original_favicon
     striking_image_uri = s.striking_image
 
+    if striking_image_uri == None:
+        striking_image_uri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='
+    else:
+        if preferences['datauri_image'].lower() == 'yes':
+            striking_image_uri = convert_imageuri_to_pngdata_uri(
+                striking_image_uri, httpcache, 96
+            )
+
     if preferences['datauri_favicon'].lower() == 'yes':
         original_favicon_uri = convert_imageuri_to_pngdata_uri(
             original_favicon_uri, httpcache, 16, 16
@@ -85,10 +93,6 @@ def generate_socialcard_response(urim, preferences):
             archive_favicon_uri, httpcache, 16, 16
         )
 
-    if preferences['datauri_image'].lower() == 'yes':
-        striking_image_uri = convert_imageuri_to_pngdata_uri(
-            striking_image_uri, httpcache, 96
-        )
 
     data = generate_social_card_html(
         urim, s, urlroot, archive_favicon_uri, 
