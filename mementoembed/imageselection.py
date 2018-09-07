@@ -81,6 +81,8 @@ def get_image_list(uri, http_cache):
     try:
         r = http_cache.get(uri)
 
+        module_logger.debug("content from URI-M: {}".format(r.text))
+
         try:
             soup = BeautifulSoup(r.text, 'html5lib')
         except Exception as e:
