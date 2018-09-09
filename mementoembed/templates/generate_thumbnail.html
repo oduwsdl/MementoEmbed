@@ -36,7 +36,7 @@
     workstatus = document.getElementById("workstatus");
     progress = document.getElementById("progressarea");
 
-    urim = "{{ urim }}";
+    urim = "{{ urim|safe }}";
     console.log("urim: " + urim);
 
     workstatus.innerHTML = "";

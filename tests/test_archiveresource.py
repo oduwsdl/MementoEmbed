@@ -279,3 +279,52 @@ class TestArchiveResource(unittest.TestCase):
         x = ArchiveResource(urim, httpcache)
 
         self.assertEqual(x.favicon, expected_favicon)
+
+    def test_link_tag_no_rel(self):
+
+        expected_favicon = None
+
+        cachedict = {
+            "http://myarchive.org":
+                mock_response(
+                    headers={},
+                    content="""<html>
+                    <head>
+                        <title>Is this a good title?</title>
+                        <link title="a good title" href="content/favicon.ico">
+                    </head>
+                    <body>Is this all there is to content?</body>
+                    </html>""",
+                    status=200,
+                    url = "testing-url://notused"
+                ),
+            expected_favicon:
+                mock_response(
+                    headers = { 'content-type': 'image/x-testing'},
+                    content = "a",
+                    status=200,
+                    url = "testing-url://notused"
+                ),
+            "http://myarchive.org/favicon.ico":
+                mock_response(
+                    headers={},
+                    content="not found",
+                    status=404,
+                    url="testing-url://notused"
+                ),
+            "https://www.google.com/s2/favicons?domain=myarchive.org":
+                mock_response(
+                    headers={},
+                    content="not found",
+                    status=404,
+                    url="testing-url://notused"
+                )
+        }
+
+        httpcache = mock_httpcache(cachedict)
+
+        urim = "http://myarchive.org/20160518000858/http://example.com/somecontent"
+
+        x = ArchiveResource(urim, httpcache)
+
+        self.assertEqual(x.favicon, expected_favicon)

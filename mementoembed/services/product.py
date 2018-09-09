@@ -7,6 +7,8 @@ import hashlib
 import htmlmin
 import requests_cache
 
+from urllib.parse import urlparse
+
 from flask import render_template, request, Blueprint, current_app, make_response
 
 from mementoembed.mementosurrogate import MementoSurrogate
@@ -20,6 +22,7 @@ from mementoembed.cachesession import CacheSession
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
+from . import extract_urim_from_request_path
 
 module_logger = logging.getLogger('mementoembed.services.product')
 
@@ -27,6 +30,10 @@ bp = Blueprint('services.product', __name__)
 
 def generate_social_card_html(urim, surrogate, urlroot, 
     archive_favicon_uri, original_favicon_uri, striking_image_uri):
+
+    # TODO: find a solution that does not require a scheme-less URI
+    u = urlroot
+    u = u.replace(urlparse(urlroot).scheme, '')[1:]
 
     return htmlmin.minify( render_template(
         "new_social_card.html",
@@ -46,7 +53,7 @@ def generate_social_card_html(urim, surrogate, urlroot,
         memento_datetime = surrogate.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
         me_title = surrogate.title,
         me_snippet = surrogate.text_snippet
-    ) + '<script async src="{}/static/js/mementoembed-v20180806.js" charset="utf-8"></script>'.format(urlroot), 
+    ) + '<script async src="{}/static/js/mementoembed-v20180806.js" charset="utf-8"></script>'.format(u), 
     remove_empty_space=True, 
     remove_optional_attribute_quotes=False )
 
@@ -70,6 +77,14 @@ def generate_socialcard_response(urim, preferences):
     original_favicon_uri = s.original_favicon
     striking_image_uri = s.striking_image
 
+    if striking_image_uri == None:
+        striking_image_uri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='
+    else:
+        if preferences['datauri_image'].lower() == 'yes':
+            striking_image_uri = convert_imageuri_to_pngdata_uri(
+                striking_image_uri, httpcache, 96
+            )
+
     if preferences['datauri_favicon'].lower() == 'yes':
         original_favicon_uri = convert_imageuri_to_pngdata_uri(
             original_favicon_uri, httpcache, 16, 16
@@ -78,10 +93,6 @@ def generate_socialcard_response(urim, preferences):
             archive_favicon_uri, httpcache, 16, 16
         )
 
-    if preferences['datauri_image'].lower() == 'yes':
-        striking_image_uri = convert_imageuri_to_pngdata_uri(
-            striking_image_uri, httpcache, 96
-        )
 
     data = generate_social_card_html(
         urim, s, urlroot, archive_favicon_uri, 
@@ -101,7 +112,8 @@ def generate_socialcard_response(urim, preferences):
 @bp.route('/services/product/socialcard/<path:subpath>')
 def socialcard_endpoint(subpath):
 
-    urim = subpath
+    # because Flask trims off query strings
+    urim = extract_urim_from_request_path(request.full_path, '/services/product/socialcard/')
 
     prefs = {}
     prefs['datauri_favicon'] = 'no'
@@ -133,7 +145,8 @@ def thumbnail_endpoint(subpath):
     module_logger.debug("current app config: {}".format(current_app.config))
 
     if current_app.config['ENABLE_THUMBNAILS'] == "Yes":
-        urim = subpath
+        # because Flask trims off query strings
+        urim = extract_urim_from_request_path(request.full_path, '/services/product/thumbnail/')
 
         if 'Prefer' in request.headers:
 

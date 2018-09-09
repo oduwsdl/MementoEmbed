@@ -11,9 +11,22 @@ A tool to create archive-aware [oEmbed](https://oembed.com/)-compatible embeddab
 
 For more information on this application, please visit our [Documentation Page](https://mementoembed.readthedocs.io/en/latest/).
 
-## Run Using Docker
+## Installation and Execution
 
-Download the code and build an image as follwoing:
+### Installing and Running the Latest Build Using Docker
+
+Because of its complex cross-language and environment dependencies, MementoEmbed is installed via Docker. To run the latest build use the following commands.
+
+```
+$ docker pull oduwsdl/mementoembed
+$ docker run -d -p 5550:5550 oduwsdl/mementoembed
+```
+
+MementoEmbed can now be accessed from http://localhost:5550/.
+
+### Installing and Running From Source Using Docker
+
+Download the code and build an image as following:
 
 ```
 $ git clone https://github.com/oduwsdl/MementoEmbed.git
@@ -35,3 +48,64 @@ $ docker run -d -p 5550:5550 mementoembed
 ```
 
 In either case, the application should be accessible at http://localhost:5550/.
+
+### Installing and Running Locally
+
+Download the code and install it within your Python environment.
+
+```
+$ git clone https://github.com/oduwsdl/MementoEmbed.git
+$ cd MementoEmbed
+$ pip install .
+```
+
+Then set it up to run locally using Flask.
+
+```
+$ export FLASK_APP=mementoembed
+$ flask run
+```
+
+## Directory Layout
+
+The following directory structure exists for organizing MementoEmbed:
+* /bin/ - scripts using MementoEmbed libraries (was used for early development, to be removed at some future point)
+* /config/ - default Flask configuration for MementoEmbed
+* /docs/ - source for documentation of MementoEmbed, products can be viewed at the project [Documentation Page](https://mementoembed.readthedocs.io/en/latest/).
+* /githooks/ - hooks for use with Git in development (was an experiment, not currently used)
+* /instance/ - default Flask configuration for MementoEmbed
+* /mementoembed/ - main MementoEmbed application
+* /mementoembed/services/ - code containing source code for the machine-accessible MementoEmbed endpoints
+* /mementoembed/static/ - JavaScript and CSS used for the MementoEmbed application
+* /mementoembed/templates/ - Jinja2 templates for the MementoEmbed application
+* /mementoembed/ui/ - code for the user interface MementoEmbed endpoints
+* /tests/ - automated unit tests for core MementoEmbed functionality
+* .dockerignore - used to indicate which files Docker should ignore when building an image
+* .gitignore - used to indicate which files Git should not commit during development
+* .travis.yml - configuration for executing unit tests and testing build of MementoEmbed
+* CONTRIBUTING.md - instructions for contributing to this project
+* Dockerfile - used to build the docker image
+* LICENSE - the license for this project
+* MANIFEST.in - used to ensure additional files are installed on the system when pip is run
+* Pipfile - package information used by pipenv
+* Pipfile.lock - package version information used by pipenv
+* README.md - this file
+* dockerstart.sh - the script run by Docker to start MementoEmbed once a container is started
+* package-lock.json - pakcage version information used by npm
+* raiseversion.sh - a script run to raise the version of MementoEmbed in both documentation and source code
+* release.sh - script planned for use when releasing MementoEmbed (not currently used, may be removed at some point)
+* sample_appconfig.cfg - MementoEmbed configuration used by the Docker container
+* setup.py - standard Python installation configuration file
+
+## Run unit tests
+
+The unit tests are designed to be easily run from the setup.py file.
+
+```
+$ pip install .
+$ python ./setup.py test
+```
+
+# Contributing
+
+Please consult the Contribution Guidelines in [CONTRIBUTING.md](https://github.com/oduwsdl/MementoEmbed/blob/master/CONTRIBUTING.md) for submitting bug reports, pull requests, etc.
