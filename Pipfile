@@ -16,6 +16,8 @@ tldextract = "==2.2.0"
 Flask = "==1.0.2"
 jusText = "==2.2.0"
 Pillow = "==5.1.0"
+sphinx = "*"
+sphinx-rtd-theme = "*"
 
 [dev-packages]
 

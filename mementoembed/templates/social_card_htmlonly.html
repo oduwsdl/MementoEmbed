@@ -6,7 +6,7 @@
     data-archive-name="{{ archive_name }}"
     data-archive-favicon="{{ archive_favicon }}"
     data-archive-uri="{{ archive_uri }}"
-    {% if archive_collection_name is defined %}
+    {% if archive_collection_name is not none %}
         data-archive-collection-id="{{ archive_collection_id }}"
         data-archive-collection-uri="{{ archive_collection_uri }}"
         data-archive-collection-name="{{ archive_collection_name }}"
@@ -44,7 +44,7 @@
                 class="me-archive-link"
                 href="{{ archive_uri }}"
                 style="text-decoration: none; color: rgb(9, 116, 255); background-attachment: fixed; background-color: rgb(255, 255, 255); margin: 0px; padding: 0px; background-position: center center; background-repeat: no-repeat no-repeat;">{{ archive_name }}</a>
-                {% if archive_collection_name is defined %}
+                {% if archive_collection_name is not none %}
                     <br>Member
                 of the Collection <a class="me-archive-link" style="text-decoration: none; color: rgb(9, 116, 255); background-attachment: fixed; background-color: rgb(255, 255, 255); margin: 0px; padding: 0px; background-position: center center; background-repeat: no-repeat no-repeat;"
                     href="{{ archive_collection_uri }}">{{ archive_collection_name }}</a></div><br>
