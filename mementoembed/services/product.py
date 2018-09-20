@@ -136,7 +136,7 @@ def generate_socialcard_response(urim, preferences):
     response = make_response(data)
     response.headers['Content-Type'] = 'text/html; charset=utf-8'
     response.headers['Preference-Applied'] = \
-        "datauri_favicon={},datauri_image={},using_javascript={},minify_markup={}".format(
+        "datauri_favicon={},datauri_image={},using_remote_javascript={},minify_markup={}".format(
             preferences['datauri_favicon'],
             preferences['datauri_image'],
             preferences['using_remote_javascript'],
