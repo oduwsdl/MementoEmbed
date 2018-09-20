@@ -10,7 +10,7 @@ function generate_cards() {
         element.style.margin = "0";
         element.style.padding = "0";
         element.style.width = "445px";
-        element.style.height = "200px";
+        element.style.minHeight = "200px";
         element.style.lineHeight = "19.6px";
 
         if (element.dataset["processed"] == "true") {
