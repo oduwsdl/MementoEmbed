@@ -116,7 +116,7 @@ def generate_socialcard_response(urim, preferences):
         )
 
 
-    if preferences['using_javascript'].lower() == 'yes':
+    if preferences['using_remote_javascript'].lower() == 'yes':
         data = generate_social_card_html(
             urim, s, urlroot, archive_favicon_uri, 
             original_favicon_uri, striking_image_uri
@@ -139,7 +139,7 @@ def generate_socialcard_response(urim, preferences):
         "datauri_favicon={},datauri_image={},using_javascript={},minify_markup={}".format(
             preferences['datauri_favicon'],
             preferences['datauri_image'],
-            preferences['using_javascript'],
+            preferences['using_remote_javascript'],
             preferences['minify_markup']
         )
 
@@ -154,7 +154,7 @@ def socialcard_endpoint(subpath):
     prefs = {}
     prefs['datauri_favicon'] = 'no'
     prefs['datauri_image'] = 'no'
-    prefs['using_javascript'] = 'yes'
+    prefs['using_remote_javascript'] = 'no'
     prefs['minify_markup'] = 'yes'
 
     if 'Prefer' in request.headers:
