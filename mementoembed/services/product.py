@@ -31,7 +31,7 @@ bp = Blueprint('services.product', __name__)
 def generate_social_card_html_without_javascript(urim, surrogate, urlroot, 
     archive_favicon_uri, original_favicon_uri, striking_image_uri):
 
-    return htmlmin.minify( render_template(    
+    return render_template(    
         "social_card_htmlonly.html",
         urim = urim,
         urir = surrogate.original_uri,
@@ -49,9 +49,7 @@ def generate_social_card_html_without_javascript(urim, surrogate, urlroot,
         memento_datetime = surrogate.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
         me_title = surrogate.title,
         me_snippet = surrogate.text_snippet
-    ),  
-    remove_empty_space=True, 
-    remove_optional_attribute_quotes=False )
+    )
 
 def generate_social_card_html(urim, surrogate, urlroot, 
     archive_favicon_uri, original_favicon_uri, striking_image_uri):
@@ -60,7 +58,7 @@ def generate_social_card_html(urim, surrogate, urlroot,
     u = urlroot
     u = u.replace(urlparse(urlroot).scheme, '')[1:]
 
-    return htmlmin.minify( render_template(    
+    return render_template(    
         "new_social_card.html",
         urim = urim,
         urir = surrogate.original_uri,
@@ -78,9 +76,7 @@ def generate_social_card_html(urim, surrogate, urlroot,
         memento_datetime = surrogate.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
         me_title = surrogate.title,
         me_snippet = surrogate.text_snippet
-    ) + '<script async src="{}/static/js/mementoembed-v20180806.js" charset="utf-8"></script>'.format(u), 
-    remove_empty_space=True, 
-    remove_optional_attribute_quotes=False )
+    ) + '<script async src="{}/static/js/mementoembed-v20180806.js" charset="utf-8"></script>'.format(u)
 
 def generate_socialcard_response(urim, preferences):
 
@@ -130,13 +126,20 @@ def generate_socialcard_response(urim, preferences):
             original_favicon_uri, striking_image_uri
             )
 
+    if preferences['minify_markup'] == 'yes':
+        data = htmlmin.minify(data,  
+            remove_empty_space=True, 
+            remove_optional_attribute_quotes=False 
+            )
+
     response = make_response(data)
     response.headers['Content-Type'] = 'text/html; charset=utf-8'
     response.headers['Preference-Applied'] = \
-        "datauri_favicon={},datauri_image={},using_javascript={}".format(
+        "datauri_favicon={},datauri_image={},using_javascript={},minify_markup={}".format(
             preferences['datauri_favicon'],
             preferences['datauri_image'],
-            preferences['using_javascript']
+            preferences['using_javascript'],
+            preferences['minify_markup']
         )
 
     return response, 200
@@ -151,6 +154,7 @@ def socialcard_endpoint(subpath):
     prefs['datauri_favicon'] = 'no'
     prefs['datauri_image'] = 'no'
     prefs['using_javascript'] = 'yes'
+    prefs['minify_markup'] = 'yes'
 
     if 'Prefer' in request.headers:
 
