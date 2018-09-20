@@ -47,6 +47,7 @@ def generate_social_card_html_without_javascript(urim, surrogate, urlroot,
         original_link_status = surrogate.original_link_status,
         surrogate_creation_time = surrogate.creation_time,
         memento_datetime = surrogate.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        flat_memento_datetime = surrogate.memento_datetime.strftime("%Y%m%d%H%M%SZ"),
         me_title = surrogate.title,
         me_snippet = surrogate.text_snippet
     )
