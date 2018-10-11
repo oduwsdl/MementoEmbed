@@ -105,8 +105,9 @@ def get_timegate_from_response(response):
     urig = None
 
     try:
-        urig = aiu.convert_LinkTimeMap_to_dict(
-            response.headers['link'] )['timegate_uri']
+        # urig = aiu.convert_LinkTimeMap_to_dict(
+        #     response.headers['link'] )['timegate_uri']
+        urig = response.links['timegate']['url']
     except KeyError as e:
         raise NotAMementoError(
             "link header coult not be parsed for timegate URI",
@@ -119,8 +120,9 @@ def get_original_uri_from_response(response):
     urir = None
 
     try:
-        urir = aiu.convert_LinkTimeMap_to_dict(
-            response.headers['link'] )['original_uri']
+        # urir = aiu.convert_LinkTimeMap_to_dict(
+        #     response.headers['link'] )['original_uri']
+        urir = response.links['original']['url']
     except KeyError as e:
         raise NotAMementoError(
             "link header coult not be parsed for original URI",
