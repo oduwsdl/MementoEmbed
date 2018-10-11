@@ -13,10 +13,11 @@ testdir = os.path.dirname(os.path.realpath(__file__))
 
 class mock_response:
 
-    def __init__(self, headers, text, status, url, content=None):
+    def __init__(self, headers, text, status, url, content=None, links={}):
         self.headers = headers
         self.text = text
         self.url = url
+        self.links = links
         
         if content is None:
 
@@ -82,7 +83,15 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_urig: # requests follows all redirects, so we present the result at the end of the chain
                 mock_response(
@@ -97,7 +106,15 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 )
         }
 
@@ -160,7 +177,15 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             raw_urim:
                 mock_response(
@@ -232,7 +257,15 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             raw_urim:
                 mock_response(
@@ -314,7 +347,15 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             zipurim:
                 mock_response(
@@ -476,7 +517,15 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             "http://archive.is/20130508132946id_/http://flexispy.com/":
                 mock_response(
@@ -552,7 +601,15 @@ class TestMementoResource(unittest.TestCase):
                     text = metaredirecthtml,
                     content = metaredirecthtml,
                     status = 200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             redirurim: 
                 mock_response(
@@ -568,7 +625,15 @@ class TestMementoResource(unittest.TestCase):
                     text = expected_content,
                     content = expected_content,
                     status = 200,
-                    url = redirurim
+                    url = redirurim,
+                    links = {
+                        "original": {
+                            "url": redir_expected_original_uri
+                        },
+                        "timegate": {
+                            "url": redir_expected_urig
+                        }
+                    }
                 ),
             redirurim_raw: 
                 mock_response(
@@ -624,7 +689,15 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_raw_uri:
                 mock_response(
@@ -639,7 +712,15 @@ class TestMementoResource(unittest.TestCase):
                     },
                     text = expected_raw_content,
                     status = 200,
-                    url = expected_raw_uri
+                    url = expected_raw_uri,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_urig: # requests follows all redirects, so we present the result at the end of the chain
                 mock_response(
@@ -654,7 +735,15 @@ class TestMementoResource(unittest.TestCase):
                      },
                     text = expected_content,
                     status = 200, # after following redirects
-                    url = expected_urim
+                    url = expected_urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_urim:
                 mock_response(
@@ -669,7 +758,15 @@ class TestMementoResource(unittest.TestCase):
                      },
                     text = expected_content,
                     status = 200, # after following redirects
-                    url = expected_urim
+                    url = expected_urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 )
         }
 

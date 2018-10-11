@@ -5,7 +5,7 @@ from mementoembed.originalresource import OriginalResource
 
 class mock_response:
 
-    def __init__(self, headers, text, status, url, content=None):
+    def __init__(self, headers, text, status, url, content=None, links={}):
         self.headers = headers
         self.text = text
         if content is None:
@@ -15,6 +15,8 @@ class mock_response:
 
         self.status_code = status
         self.url = url
+
+        self.links = links
 
 class mock_httpcache:
     """
@@ -64,7 +66,15 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_urig:
                 mock_response(
@@ -79,7 +89,15 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_original_uri:
                 mock_response(
@@ -130,7 +148,15 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_urig:
                 mock_response(
@@ -145,7 +171,15 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_original_uri:
                 mock_response(
@@ -202,7 +236,15 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_urig:
                 mock_response(
@@ -217,7 +259,15 @@ class TestOriginalResource(unittest.TestCase):
                     },
                     text = expected_content,
                     status=200,
-                    url = urim
+                    url = urim,
+                    links = {
+                        "original": {
+                            "url": expected_original_uri
+                        },
+                        "timegate": {
+                            "url": expected_urig
+                        }
+                    }
                 ),
             expected_original_uri:
                 mock_response(
