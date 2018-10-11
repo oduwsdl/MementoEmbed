@@ -20,6 +20,7 @@ def generate_social_card(subpath):
     prefs = {}
     prefs['datauri_favicon'] = 'no'
     prefs['datauri_image'] = 'no'
+    prefs['using_remote_javascript'] = 'yes'
 
     social_card_template = render_template("new_social_card.html",
         urim = "{{ urim }}",
@@ -69,7 +70,8 @@ def generate_social_card(subpath):
         social_card_template=social_card_template,
         appversion = __appversion__,
         datauri_favicon = prefs['datauri_favicon'],
-        datauri_image = prefs['datauri_image']
+        datauri_image = prefs['datauri_image'],
+        using_remote_javascript = prefs['using_remote_javascript']
     ), 200
 
 @bp.route('/ui/product/thumbnail/<path:subpath>', methods=['HEAD', 'GET'])

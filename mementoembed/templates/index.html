@@ -112,7 +112,6 @@
             <div class="row">
               <div class="col-md-6">
                 Provide data URIs for favicons?<br>
-                (experimental)
 
                 <div class="row">
                   <div class="col-md-6">
@@ -120,7 +119,7 @@
                     <input type="radio" id="datauri_favicon_yes" name="datauri_favicon" value="yes" />
                   </div>
                   <div class="col-md-6">
-                    <label for="keep_banner">No</label> &nbsp;&nbsp;
+                    <label for="datauri_favicon">No</label> &nbsp;&nbsp;
                     <input type="radio" id="datauri_favicon_no" name="datauri_favicon" value="no" checked="checked" />
                   </div>
                 </div>
@@ -133,15 +132,14 @@
               </div>
               <div class="col-md-6">
                 Provide data URIs for striking images?<br>
-                (experimental)
 
                 <div class="row">
                   <div class="col-md-6">
-                    <label for="datauri_favicon">Yes</label> &nbsp;&nbsp;
+                    <label for="datauri_images">Yes</label> &nbsp;&nbsp;
                     <input type="radio" id="datauri_image_yes" name="datauri_images" />
                   </div>
                   <div class="col-md-6">
-                    <label for="keep_banner">No</label> &nbsp;&nbsp;
+                    <label for="datauri_images">No</label> &nbsp;&nbsp;
                     <input type="radio" id="datauri_image_no" name="datauri_images" checked="checked" />
                   </div>
                 </div>
@@ -152,6 +150,30 @@
                 </ul>
 
               </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                Include remote JavaScript?<br>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="using_remote_javascript">Yes</label> &nbsp;&nbsp;
+                    <input type="radio" id="using_remote_javascript_yes" name="using_remote_javascript" checked="checked" />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="using_remote_javascript">No</label> &nbsp;&nbsp;
+                    <input type="radio" id="using_remote_javascript_no" name="using_remote_javascript" />
+                  </div>
+                </div>
+
+                <ul>
+                  <li><strong>Benefit:</strong> the card will persist, even if this service is no longer running</li>
+                  <li><strong>Drawback:</strong> embed is larger</li>
+                </ul>
+
+              </div>
+              <div class="col-md-6"></div>
             </div>
         </div>
 
@@ -286,6 +308,14 @@
         prefs += "datauri_image=yes";
       } else {
         prefs += "datauri_image=no";
+      }
+
+      prefs += ',';
+
+      if (document.getElementById('using_remote_javascript_yes').checked) {
+        prefs += "using_remote_javascript=yes";
+      } else {
+        prefs += "using_remote_javascript=no";
       }
 
       window.location.href = "/ui/product/socialcard/" 

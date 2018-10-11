@@ -126,7 +126,7 @@ function setBad(identifier) {
     status_indicator.innerHTML = "❌";
 }
 
-function fill_social_card_area(html) {
+function fill_social_card_area(html, using_remote_javascript) {
 
     workstatus.innerHTML = "";
     workstatus.innerHTML = "Social Card Generated";
@@ -136,25 +136,40 @@ function fill_social_card_area(html) {
     formarea.innerHTML += '<p>with these settings:</p>';
     formarea.innerHTML += 'Use data URIs for favicons: {{ datauri_favicon }}<br>';
     formarea.innerHTML += 'Use data URIs for striking image: {{ datauri_image }}<br>';
+    formarea.innerHTML += 'Use remote JavaScript: {{ using_remote_javascript }}<br>';
+
+    jscript_call = '';
+    jscript_call += '&lt;script async src="';
+    if (window.location.port == "") {
+        jscript_call += "//" + window.location.hostname + "/static/js/mementoembed-v20180806.js";
+    } else {
+        jscript_call += "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed-v20180806.js";
+    }
+    jscript_call += '"&gt;&lt/script&gt;';
+
 
     social_card_area = "";
     social_card_area += '<div class="row">';
     social_card_area += '<div class="col-sm" id="sc_display">';
     social_card_area += 'If you want to include this social card in your web page<br><br>';
+    social_card_area += '<div id="sc_html">';
     social_card_area += html;
     social_card_area += '</div>';
+    social_card_area += '</div>';
+
+    setOutput(social_card_area + '</div>' + jscript_call);
+    generate_cards();
+
     social_card_area += '<div class="col-sm">';
     social_card_area += 'copy the code below and paste it into your page HTML.<br><br>'
     social_card_area += '<textarea cols="50" rows="5" id="sc_code">';
-    social_card_area += html;
 
-    social_card_area += '&lt;script async src="';
-    if (window.location.port == "") {
-        social_card_area += "//" + window.location.hostname + "/static/js/mementoembed-v20180806.js";
+    if ( using_remote_javascript == 'yes' ) {
+        social_card_area += html;
+        social_card_area += jscript_call;
     } else {
-        social_card_area += "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed-v20180806.js";
+        social_card_area += document.getElementById('sc_html').innerHTML;
     }
-    social_card_area += '"&gt;&lt/script&gt;';
 
     social_card_area += '</textarea>';
     social_card_area += '</div>';
@@ -233,7 +248,7 @@ function generate_social_card_content() {
 
     console.log("card content " + social_card_content);
 
-    fill_social_card_area(social_card_content);
+    fill_social_card_area(social_card_content, "{{ using_remote_javascript }}");
 }
 
 function handle_error(data) {
