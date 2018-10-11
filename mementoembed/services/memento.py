@@ -93,16 +93,16 @@ def bestimage(urim, preferences):
 
     memento = memento_resource_factory(urim, httpcache)
 
-    best_image_uri = get_best_image(memento.urim, httpcache)
+    best_image_uri = get_best_image(
+        memento.urim, 
+        httpcache,
+        current_app.config['DEFAULT_IMAGE_PATH']
+    )
 
-    if best_image_uri == None:
-        best_image_uri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='
-    else:
-
-        if preferences['datauri_image'].lower() == 'yes':
-            best_image_uri = convert_imageuri_to_pngdata_uri(
-                best_image_uri, httpcache, 96
-            )
+    if preferences['datauri_image'].lower() == 'yes':
+        best_image_uri = convert_imageuri_to_pngdata_uri(
+            best_image_uri, httpcache, 96
+        )
 
     output = {}
 
