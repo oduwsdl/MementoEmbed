@@ -89,7 +89,8 @@ def generate_socialcard_response(urim, preferences):
 
     s = MementoSurrogate(
         urim,
-        httpcache
+        httpcache,
+        default_image_uri=current_app.config['DEFAULT_IMAGE_PATH']
     )
 
     urlroot = request.url_root
@@ -99,10 +100,8 @@ def generate_socialcard_response(urim, preferences):
     original_favicon_uri = s.original_favicon
     striking_image_uri = s.striking_image
 
-    if striking_image_uri == None:
-        striking_image_uri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='
-    else:
-        if preferences['datauri_image'].lower() == 'yes':
+    if preferences['datauri_image'].lower() == 'yes':
+        if striking_image_uri[0:5] != 'data:':
             striking_image_uri = convert_imageuri_to_pngdata_uri(
                 striking_image_uri, httpcache, 96
             )

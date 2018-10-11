@@ -16,7 +16,7 @@ class MementoSurrogate:
         all information about surrogates
         related to content, uri, and response_headers.
     """
-    def __init__(self, urim, httpcache, working_directory="/tmp/mementosurrogate"):
+    def __init__(self, urim, httpcache, working_directory="/tmp/mementosurrogate", default_image_uri=None):
 
         self.surrogate_creation_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         self.urim = urim
@@ -28,6 +28,8 @@ class MementoSurrogate:
         self.originalresource = OriginalResource(self.memento, self.httpcache)
 
         self.archive = ArchiveResource(self.urim, self.httpcache)
+
+        self.default_image_uri = default_image_uri
 
     @property
     def creation_time(self):
@@ -52,7 +54,7 @@ class MementoSurrogate:
     @property
     def striking_image(self):
         self.logger.info("looking for the best image in the memento")
-        return get_best_image(self.memento.urim, self.httpcache)
+        return get_best_image(self.memento.urim, self.httpcache, default_image_uri=self.default_image_uri)
 
     @property
     def original_uri(self):

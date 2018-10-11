@@ -107,7 +107,7 @@ def get_image_list(uri, http_cache):
     
     return image_list
 
-def get_best_image(uri, http_cache):
+def get_best_scoring_image(uri, http_cache):
 
     module_logger.debug("getting the best image for content at URI {}".format(uri))
     
@@ -192,3 +192,13 @@ def get_best_image(uri, http_cache):
         start += 15
 
     return max_score_image
+
+def get_best_image(uri, http_cache, default_image_uri=None):
+
+    best_image_uri = get_best_scoring_image(uri, http_cache)
+
+    if best_image_uri == None:
+        if default_image_uri != None:
+            best_image_uri = default_image_uri
+
+    return best_image_uri
