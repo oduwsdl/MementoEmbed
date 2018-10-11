@@ -114,7 +114,19 @@ On success, the social card service produces an HTTP 200 status response contain
     <blockquote
         class="mementoembed"
         data-versionurl="https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/"
-        data-originalurl="http://blasttheory.co.uk/" data-surrogate-creation-time="2018-07-20T16:08:40Z" data-image="https://www.webarchive.org.uk/wayback/archive/20090522221251/http:/blasttheory.co.uk/bt/i/yougetme/ygm_icon.jpg" data-archive-name="WEBARCHIVE.ORG.UK" data-archive-favicon="https://www.webarchive.org.uk/ukwa/static/images/ukwa-icon-16.png" data-archive-uri="https://www.webarchive.org.uk" data-archive-collection-id="None" data-archive-collection-uri="None" data-archive-collection-name="None" data-original-favicon="https://www.blasttheory.co.uk/wp-content/themes/blasttheory/images/bt_icon.ico" data-original-domain="blasttheory.co.uk" data-original-link-status="Live" data-versiondate="2009-05-22 22:12:51 GMT" style="width: 500px; font-size: 12px; border: 1px solid rgb(231, 231, 231);">
+        data-originalurl="http://blasttheory.co.uk/" 
+        data-surrogate-creation-time="2018-07-20T16:08:40Z" 
+        data-image="https://www.webarchive.org.uk/wayback/archive/20090522221251/http:/blasttheory.co.uk/bt/i/yougetme/ygm_icon.jpg" 
+        data-archive-name="WEBARCHIVE.ORG.UK" data-archive-favicon="https://www.webarchive.org.uk/ukwa/static/images/ukwa-icon-16.png" 
+        data-archive-uri="https://www.webarchive.org.uk" 
+        data-archive-collection-id="None" 
+        data-archive-collection-uri="None" 
+        data-archive-collection-name="None" 
+        data-original-favicon="https://www.blasttheory.co.uk/wp-content/themes/blasttheory/images/bt_icon.ico" 
+        data-original-domain="blasttheory.co.uk" 
+        data-original-link-status="Live" 
+        data-versiondate="2009-05-22 22:12:51 GMT" 
+        style="width: 500px; font-size: 12px; border: 1px solid rgb(231, 231, 231);">
         <div class="me-textright">
             <p class="me-title"><a class="me-title-link" href="https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/">Blast Theory</a>
             </p>
@@ -134,6 +146,34 @@ On failure, the thumbnail service produces a response with a MIME-type of ``appl
     "content": "<div class=\"row\">\n    <div class=\"col\">\n        <p style=\"text-align: left;\">The URL you supplied ( <a href=\"http://example.com)\">http://example.com</a> ) is not a memento or comes from an archive that is not Memento-Compliant.</p>\n        <p style=\"text-align: left;\">\n            For a live web resource, you can create a memento that resides on the web in the following ways:\n            <ul>\n                <li style=\"text-align: left;\">Using the <a href=\"https://web.archive.org\">Internet Archive's Save Page Now button.</a></li>\n                <!-- <li style=\"text-align: left;\">Saving the web page at Archive.is</li> -->\n                <li style=\"text-align: left;\">Using the <a href=\"https://github.com/oduwsdl/archivenow\">ArchiveNow</a> utility.</li>\n                <li style=\"text-align: left;\">Using a browser plugin, like <a href=\"https://chrome.google.com/webstore/detail/mink-integrate-live-archi/jemoalkmipibchioofomhkgimhofbbem?hl=en-US\">Mink</a>.</li>\n            </ul>\n\n        </p>\n        <p style=\"text-align: center; font-weight: bold;\">Happy Memento Making! \ud83d\ude00</p>\n    </div>\n</div>\n",
     "error details": "'Traceback (most recent call last):\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementoresource.py\", line 80, in get_memento_datetime_from_response\\n    response.headers[\\'memento-datetime\\'],\\n  File \"/usr/local/lib/python3.6/site-packages/requests/structures.py\", line 54, in __getitem__\\n    return self._store[key.lower()][1]\\nKeyError: \\'memento-datetime\\'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/services/errors.py\", line 26, in handle_errors\\n    return function_name(urim)\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/services/product.py\", line 57, in generate_socialcard_response\\n    httpcache\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementosurrogate.py\", line 26, in __init__\\n    self.memento = memento_resource_factory(self.urim, self.httpcache)\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementoresource.py\", line 222, in memento_resource_factory\\n    memento_dt = get_memento_datetime_from_response(response)\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementoresource.py\", line 85, in get_memento_datetime_from_response\\n    response=response, original_exception=e)\\nmementoembed.mementoresource.NotAMementoError: no memento-datetime header\\n'"
     }
+
+**Specifying desired options for the social card with HTTP Prefer**
+
+Using the HTTP ``Prefer`` header specified in `RFC 7240 <https://tools.ietf.org/html/rfc7240>`_, a client can request a social card with specific features. For example, this client has contacted MementoEmbed at endpoint ``/services/product/socialcard/``, requesting a social card of URI-M ``http://web.archive.org/web/20180128152127/http://www.cs.odu.edu/~mkelly/`` without including the remote JavaScript can be done as follows::
+
+    GET /services/product/socialcard/http://web.archive.org/web/20180128152127/http://www.cs.odu.edu/~mkelly/ HTTP/1.1
+    Host: mementoembed.ws-dl.cs.odu.edu
+    User-Agent: curl/7.54.0
+    Accept: */*
+    Prefer: using_remote_javascript=no
+
+The response from MementoEmbed uses the ``Preference-Applied`` header to indicate which preferences have been applied, as shown in the following headers::
+
+    HTTP/1.0 200 OK
+    Content-Type: text/html; charset=utf-8
+    Content-Length: 7179
+    Preference-Applied: datauri_favicon=no,datauri_image=no,using_remote_javascript=no,minify_markup=yes
+    Server: Werkzeug/0.14.1 Python/3.7.0
+    Date: Thu, 20 Sep 2018 17:44:34 GMT
+
+    ...7179 bytes of data follows...
+
+MementoEmbed supports a growing list of options for social cards:
+
+* ``datauri_favicon`` - with a value of 'yes', instructs MementoEmbed to return the favicons for the archive and the original resource as data URIs rather than (standard) remote URIs, this option remotes the remote dependency on remote systems that may fail
+* ``datauri_image`` - with a value of 'yes', instructs MementoEmbed to return the striking image as a data URI rather than a (standard) remote URI
+* ``using_remote_javascript`` - with a value of 'no', instructs MementoEmbed to return a social card without any remote JavaScript calls, removing a dependency on a remote service
+* ``minify_markup`` - with a value of 'yes', instructs MementoEmbed to minify the HTML of the social card
 
 Thumbnails
 ~~~~~~~~~~

@@ -28,6 +28,30 @@ module_logger = logging.getLogger('mementoembed.services.product')
 
 bp = Blueprint('services.product', __name__)
 
+def generate_social_card_html_without_javascript(urim, surrogate, urlroot, 
+    archive_favicon_uri, original_favicon_uri, striking_image_uri):
+
+    return render_template(    
+        "social_card_htmlonly.html",
+        urim = urim,
+        urir = surrogate.original_uri,
+        image = striking_image_uri,
+        archive_uri = surrogate.archive_uri,
+        archive_favicon = archive_favicon_uri,
+        archive_collection_id = surrogate.collection_id,
+        archive_collection_uri = surrogate.collection_uri,
+        archive_collection_name = surrogate.collection_name,
+        archive_name = surrogate.archive_name,
+        original_favicon = original_favicon_uri,
+        original_domain = surrogate.original_domain,
+        original_link_status = surrogate.original_link_status,
+        surrogate_creation_time = surrogate.creation_time,
+        memento_datetime = surrogate.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        flat_memento_datetime = surrogate.memento_datetime.strftime("%Y%m%d%H%M%SZ"),
+        me_title = surrogate.title,
+        me_snippet = surrogate.text_snippet
+    )
+
 def generate_social_card_html(urim, surrogate, urlroot, 
     archive_favicon_uri, original_favicon_uri, striking_image_uri):
 
@@ -35,7 +59,7 @@ def generate_social_card_html(urim, surrogate, urlroot,
     u = urlroot
     u = u.replace(urlparse(urlroot).scheme, '')[1:]
 
-    return htmlmin.minify( render_template(
+    return render_template(    
         "new_social_card.html",
         urim = urim,
         urir = surrogate.original_uri,
@@ -53,9 +77,7 @@ def generate_social_card_html(urim, surrogate, urlroot,
         memento_datetime = surrogate.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
         me_title = surrogate.title,
         me_snippet = surrogate.text_snippet
-    ) + '<script async src="{}/static/js/mementoembed-v20180806.js" charset="utf-8"></script>'.format(u), 
-    remove_empty_space=True, 
-    remove_optional_attribute_quotes=False )
+    ) + '<script async src="{}/static/js/mementoembed-v20180806.js" charset="utf-8"></script>'.format(u)
 
 def generate_socialcard_response(urim, preferences):
 
@@ -94,17 +116,31 @@ def generate_socialcard_response(urim, preferences):
         )
 
 
-    data = generate_social_card_html(
-        urim, s, urlroot, archive_favicon_uri, 
-        original_favicon_uri, striking_image_uri
-        )
+    if preferences['using_remote_javascript'].lower() == 'yes':
+        data = generate_social_card_html(
+            urim, s, urlroot, archive_favicon_uri, 
+            original_favicon_uri, striking_image_uri
+            )
+    else:
+        data = generate_social_card_html_without_javascript(
+            urim, s, urlroot, archive_favicon_uri, 
+            original_favicon_uri, striking_image_uri
+            )
+
+    if preferences['minify_markup'] == 'yes':
+        data = htmlmin.minify(data,  
+            remove_empty_space=True, 
+            remove_optional_attribute_quotes=False 
+            )
 
     response = make_response(data)
     response.headers['Content-Type'] = 'text/html; charset=utf-8'
     response.headers['Preference-Applied'] = \
-        "datauri_favicon={},datauri_image={}".format(
+        "datauri_favicon={},datauri_image={},using_remote_javascript={},minify_markup={}".format(
             preferences['datauri_favicon'],
-            preferences['datauri_image']
+            preferences['datauri_image'],
+            preferences['using_remote_javascript'],
+            preferences['minify_markup']
         )
 
     return response, 200
@@ -118,6 +154,8 @@ def socialcard_endpoint(subpath):
     prefs = {}
     prefs['datauri_favicon'] = 'no'
     prefs['datauri_image'] = 'no'
+    prefs['using_remote_javascript'] = 'no'
+    prefs['minify_markup'] = 'yes'
 
     if 'Prefer' in request.headers:
 
