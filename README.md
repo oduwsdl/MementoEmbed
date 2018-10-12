@@ -66,6 +66,17 @@ $ export FLASK_APP=mementoembed
 $ flask run
 ```
 
+### Loading a Desired Configuration
+
+The configuration options for MementoEmbed are documented in `sample_appconfig.cfg`.
+
+The defaults are stored in `config/default.py`.
+
+To use your own configuration file, copy `sample_appconfig.cfg`, make modifications, and place it in `/etc/mementoembed.cfg`. Then run the application locally as described above.
+
+To use your own configuration file stored at `/path/to/my/config.cfg` with a Docker image, use the `-v` Docker option:
+`docker run -it --rm -v /path/to/my/config.cfg:/etc/mementoembed.cfg  -p 5550:5550 oduwsdl/mementoembed`
+
 ## Directory Layout
 
 The following directory structure exists for organizing MementoEmbed:
