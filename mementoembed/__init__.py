@@ -210,8 +210,10 @@ def create_app():
 
     app = Flask(__name__, instance_relative_config=True)
 
+    # defaults in all cases
     app.config.from_object('config.default')
-    app.config.from_pyfile('application.cfg', silent=True)
+
+    # config used everywhere else
     app.config.from_pyfile("/etc/mementoembed.cfg", silent=True)
 
     setup_logging_config(app.config)

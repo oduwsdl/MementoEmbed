@@ -1,6 +1,8 @@
-CACHEMODEL = 'SQLite'
+CACHEENGINE = 'SQLite'
 LOGLEVEL = "DEBUG"
 REQUEST_TIMEOUT = 15
+APPLICATION_LOGFILE = '/tmp/mementoembed/mementoembed-application.log'
+ACCESS_LOGFILE = "/tmp/mementoembed/mementoembed-access.log"
 ENABLE_THUMBNAILS = "Yes"
 THUMBNAIL_SCRIPT_PATH = "mementoembed/static/js/create_screenshot.js"
 THUMBNAIL_WORKING_FOLDER = "/tmp/mementoembed/thumbnails"
@@ -10,5 +12,4 @@ THUMBNAIL_TIMEOUT = "300"
 THUMBNAIL_WIDTH = "208"
 THUMBNAIL_HEIGHT = "156"
 THUMBNAIL_REMOVE_BANNERS = "No"
-SOCIALCARD_DATAURIS_FOR_IMAGE = "No"
-SOCIALCARD_DATAURIS_FOR_FAVICONS = "No"
+DEFAULT_IMAGE_PATH = "mementoembed/static/images/96px-Sphere_wireframe.svg.png"
