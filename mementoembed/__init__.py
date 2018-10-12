@@ -220,22 +220,21 @@ def create_app():
     app.config['REQUEST_TIMEOUT_FLOAT'] = get_requests_timeout(app.config)
 
     application_logger.info("Requests timeout is set to {}".format(app.config['REQUEST_TIMEOUT_FLOAT']))
-    application_logger.info("Default image path set to {}".format(app.config['DEFAULT_IMAGE_PATH']))
-    application_logger.info("Use data URIs for default image: {}".format(app.config['USE_DATA_URI_FOR_DEFAULT_IMAGE']))
 
-    if 'USE_DATA_URI_FOR_DEFAULT_IMAGE' in app.config:
+    if 'DEFAULT_IMAGE_URI' in app.config:
+        application_logger.info("using default image URI of {}".format(app.config['DEFAULT_IMAGE_URI']))
 
-        if app.config['USE_DATA_URI_FOR_DEFAULT_IMAGE'].lower() == "yes":
-
-            application_logger.info("Opening default image for conversion to data URI")
-            with open(app.config['DEFAULT_IMAGE_PATH'], 'rb') as f:
-                imgdata = f.read()
-            application_logger.info("Default image has been opened and stored")
-        
-            application_logger.info("Converting image data to a base64 data URI")
-            app.config['DEFAULT_IMAGE_PATH'] = "data:png;base64,{}".format( base64.b64encode(imgdata).decode('utf-8') )
-            application_logger.info("Done with image conversion")
-            application_logger.debug("Default image path now set to {}".format(app.config['DEFAULT_IMAGE_PATH']))
+    elif 'DEFAULT_IMAGE_PATH' in app.config:
+        application_logger.info("Default image path set to {}".format(app.config['DEFAULT_IMAGE_PATH']))
+        application_logger.info("Opening default image for conversion to data URI")
+        with open(app.config['DEFAULT_IMAGE_PATH'], 'rb') as f:
+            imgdata = f.read()
+        application_logger.info("Default image has been opened and stored")
+    
+        application_logger.info("Converting image data to a base64 data URI")
+        app.config['DEFAULT_IMAGE_URI'] = "data:png;base64,{}".format( base64.b64encode(imgdata).decode('utf-8') )
+        application_logger.info("Done with image conversion")
+        application_logger.debug("Default image path now set to {}".format(app.config['DEFAULT_IMAGE_URI']))
 
     application_logger.info("All Configuration successfully loaded for MementoEmbed")
     

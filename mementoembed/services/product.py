@@ -90,7 +90,7 @@ def generate_socialcard_response(urim, preferences):
     s = MementoSurrogate(
         urim,
         httpcache,
-        default_image_uri=current_app.config['DEFAULT_IMAGE_PATH']
+        default_image_uri=current_app.config['DEFAULT_IMAGE_URI']
     )
 
     urlroot = request.url_root
