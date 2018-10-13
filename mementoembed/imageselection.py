@@ -3,6 +3,8 @@ import base64
 import traceback
 import io
 
+from base64 import binascii
+
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from PIL import ImageFile, Image
@@ -144,7 +146,11 @@ def get_best_scoring_image(uri, http_cache):
                 
                         ctype = imageuri.split(';')[0].split(':')[1]
 
-                        imagecontent = base64.b64decode(imageuri.split(',')[1])
+                        try:
+                            imagecontent = base64.b64decode(imageuri.split(',')[1])
+                        except binascii.Error as e:
+                            module_logger.exception("failed to process image data at URI {}, skipping...".format(imageuri))
+                            continue
 
                     else:
     
