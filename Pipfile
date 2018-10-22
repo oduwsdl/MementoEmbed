@@ -19,6 +19,9 @@ Pillow = "==5.1.0"
 sphinx = "*"
 sphinx-rtd-theme = "*"
 Brotli = "==1.0.4"
+cairosvg = "*"
+python-magic = "*"
+pycairo = "*"
 
 [dev-packages]
 

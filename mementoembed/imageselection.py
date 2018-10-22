@@ -3,6 +3,9 @@ import base64
 import traceback
 import io
 
+import cairosvg
+import magic
+
 from base64 import binascii
 
 from urllib.parse import urljoin, urlparse
@@ -20,7 +23,16 @@ def convert_imageuri_to_pngdata_uri(imageuri, httpcache, width, height=None):
     response = httpcache.get(imageuri)
     imagedata = response.content
 
-    ifp = io.BytesIO(imagedata)
+    module_logger.debug("image detected as {}".format(magic.from_buffer( imagedata) ))
+
+    if magic.from_buffer( imagedata ) == 'SVG Scalable Vector Graphics image':
+        module_logger.debug("converting image at {} from SVG to PNG".format(imageuri))
+        imagedata = cairosvg.svg2png( imagedata )
+        ifp = io.BytesIO( imagedata )
+    else:
+        ifp = io.BytesIO(imagedata)
+
+    module_logger.debug("CONVERTING IMAGEURI TO PNGDATA URI")
 
     im = Image.open(ifp)
 

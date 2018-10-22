@@ -1,5 +1,5 @@
 CACHEENGINE = 'SQLite'
-LOGLEVEL = "DEBUG"
+APPLICATION_LOGLEVEL = "DEBUG"
 REQUEST_TIMEOUT = 15
 APPLICATION_LOGFILE = '/tmp/mementoembed/mementoembed-application.log'
 ACCESS_LOGFILE = "/tmp/mementoembed/mementoembed-access.log"
