@@ -61,9 +61,23 @@ def originaldata(urim, preferences):
     originalresource = OriginalResource(memento, httpcache)
 
     if preferences['datauri_favicon'].lower() == 'yes':
-        original_favicon = convert_imageuri_to_pngdata_uri(
-            originalresource.favicon, httpcache, 16, 16
-        )
+
+        try:
+            original_favicon = convert_imageuri_to_pngdata_uri(
+                originalresource.favicon, httpcache, 16, 16
+            )
+        except ValueError as e:
+
+            module_logger.exception(
+                "an error occurred while generating a data URI for an original resource favicon"
+                )
+
+            if str(e) == "not enough image data":
+                original_favicon=""
+
+            else:
+                raise e
+
     else:
         original_favicon = originalresource.favicon
 

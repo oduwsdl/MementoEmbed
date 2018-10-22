@@ -107,9 +107,23 @@ def generate_socialcard_response(urim, preferences):
             )
 
     if preferences['datauri_favicon'].lower() == 'yes':
-        original_favicon_uri = convert_imageuri_to_pngdata_uri(
-            original_favicon_uri, httpcache, 16, 16
-        )
+        try:
+            original_favicon_uri = convert_imageuri_to_pngdata_uri(
+                original_favicon_uri, httpcache, 16, 16
+            )
+        except ValueError as e:
+
+            module_logger.exception(
+                "an error occurred while generating a data URI for an original resource favicon"
+                )
+
+            if str(e) == "not enough image data":
+                module_logger.error("the original favicon URI is being replaced with blank")
+                original_favicon_uri=""
+
+            else:
+                raise e
+
         archive_favicon_uri = convert_imageuri_to_pngdata_uri(
             archive_favicon_uri, httpcache, 16, 16
         )

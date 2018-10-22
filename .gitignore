@@ -11,3 +11,4 @@ dist
 *.bak
 node_modules
 _build
+working-dontcommit

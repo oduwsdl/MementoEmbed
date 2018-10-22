@@ -32,8 +32,6 @@ def convert_imageuri_to_pngdata_uri(imageuri, httpcache, width, height=None):
     else:
         ifp = io.BytesIO(imagedata)
 
-    module_logger.debug("CONVERTING IMAGEURI TO PNGDATA URI")
-
     im = Image.open(ifp)
 
     im_width, im_height = im.size
