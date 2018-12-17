@@ -16,6 +16,7 @@ module_logger = logging.getLogger('mementoembed.archiveresource')
 
 archive_collection_patterns = [
     "http://wayback.archive-it.org/([0-9]*)/[0-9]{14}/.*",
+    "https://wayback.archive-it.org/([0-9]*)/[0-9]{14}/.*"
 ]
 
 archive_collection_uri_prefixes = {
@@ -176,14 +177,21 @@ class ArchiveResource:
     @property
     def collection_id(self):
 
+        self.logger.debug("collection ID is {}".format(self.archive_collection_id))
+
         if self.archive_collection_id == None:
 
             for pattern in archive_collection_patterns:
+
+                self.logger.debug("attempting to match pattern {}".format(pattern))
                 m = re.match(pattern, self.urim)
 
                 if m:
+                    self.logger.debug("matched pattern {}".format(m.group(1)))
                     self.archive_collection_id = m.group(1)
                     break
+
+            self.logger.debug("discovered collection identifier {}".format(self.archive_collection_id))
 
         return self.archive_collection_id
 
