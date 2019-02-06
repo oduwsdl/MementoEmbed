@@ -15,6 +15,7 @@ setup(
     install_requires=[
         'aiu',
         'bs4',
+        'cairosvg',
         'dicttoxml',
         'flask',
         'html5lib',
