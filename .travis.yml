@@ -9,7 +9,8 @@ sudo: true
 addons:
   apt:
     packages:
-    - cairo
+    - libcairo2
+    - libcairo2-dev
 
 branches:
   only:
