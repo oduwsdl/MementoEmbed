@@ -6,6 +6,11 @@ dist: xenial
 
 sudo: true
 
+addons:
+  apt:
+    packages:
+    - cairo
+
 branches:
   only:
   - master
