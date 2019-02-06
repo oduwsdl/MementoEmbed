@@ -22,6 +22,8 @@ setup(
         'htmlmin',
         'justext',
         'Pillow',
+        'pycairo',
+        'python-magic',
         'readability-lxml',
         'redis',
         'requests',
