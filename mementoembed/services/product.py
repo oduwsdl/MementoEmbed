@@ -122,7 +122,8 @@ def generate_socialcard_response(urim, preferences):
                 original_favicon_uri=""
 
             else:
-                raise e
+                module_logger.exception("unexpected error with origina favicon URI, replacing with blank")
+                original_favicon_uri=""
 
         archive_favicon_uri = convert_imageuri_to_pngdata_uri(
             archive_favicon_uri, httpcache, 16, 16

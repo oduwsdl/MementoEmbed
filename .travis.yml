@@ -6,6 +6,12 @@ dist: xenial
 
 sudo: true
 
+addons:
+  apt:
+    packages:
+    - libcairo2
+    - libcairo2-dev
+
 branches:
   only:
   - master

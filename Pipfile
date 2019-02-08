@@ -22,6 +22,7 @@ Brotli = "==1.0.4"
 cairosvg = "*"
 python-magic = "*"
 pycairo = "*"
+mementoembed = {path = "."}
 
 [dev-packages]
 
