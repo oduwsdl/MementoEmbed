@@ -23,9 +23,10 @@ RUN npm install
 RUN npm install puppeteer
 
 # for Python environment dependencies
-RUN pip install pipenv
-COPY Pipfile.lock Pipfile /app/
-RUN pipenv install --system
+# RUN pip install pipenv
+# COPY Pipfile.lock Pipfile /app/
+# COPY Pipfile /app/
+# RUN pipenv install --system
 
 # installing the MementoEmbed application
 COPY . /app

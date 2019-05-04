@@ -1,5 +1,7 @@
 .git
 .gitignore
+Pipfile
+Pipfile.lock
 README.md
 Dockerfile
 LICENSE

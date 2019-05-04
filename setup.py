@@ -14,6 +14,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'aiu',
+        'Brotli',
         'bs4',
         'cairosvg',
         'dicttoxml',
@@ -28,6 +29,7 @@ setup(
         'redis',
         'requests',
         'requests_cache',
+        'sphinx',
         'tldextract'
     ],
     scripts=['bin/fetch_surrogate_data'],
