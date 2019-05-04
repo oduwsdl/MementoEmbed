@@ -100,6 +100,66 @@ On success, this service produces an HTTP response with a MIME-type of ``applica
         "original-linkstatus": "Live"
     }
 
+Seed data
+~~~~~~~~~
+
+Endpoint: ``/services/memento/seeddata/<URI-M>``
+
+On success, this service produces an HTTP response with a MIME-type of ``application-json`` that contains information about the seed::
+
+    {
+        "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
+        "seeduri": "http://blasttheory.co.uk/",
+        "mementocount": 80,
+        "first-mdt": "2009-05-22T22:12:30Z",
+        "last-mdt": "2009-05-22T22:12:30Z",
+        "metadata": {}
+    }
+
+Web archives often contain the first and last memento-datetime in the Memento headers, but not all do. This service finds the other mementos available at the archive and creates the first and last entries for you.
+
+For Archive-It mementos, the ``application-json`` contains the metadata supplied by the collection curator for this seed::
+
+    {
+        "urim": "https://wayback.archive-it.org/2358/20111121082744/http://twitter.com/CarlosLatuff/",
+        "seeduri": "http://twitter.com/CarlosLatuff/",
+        "mementocount": 204,
+        "first-mdt": "2011-11-21T08:27:44Z",
+        "last-mdt": "2014-12-04T14:01:33Z",
+        "metadata": [
+            {
+                "title": "Carlos Latuff on Twitter",
+                "videos": [
+                    "21 Videos Captured"
+                ],
+                "subject": [
+                    "Revolutions--Egypt",
+                    "Social media--Political aspects"
+                ],
+                "language": [
+                    "en"
+                ],
+                "format": [
+                    "Web sites"
+                ],
+                "type": [
+                    "Interactive Resource",
+                    "Interactive Resource"
+                ],
+                "relation": [
+                    "January 25th Revolution Web sites"
+                ],
+                "collector": [
+                    "American University in Cairo. Rare Books and Special Collections Library",
+                    "American University in Cairo. Rare Books and Special Collections Library"
+                ]
+            }
+        ]
+    }
+
+
+Note that the ``metadata`` key is a list. Sometimes an Archive-It collection contains the same seed multiple times. Each instance of the same seed will be a separate list entry in value for the ``metadata`` key.
+
 
 Product Endpoints for Requesting a Surrogate Directly
 -----------------------------------------------------
