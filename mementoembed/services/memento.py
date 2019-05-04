@@ -189,10 +189,10 @@ def seeddata(urim, preferences):
 
     output['urim'] = urim
     output['seeduri'] = sr.urir
-    output['mementocount'] = sr.mementocount
-    output['first-mdt'] = sr.first_mdt
-    output['last-mdt'] = sr.last_mdt
-    output['metadata'] = sr.seed_metadata
+    output['mementocount'] = sr.mementocount()
+    output['first-mdt'] = sr.first_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['last-mdt'] = sr.last_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['metadata'] = sr.seed_metadata()
 
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
@@ -276,9 +276,8 @@ def originaldata_endpoint(subpath):
     return handle_errors(originaldata, urim, prefs)
 
 @bp.route('/services/memento/seeddata/<path:subpath>')
-def aitdata_endpoint(subpath):
-    urim = extract_urim_from_request_path(request.full_path, '/services/memento/aitdata/')
-
+def seeddata_endpoint(subpath):
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/seeddata/')
     prefs = {}
 
     return handle_errors(seeddata, urim, prefs)

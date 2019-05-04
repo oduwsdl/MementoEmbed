@@ -86,7 +86,7 @@ class SeedResource:
         else:
             self.aic = None
 
-        response = get_memento(httpcache.get, memento.urim)
+        response = get_memento(self.httpcache, memento.urim)
         self.urit = get_timemap_from_response(response)
         self.urir = get_original_uri_from_response(response)
 
@@ -148,6 +148,7 @@ class SeedResource:
 
         if self.aic is not None:
 
+            self.aic.load_seed_metadata() # workaround for aiu bug
             metadata = self.aic.get_seed_metadata(self.urir)['collection_web_pages']
 
         return metadata
