@@ -89,6 +89,7 @@ class SeedResource:
         response = get_memento(self.httpcache, memento.urim)
         self.urit = get_timemap_from_response(response)
         self.urir = get_original_uri_from_response(response)
+        self.sorted_mementos_list = []
 
     def fetch_timemap(self):
 
@@ -98,7 +99,14 @@ class SeedResource:
         
             self.timemap = aiu.convert_LinkTimeMap_to_dict(r.text)
 
-            # process and store TimeMap
+            memento_list = []
+
+            for memento in self.timemap["mementos"]["list"]:
+                mdt = memento['datetime']
+                urim = memento['uri']
+                memento_list.append( (mdt, urim) )
+
+            self.sorted_mementos_list = sorted(memento_list)
 
         except (URLRequired, MissingSchema, InvalidSchema, InvalidURL) as e:
             raise InvalidTimeMapURI("", original_exception=e)
@@ -122,25 +130,39 @@ class SeedResource:
 
         self.fetch_timemap()
         
-        return self.timemap["mementos"]["first"]["datetime"]
+        try:
+            return self.timemap["mementos"]["first"]["datetime"]
+        except KeyError:
+            return self.sorted_mementos_list[0][0]
 
     def first_urim(self):
 
         self.fetch_timemap()
 
-        return self.timemap["mementos"]["first"]["uri"]
+        try:
+            return self.timemap["mementos"]["first"]["uri"]
+        except KeyError:
+            return self.sorted_mementos_list[0][1]
 
     def last_mdt(self):
 
         self.fetch_timemap()
-        
-        return self.timemap["mementos"]["last"]["datetime"]
+
+        try:    
+            return self.timemap["mementos"]["last"]["datetime"]
+        except KeyError:
+            return self.sorted_mementos_list[0][0]
+
 
     def last_urim(self):
 
         self.fetch_timemap()
 
-        return self.timemap["mementos"]["last"]["uri"]
+        try:
+            return self.timemap["mementos"]["last"]["uri"]
+        except KeyError:
+            return self.sorted_mementos_list[0][1]
+
 
     def seed_metadata(self):
         
