@@ -130,38 +130,26 @@ class SeedResource:
 
         self.fetch_timemap()
         
-        try:
-            return self.timemap["mementos"]["first"]["datetime"]
-        except KeyError:
-            return self.sorted_mementos_list[0][0]
+        return self.sorted_mementos_list[0][0]
 
     def first_urim(self):
 
         self.fetch_timemap()
 
-        try:
-            return self.timemap["mementos"]["first"]["uri"]
-        except KeyError:
-            return self.sorted_mementos_list[0][1]
+        return self.sorted_mementos_list[0][1]
 
     def last_mdt(self):
 
         self.fetch_timemap()
 
-        try:    
-            return self.timemap["mementos"]["last"]["datetime"]
-        except KeyError:
-            return self.sorted_mementos_list[0][0]
+        return self.sorted_mementos_list[-1][0]
 
 
     def last_urim(self):
 
         self.fetch_timemap()
 
-        try:
-            return self.timemap["mementos"]["last"]["uri"]
-        except KeyError:
-            return self.sorted_mementos_list[0][1]
+        return self.sorted_mementos_list[-1][1]
 
 
     def seed_metadata(self):

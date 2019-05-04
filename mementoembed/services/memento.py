@@ -188,10 +188,14 @@ def seeddata(urim, preferences):
     output = {}
 
     output['urim'] = urim
-    output['seeduri'] = sr.urir
-    output['mementocount'] = sr.mementocount()
-    output['first-mdt'] = sr.first_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
-    output['last-mdt'] = sr.last_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['generation-time'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['timemap'] = sr.urit
+    output['original-url'] = sr.urir
+    output['memento-count'] = sr.mementocount()
+    output['first-memento-datetime'] = sr.first_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['first-urim'] = sr.first_urim()
+    output['last-memento-datetime'] = sr.last_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['last-urim'] = sr.last_urim()
     output['metadata'] = sr.seed_metadata()
 
     response = make_response(json.dumps(output, indent=4))
