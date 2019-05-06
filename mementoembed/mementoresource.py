@@ -110,7 +110,7 @@ def get_timegate_from_response(response):
         urig = response.links['timegate']['url']
     except KeyError as e:
         raise NotAMementoError(
-            "link header coult not be parsed for timegate URI",
+            "link header could not be parsed for timegate URI",
             response=response, original_exception=e)
 
     return urig
@@ -125,7 +125,7 @@ def get_original_uri_from_response(response):
         urir = response.links['original']['url']
     except KeyError as e:
         raise NotAMementoError(
-            "link header coult not be parsed for original URI",
+            "link header could not be parsed for original URI",
             response=response, original_exception=e)
     except aiu.timemap.MalformedLinkFormatTimeMap as e:
         module_logger.exception("Failed to process link header for URI-R, link header: {}".format(response.headers['link']))

@@ -13,6 +13,7 @@ from mementoembed.originalresource import OriginalResource
 from mementoembed.textprocessing import extract_text_snippet, extract_title
 from mementoembed.cachesession import CacheSession
 from mementoembed.archiveresource import ArchiveResource
+from mementoembed.seedresource import SeedResource
 from mementoembed.imageselection import get_best_image, convert_imageuri_to_pngdata_uri
 from mementoembed.version import __useragent__
 
@@ -172,10 +173,41 @@ def archivedata(urim, preferences):
 
     return response, 200
 
+def seeddata(urim, preferences):
+
+    httpcache = CacheSession(
+        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        user_agent=__useragent__,
+        starting_uri=urim
+        )
+
+    memento = memento_resource_factory(urim, httpcache)
+
+    sr = SeedResource(memento, httpcache)
+
+    output = {}
+
+    output['urim'] = urim
+    output['generation-time'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['timemap'] = sr.urit
+    output['original-url'] = sr.urir
+    output['memento-count'] = sr.mementocount()
+    output['first-memento-datetime'] = sr.first_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['first-urim'] = sr.first_urim()
+    output['last-memento-datetime'] = sr.last_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['last-urim'] = sr.last_urim()
+    output['metadata'] = sr.seed_metadata()
+
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+
+    return response, 200
+
 @bp.route('/services/memento/contentdata/')
 @bp.route('/services/memento/archivedata/')
 @bp.route('/services/memento/originalresourcedata/')
 @bp.route('/services/memento/bestimage/')
+@bp.route('/services/memento/seeddata/')
 def no_urim():
     path = request.url_rule.rule
     return """WARNING: no URI-M submitted, please append a URI-M to {}
@@ -246,3 +278,10 @@ def originaldata_endpoint(subpath):
             prefs[key] = value.lower()
 
     return handle_errors(originaldata, urim, prefs)
+
+@bp.route('/services/memento/seeddata/<path:subpath>')
+def seeddata_endpoint(subpath):
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/seeddata/')
+    prefs = {}
+
+    return handle_errors(seeddata, urim, prefs)

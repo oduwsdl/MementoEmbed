@@ -100,6 +100,74 @@ On success, this service produces an HTTP response with a MIME-type of ``applica
         "original-linkstatus": "Live"
     }
 
+Seed data
+~~~~~~~~~
+
+Endpoint: ``/services/memento/seeddata/<URI-M>``
+
+On success, this service produces an HTTP response with a MIME-type of ``application-json`` that contains information about the seed::
+
+    {
+        "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
+        "generation-time": "2019-05-04T16:16:55Z",
+        "timemap": "https://www.webarchive.org.uk/wayback/archive/timemap/link/http://blasttheory.co.uk/",
+        "original-url": "http://blasttheory.co.uk/",
+        "memento-count": 80,
+        "first-memento-datetime": "2009-05-22T22:12:30Z",
+        "first-urim": "https://www.webarchive.org.uk/wayback/archive/20090522221230mp_/http://www.blasttheory.co.uk/",
+        "last-memento-datetime": "2019-04-01T04:42:08Z",
+        "last-urim": "https://www.webarchive.org.uk/wayback/archive/20190401044208mp_/https://www.blasttheory.co.uk/",
+        "metadata": {}
+    }
+
+The ``originalresourcedata`` endpoint returns information about the original resource. In contrast, the ``seeddata`` service provides information from an archive's perspective, including information about other mementos.  Web archives often contain the first and last URI-M and memento-datetime in the Memento headers, but not all do. This service finds the other mementos available at the archive and creates the first and last entries for you.
+
+For Archive-It mementos, the ``application-json`` contains the metadata supplied by the collection curator for this seed::
+
+    {
+        "urim": "https://wayback.archive-it.org/2358/20110213141707/http://twitter.com/DailyNewsEgypt/",
+        "generation-time": "2019-05-04T16:16:22Z",
+        "timemap": "https://wayback.archive-it.org/2358/timemap/link/http://twitter.com/DailyNewsEgypt/",
+        "original-url": "http://twitter.com/DailyNewsEgypt/",
+        "memento-count": 223,
+        "first-memento-datetime": "2011-02-13T14:17:07Z",
+        "first-urim": "https://wayback.archive-it.org/2358/20110213141707/http://twitter.com/DailyNewsEgypt",
+        "last-memento-datetime": "2014-12-04T14:01:29Z",
+        "last-urim": "https://wayback.archive-it.org/2358/20141204140129/https://twitter.com/DailyNewsEgypt/",
+        "metadata": [
+            {
+                "title": "The Daily News Egypt on Twitter",
+                "videos": [
+                    "912 Videos Captured"
+                ],
+                "subject": [
+                    "Revolutions--Egypt",
+                    "Social media--Political aspects"
+                ],
+                "language": [
+                    "en"
+                ],
+                "format": [
+                    "Web sites"
+                ],
+                "type": [
+                    "Interactive Resource",
+                    "Interactive Resource"
+                ],
+                "relation": [
+                    "January 25th Revolution Web sites"
+                ],
+                "collector": [
+                    "American University in Cairo. Rare Books and Special Collections Library",
+                    "American University in Cairo. Rare Books and Special Collections Library"
+                ]
+            }
+        ]
+    }
+
+
+Note that the ``metadata`` key is a list. Sometimes an Archive-It collection contains the same seed multiple times. Each instance of the same seed will be a separate list entry in value for the ``metadata`` key.
+
 
 Product Endpoints for Requesting a Surrogate Directly
 -----------------------------------------------------

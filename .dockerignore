@@ -1,6 +1,9 @@
 .git
 .gitignore
+Pipfile
+Pipfile.lock
 README.md
 Dockerfile
 LICENSE
 node_modules
+docs

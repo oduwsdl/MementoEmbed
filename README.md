@@ -98,8 +98,6 @@ The following directory structure exists for organizing MementoEmbed:
 * Dockerfile - used to build the docker image
 * LICENSE - the license for this project
 * MANIFEST.in - used to ensure additional files are installed on the system when pip is run
-* Pipfile - package information used by pipenv
-* Pipfile.lock - package version information used by pipenv
 * README.md - this file
 * dockerstart.sh - the script run by Docker to start MementoEmbed once a container is started
 * package-lock.json - pakcage version information used by npm
