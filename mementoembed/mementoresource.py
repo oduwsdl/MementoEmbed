@@ -269,6 +269,7 @@ class MementoResource:
 
         self.http_cache = http_cache
         self.urim = urim
+        self.im_urim = urim
         self.given_uri = given_uri
 
         self.response = get_memento(self.http_cache, self.urim)
@@ -543,6 +544,12 @@ class IMFMemento(MementoResource):
 
 
 class WaybackMemento(MementoResource):
+
+    def __init__(self, http_cache, urim, logger=None, given_uri=None):
+        super(WaybackMemento, self).__init__(
+            http_cache, urim, logger, given_uri
+        )
+        self.im_urim = wayback_pattern.sub(r'\1im_/', self.urim)
 
     @property
     def raw_content(self):
