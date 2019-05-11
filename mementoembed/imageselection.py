@@ -119,6 +119,81 @@ def get_image_list(uri, http_cache):
     
     return image_list
 
+def generate_images_and_scores(uri, http_cache):
+
+    module_logger.debug("generating list of images and computing their scores")
+
+    image_list = get_image_list(uri, http_cache)
+
+    module_logger.debug
+
+    images_and_scores = {}
+
+    for imageuri in image_list:
+        
+        images_and_scores[imageuri] = {}
+
+    #     try:
+    #         r = http_cache.get(imageuri)
+    #     except RequestException:
+    #         module_logger.warning(
+    #             "Failed to download image URI {}, skipping...".format(imageuri)
+    #         )
+    #         continue
+
+    #     if r.status_code == 200:
+
+    #         try:
+
+    #             ctype = r.headers['content-type']
+    #             imagecontent = r.content
+
+    #         except KeyError:
+    #             module_logger.warning(
+    #                 "could not find a content-type for URI {}".format(imageuri)
+    #             )
+    #             continue
+            
+    #         if 'image/' in ctype:
+
+    #             try:
+                    
+    #                 p = ImageFile.Parser()
+    #                 p.feed(imagecontent)
+    #                 p.close()
+
+    #                 width, height = p.image.size
+    #                 h = p.image.histogram().count(0)
+
+    #                 images_and_scores[imageuri]['width'] = width
+    #                 images_and_scores[imageuri]['height'] = height
+
+    #                 images_and_scores[imageuri]['histogram'] = p.image.histogram()
+    #                 images_and_scores[imageuri]['blank columns in histogram'] = h
+
+    #                 s = width * height
+    #                 images_and_scores[imageuri]['size in pixels'] = s
+
+    #                 r = width / height
+    #                 images_and_scores[imageuri]['ratio width/height'] = r
+
+    #                 k1 = 0.1 
+    #                 k2 = 0.4
+    #                 k3 = 10
+    #                 k4 = 0.5
+
+    #                 score = (k1 * (N - n)) + (k2 * s) - (k3 * h) - (k4 * r)
+
+    #                 images_and_scores[imageuri]['calculated score'] = score
+
+    #             except IOError:
+    #                 images_and_scores[imageuri] = None
+
+    #         else:
+    #             images_and_scores[imageuri] = None
+
+    return images_and_scores
+
 def get_best_scoring_image(uri, http_cache):
 
     module_logger.debug("getting the best image for content at URI {}".format(uri))
