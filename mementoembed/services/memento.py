@@ -109,7 +109,7 @@ def bestimage(urim, preferences):
     memento = memento_resource_factory(urim, httpcache)
 
     best_image_uri = get_best_image(
-        memento.urim, 
+        memento.im_urim, 
         httpcache,
         current_app.config['DEFAULT_IMAGE_URI']
     )
