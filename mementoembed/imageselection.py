@@ -2,9 +2,11 @@ import logging
 import base64
 import traceback
 import io
+import sys
 
 import cairosvg
 import magic
+import imghdr
 
 from base64 import binascii
 
@@ -129,68 +131,93 @@ def generate_images_and_scores(uri, http_cache):
 
     images_and_scores = {}
 
+    N = len(image_list)
+    n = 0
+
     for imageuri in image_list:
+
+        n += 1
         
         images_and_scores[imageuri] = {}
 
-    #     try:
-    #         r = http_cache.get(imageuri)
-    #     except RequestException:
-    #         module_logger.warning(
-    #             "Failed to download image URI {}, skipping...".format(imageuri)
-    #         )
-    #         continue
+        try:
+            r = http_cache.get(imageuri)
+        except RequestException:
+            module_logger.warning(
+                "Failed to download image URI {}, skipping...".format(imageuri)
+            )
+            images_and_scores[imageuri] = "Image could not be downloaded"
+            continue
 
-    #     if r.status_code == 200:
+        if r.status_code == 200:
 
-    #         try:
+            try:
 
-    #             ctype = r.headers['content-type']
-    #             imagecontent = r.content
+                ctype = r.headers['content-type']
+                imagecontent = r.content
+                images_and_scores[imageuri]["content-type"] = ctype
+                images_and_scores[imageuri]["magic type"] = \
+                    magic.from_buffer(r.content)
+                images_and_scores[imageuri]["imghdr type"] = \
+                    imghdr.what(None, r.content)
 
-    #         except KeyError:
-    #             module_logger.warning(
-    #                 "could not find a content-type for URI {}".format(imageuri)
-    #             )
-    #             continue
-            
-    #         if 'image/' in ctype:
+            except KeyError:
+                module_logger.warning(
+                    "could not find a content-type for URI {}".format(imageuri)
+                )
+                images_and_scores[imageuri] = "No content type for image"
+                continue
 
-    #             try:
+            if 'image/' in ctype:
+
+                try:
                     
-    #                 p = ImageFile.Parser()
-    #                 p.feed(imagecontent)
-    #                 p.close()
+                    p = ImageFile.Parser()
+                    p.feed(imagecontent)
+                    p.close()
 
-    #                 width, height = p.image.size
-    #                 h = p.image.histogram().count(0)
+                    width, height = p.image.size
+                    h = p.image.histogram().count(0)
 
-    #                 images_and_scores[imageuri]['width'] = width
-    #                 images_and_scores[imageuri]['height'] = height
+                    images_and_scores[imageuri]['width'] = width
+                    images_and_scores[imageuri]['height'] = height
 
-    #                 images_and_scores[imageuri]['histogram'] = p.image.histogram()
-    #                 images_and_scores[imageuri]['blank columns in histogram'] = h
+                    # images_and_scores[imageuri]['histogram'] = p.image.histogram()
+                    images_and_scores[imageuri]['blank columns in histogram'] = h
 
-    #                 s = width * height
-    #                 images_and_scores[imageuri]['size in pixels'] = s
+                    s = width * height
+                    images_and_scores[imageuri]['size in pixels'] = s
 
-    #                 r = width / height
-    #                 images_and_scores[imageuri]['ratio width/height'] = r
+                    r = width / height
+                    images_and_scores[imageuri]['ratio width/height'] = r
 
-    #                 k1 = 0.1 
-    #                 k2 = 0.4
-    #                 k3 = 10
-    #                 k4 = 0.5
+                    images_and_scores[imageuri]['byte size'] = \
+                        sys.getsizeof(imagecontent)
 
-    #                 score = (k1 * (N - n)) + (k2 * s) - (k3 * h) - (k4 * r)
+                    k1 = 0.1 
+                    k2 = 0.4
+                    k3 = 10
+                    k4 = 0.5
 
-    #                 images_and_scores[imageuri]['calculated score'] = score
+                    score = (k1 * (N - n)) + (k2 * s) - (k3 * h) - (k4 * r)
 
-    #             except IOError:
-    #                 images_and_scores[imageuri] = None
+                    images_and_scores[imageuri]['N'] = N
+                    images_and_scores[imageuri]['n'] = n
+                    images_and_scores[imageuri]['k1'] = k1
+                    images_and_scores[imageuri]['k2'] = k2
+                    images_and_scores[imageuri]['k3'] = k3
+                    images_and_scores[imageuri]['k4'] = k4
 
-    #         else:
-    #             images_and_scores[imageuri] = None
+                    images_and_scores[imageuri]['calculated score'] = score
+
+                except IOError:
+                    images_and_scores[imageuri] = None
+
+            else:
+                images_and_scores[imageuri] = "Content type is not an image"
+
+        else:
+            images_and_scores[imageuri] = "Image could not be downloaded"
 
     return images_and_scores
 

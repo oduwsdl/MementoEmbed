@@ -148,7 +148,7 @@ def imagedata(urim, preferences):
     output['urim'] = urim
     output['processed urim'] = memento.im_urim
     output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-    output['images'] = generate_images_and_scores(urim, httpcache)
+    output['images'] = generate_images_and_scores(memento.im_urim, httpcache)
 
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
