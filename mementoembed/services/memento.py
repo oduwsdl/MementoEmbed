@@ -150,6 +150,16 @@ def imagedata(urim, preferences):
     output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     output['images'] = generate_images_and_scores(memento.im_urim, httpcache)
 
+    scorelist = []
+    output["ranked images"] = []
+
+    for imageuri in output['images']:
+        if 'calculated score' in output['images'][imageuri]:
+            scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
+
+    for item in sorted(scorelist, reverse=True):
+        output["ranked images"].append(item[1])
+
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
 
