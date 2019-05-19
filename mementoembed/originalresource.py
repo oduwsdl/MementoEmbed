@@ -48,14 +48,19 @@ class OriginalResource:
 
             candidate_favicon = get_favicon_from_html(self.content)
 
+            self.logger.debug("retrieved candidate favicon of {}".format(candidate_favicon))
+
             if candidate_favicon is not None:
 
-                self.original_link_favicon_uri = query_timegate_for_favicon(
-                    self.memento.timegate[0:self.memento.timegate.find(self.uri)],
-                    candidate_favicon,
-                    self.memento.memento_datetime,
-                    self.http_cache
-                )
+                # self.original_link_favicon_uri = query_timegate_for_favicon(
+                #     self.memento.timegate[0:self.memento.timegate.find(self.uri)],
+                #     candidate_favicon,
+                #     self.memento.memento_datetime,
+                #     self.http_cache
+                # )
+                self.original_link_favicon_uri = candidate_favicon
+
+                self.logger.debug("original link favicon is now {}".format(self.original_link_favicon_uri))
 
         self.logger.debug("failed to find favicon in HTML for URI {}".format(self.uri))
 
