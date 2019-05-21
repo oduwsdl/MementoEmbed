@@ -269,6 +269,15 @@ class TestOriginalResource(unittest.TestCase):
                         }
                     }
                 ),
+            original_favicon:
+                mock_response(
+                    headers = {
+                        'content-type': 'image/',
+                    },
+                    text = expected_content,
+                    status=200,
+                    url = expected_favicon
+                ),
             expected_original_uri:
                 mock_response(
                     headers = {

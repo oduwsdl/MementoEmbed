@@ -8,6 +8,8 @@ from .favicon import get_favicon_from_google_service, get_favicon_from_html, \
     find_conventional_favicon_on_live_web, query_timegate_for_favicon, \
     get_favicon_from_resource_content, construct_conventional_favicon_uri
 
+from .mementoresource import get_memento_datetime_from_response, NotAMementoError
+
 module_logger = logging.getLogger('mementoembed.originalresource')
 
 class OriginalResource:
@@ -52,21 +54,30 @@ class OriginalResource:
 
             if candidate_favicon is not None:
 
-                # self.original_link_favicon_uri = query_timegate_for_favicon(
-                #     self.memento.timegate[0:self.memento.timegate.find(self.uri)],
-                #     candidate_favicon,
-                #     self.memento.memento_datetime,
-                #     self.http_cache
-                # )
-                self.original_link_favicon_uri = candidate_favicon
+                # make sure favicon is a memento
 
+                try:
+                    r = self.http_cache.get(candidate_favicon)
+                    get_memento_datetime_from_response(r)
+
+                    # if we get here, then it is a memento, just use it
+                    self.original_link_favicon_uri = candidate_favicon
+
+                except NotAMementoError:
+                    # try datetime negotiation
+                    self.original_link_favicon_uri = query_timegate_for_favicon(
+                        self.memento.timegate[0:self.memento.timegate.find(self.uri)],
+                        candidate_favicon,
+                        self.memento.memento_datetime,
+                        self.http_cache
+                    )
+                
                 self.logger.debug("original link favicon is now {}".format(self.original_link_favicon_uri))
-
-        self.logger.debug("failed to find favicon in HTML for URI {}".format(self.uri))
 
         # 2. try to construct the favicon URI and look for it in the archive
         if self.original_link_favicon_uri is None:
 
+            self.logger.debug("failed to find favicon in HTML for URI {}".format(self.uri))
             self.logger.debug("querying web archive for original favicon at conventional URI")
 
             self.original_link_favicon_uri = query_timegate_for_favicon(
@@ -76,32 +87,29 @@ class OriginalResource:
                 self.http_cache   
             )
 
-        self.logger.debug("failed to find favicon in archive for URI {}".format(self.uri))
-
         # 3. request the home page of the site on the live web and look for favicon in its HTML
         if self.original_link_favicon_uri is None:
 
+            self.logger.debug("failed to find favicon in archive for URI {}".format(self.uri))
             self.logger.debug("interrogating HTML of live web home page for favicon URI")
 
             self.original_link_favicon_uri = get_favicon_from_resource_content(
                 "{}://{}".format(original_scheme, self.domain), self.http_cache)
 
-        self.logger.debug("failed to find favicon in HTML of live page for URI {}".format(self.uri))
-
         # 4. try to construct the favicon URI and look for it on the live web
         if self.original_link_favicon_uri is None:
 
+            self.logger.debug("failed to find favicon in HTML of live page for URI {}".format(self.uri))
             self.logger.debug("requesting the live web home page of the resource and searching "
                 "for the favicon in its content")
 
             self.original_link_favicon_uri = find_conventional_favicon_on_live_web(
                 original_scheme, self.domain, self.http_cache)
 
-        self.logger.debug("failed to find favicon on live web for URI {}".format(self.uri))
-        
         # 5. if all else fails, fall back to the Google favicon service
         if self.original_link_favicon_uri is None:
 
+            self.logger.debug("failed to find favicon on live web for URI {}".format(self.uri))
             self.logger.debug("attempting to query the google favicon service for the archive favicon URI")
 
             self.original_link_favicon_uri = get_favicon_from_google_service(
