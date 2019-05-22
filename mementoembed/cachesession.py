@@ -69,6 +69,8 @@ class CacheSession:
 
         req_headers['accept-encoding'] = "gzip, deflate"
 
+        module_logger.debug("requesting URI {}".format(uri))
+
         for key in headers:
             # Note that this will allow the caller to overwrite the accept-encoding
             req_headers[key] = headers[key]

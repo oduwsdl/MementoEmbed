@@ -54,14 +54,14 @@ class OriginalResource:
 
             if candidate_favicon is not None:
 
-                # make sure favicon is a memento
-
                 try:
+                    candidate_favicon = urljoin(self.urim, candidate_favicon)
                     r = self.http_cache.get(candidate_favicon)
                     get_memento_datetime_from_response(r)
 
-                    # if we get here, then it is a memento, just use it
-                    self.original_link_favicon_uri = candidate_favicon
+                    if r.status_code == 200:
+                        # if we get here, then it is a memento, just use it
+                        self.original_link_favicon_uri = candidate_favicon
 
                 except NotAMementoError:
                     # try datetime negotiation

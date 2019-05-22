@@ -57,6 +57,7 @@ def get_favicon_from_html(content):
         try:
             if 'icon' in link['rel']:
                 favicon_uri = link['href']
+                module_logger.debug("found favicon with 'icon' relation at {}".format(favicon_uri))
                 break
         except KeyError:
             module_logger.exception("there was no 'rel' attribute in this link tag: {}".format(link))
@@ -72,6 +73,7 @@ def get_favicon_from_html(content):
             try:
                 if 'shortcut' in link['rel']:
                     favicon_uri = link['href']
+                    module_logger.debug("found favicon with 'shortcut' relation at {}".format(favicon_uri))
                     break
             except KeyError:
                 module_logger.exception("there was no 'rel' attribute in this link tag: {}".format(link))
@@ -88,6 +90,7 @@ def get_favicon_from_html(content):
             try:
                 if 'shortcut icon' in link['rel']:
                     favicon_uri = link['href']
+                    module_logger.debug("found favicon with 'shortcut icon' relation at {}".format(favicon_uri))
                     break
             except KeyError:
                 module_logger.exception("there was no 'rel' attribute in this link tag: {}".format(link))
