@@ -13,13 +13,10 @@ module_logger = logging.getLogger('mementoembed.memstock.uricache')
 
 # this whole implementation exists because requests_cache
 # would occasionally return incorrect content for a URI
-
-# TODO: create minimal response object
+# and I could not determine why
 
 # timeout
 # retries
-# referrer
-# accept-encoding
 
 class URICacheError(Exception):
     pass
