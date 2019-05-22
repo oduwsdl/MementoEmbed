@@ -11,7 +11,7 @@ from flask import render_template, request, make_response, Blueprint, current_ap
 from mementoembed.mementoresource import memento_resource_factory
 from mementoembed.originalresource import OriginalResource
 from mementoembed.textprocessing import extract_text_snippet, extract_title
-from mementoembed.cachesession import ManagedSession
+from mementoembed.sessions import ManagedSession
 from mementoembed.archiveresource import ArchiveResource
 from mementoembed.seedresource import SeedResource
 from mementoembed.imageselection import get_best_image, convert_imageuri_to_pngdata_uri

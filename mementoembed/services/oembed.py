@@ -10,7 +10,7 @@ from flask import render_template, request, make_response, Blueprint, current_ap
 from redis import RedisError
 
 from mementoembed.mementosurrogate import MementoSurrogate
-from mementoembed.cachesession import ManagedSession
+from mementoembed.sessions import ManagedSession
 from mementoembed.mementoresource import NotAMementoError, MementoContentError, \
     MementoConnectionError, MementoTimeoutError, MementoInvalidURI
 from mementoembed.textprocessing import TextProcessingError

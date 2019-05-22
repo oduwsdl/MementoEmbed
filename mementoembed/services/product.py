@@ -18,7 +18,7 @@ from mementoembed.mementothumbnail import MementoThumbnail, \
     MementoThumbnailTimeoutInvalid
 from mementoembed.mementoresource import MementoURINotAtArchiveFailure
 from mementoembed.imageselection import convert_imageuri_to_pngdata_uri
-from mementoembed.cachesession import ManagedSession
+from mementoembed.sessions import ManagedSession
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
