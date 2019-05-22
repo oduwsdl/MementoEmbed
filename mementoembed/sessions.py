@@ -59,7 +59,7 @@ class ManagedSession:
         self.starting_uri = starting_uri
         self.user_agent = user_agent
         
-        if session is None:
+        if session is not None:
             self.session = session
         else:
             self.session = requests.Session()
