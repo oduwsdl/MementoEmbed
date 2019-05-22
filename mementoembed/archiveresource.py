@@ -108,11 +108,19 @@ class ArchiveResource:
         # 1 try the HTML within the archive's web page for a favicon
         if self.archive_favicon_uri is None:
             
-            self.logger.debug("attempting to acquire the archive favicon URI from HTML")
+            self.logger.debug("attempting to acquire the archive favicon URI from HTML at {}".format(self.uri))
 
             r = self.httpcache.get(self.uri)
 
-            self.archive_favicon_uri = urljoin(self.uri, get_favicon_from_html(r.text))
+            # self.logger.debug("searching through HTML: \n\n{}\n\n".format(r.text))
+
+            # self.logger.debug("searching through content: \n\n{}\n\n".format(r.content.decode('utf8')))
+
+            candidate_favicon = get_favicon_from_html(r.text)
+
+            self.logger.debug("retrieved archive candidate favicon: {}".format(candidate_favicon))
+
+            self.archive_favicon_uri = urljoin(self.uri, candidate_favicon)
 
             self.logger.debug("got an archive favicon of {}".format(self.archive_favicon_uri))
 

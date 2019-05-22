@@ -4,7 +4,7 @@ import requests
 import brotli
 import requests_cache
 
-module_logger = logging.getLogger('mementoembed.cachesession')   
+module_logger = logging.getLogger('mementoembed.sessions')   
 
 class BrotliResponse:
     """
@@ -50,17 +50,20 @@ class BrotliResponse:
 
         return content
 
-                
 
-class CacheSession:
+class ManagedSession:
 
-    def __init__(self, timeout, user_agent, starting_uri):
+    def __init__(self, timeout, user_agent, starting_uri, session=None):
 
         self.timeout = float(timeout)
         self.starting_uri = starting_uri
         self.user_agent = user_agent
+        
+        if session is None:
+            self.session = session
+        else:
+            self.session = requests.Session()
 
-        self.session = requests.Session()
         self.session.headers.update( {'User-Agent': user_agent} )
 
     def get(self, uri, headers={}, use_referrer=True):
@@ -68,6 +71,8 @@ class CacheSession:
         req_headers = {}
 
         req_headers['accept-encoding'] = "gzip, deflate"
+
+        module_logger.debug("requesting URI {}".format(uri))
 
         for key in headers:
             # Note that this will allow the caller to overwrite the accept-encoding

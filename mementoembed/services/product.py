@@ -18,7 +18,7 @@ from mementoembed.mementothumbnail import MementoThumbnail, \
     MementoThumbnailTimeoutInvalid
 from mementoembed.mementoresource import MementoURINotAtArchiveFailure
 from mementoembed.imageselection import convert_imageuri_to_pngdata_uri
-from mementoembed.cachesession import CacheSession
+from mementoembed.sessions import ManagedSession
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
@@ -81,7 +81,7 @@ def generate_social_card_html(urim, surrogate, urlroot,
 
 def generate_socialcard_response(urim, preferences):
 
-    httpcache = CacheSession(
+    httpcache = ManagedSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
         user_agent=__useragent__,
         starting_uri=urim
@@ -214,7 +214,7 @@ def thumbnail_endpoint(subpath):
 
             module_logger.debug("The user hath preferences! ")
 
-        httpcache = CacheSession(
+        httpcache = ManagedSession(
             timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
             user_agent=__useragent__,
             starting_uri=urim
