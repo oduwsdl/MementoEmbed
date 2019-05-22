@@ -112,9 +112,9 @@ class ArchiveResource:
 
             r = self.httpcache.get(self.uri)
 
-            self.logger.debug("searching through HTML: \n\n{}\n\n".format(r.text))
+            # self.logger.debug("searching through HTML: \n\n{}\n\n".format(r.text))
 
-            self.logger.debug("searching through content: \n\n{}\n\n".format(r.content.decode('utf8')))
+            # self.logger.debug("searching through content: \n\n{}\n\n".format(r.content.decode('utf8')))
 
             candidate_favicon = get_favicon_from_html(r.text)
 

@@ -10,7 +10,7 @@ from flask import render_template, request, make_response, Blueprint, current_ap
 from redis import RedisError
 
 from mementoembed.mementosurrogate import MementoSurrogate
-from mementoembed.cachesession import CacheSession
+from mementoembed.cachesession import ManagedSession
 from mementoembed.mementoresource import NotAMementoError, MementoContentError, \
     MementoConnectionError, MementoTimeoutError, MementoInvalidURI
 from mementoembed.textprocessing import TextProcessingError
@@ -47,7 +47,7 @@ def generate_oembed_response(urim):
     
     module_logger.debug("output format will be: {}".format(responseformat))
     
-    httpcache = CacheSession(
+    httpcache = ManagedSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
         user_agent=__useragent__,
         starting_uri=urim

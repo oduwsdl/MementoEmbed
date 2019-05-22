@@ -52,7 +52,7 @@ class BrotliResponse:
 
                 
 
-class CacheSession:
+class ManagedSession:
 
     def __init__(self, timeout, user_agent, starting_uri):
 
