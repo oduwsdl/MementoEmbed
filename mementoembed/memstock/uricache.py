@@ -1,13 +1,8 @@
-import sqlite3
 import json
 import logging
 import datetime
-import time
-
-from sqlite3 import OperationalError, ProgrammingError
 
 import redis
-
 import requests
 from requests.models import Response
 from requests.structures import CaseInsensitiveDict
