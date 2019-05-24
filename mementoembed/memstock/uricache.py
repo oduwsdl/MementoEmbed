@@ -35,7 +35,7 @@ class RedisCache(URICache):
 
         module_logger.debug("setting up Redis cache at with credentials {}".format(credentials))
 
-        self.conn = redis.Redis(
+        self.conn = redis.StrictRedis(
             host=credentials['host'],
             port=credentials['port'],
             password=credentials['password'],
@@ -43,8 +43,6 @@ class RedisCache(URICache):
         )
 
         module_logger.debug("Redis cache set up with object {}".format(self.conn))
-
-        self.conn.set("started", "yes")
 
         self.session = session
         self.expiration_delta = expiration_delta
@@ -55,18 +53,11 @@ class RedisCache(URICache):
 
     def saveuri(self, uri):
 
-        self.conn.set("savingurl {}".format(uri), "yes")
-
         module_logger.debug("saving URI to cache: {}".format(uri))
-
-        # TODO: purge URI if expired
 
         r = self.session.get(uri)
 
         observation_datetime = datetime.datetime.utcnow()
-
-        ret = self.conn.hset(uri, "obdt", observation_datetime)
-        module_logger.debug("hset {} obdt returned {}".format(uri, ret))
 
         self.conn.hset(uri, "request_headers", json.dumps(dict(r.request.headers)))
         self.conn.hset(uri, "request_method", r.request.method)
@@ -74,9 +65,13 @@ class RedisCache(URICache):
         self.conn.hset(uri, "response_reason", r.reason)
         self.conn.hset(uri, "response_elapsed", r.elapsed.microseconds)
         self.conn.hset(uri, "response_headers", json.dumps(dict(r.headers)))
-        self.conn.hset(uri, "response_encoding", r.encoding)
+
+        # sometimes there is no encoding
+        if r.encoding is not None:
+            self.conn.hset(uri, "response_encoding", r.encoding)
+
         self.conn.hset(uri, "response_content", r.content)
-        self.conn.hset(uri, "observation_datetime", observation_datetime)
+        self.conn.hset(uri, "observation_datetime", observation_datetime.strftime("%Y-%m-%dT%H:%M:%S"))
 
         module_logger.debug("URI {} should now be written to the cache {}".format(
             uri, self.conn))
@@ -85,7 +80,7 @@ class RedisCache(URICache):
 
     def get(self, uri, headers={}, timeout=None):
 
-        if self.conn.hget(uri, "status") is None:
+        if self.conn.hget(uri, "response_status") is None:
             self.saveuri(uri)
 
         req_headers = CaseInsensitiveDict(json.loads(self.conn.hget(uri, "request_headers")))
