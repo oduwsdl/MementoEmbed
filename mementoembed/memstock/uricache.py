@@ -2,7 +2,7 @@ import json
 import logging
 import datetime
 
-import redis
+from redis_namespace import StrictRedis
 import requests
 from requests.models import Response
 from requests.structures import CaseInsensitiveDict
@@ -35,11 +35,12 @@ class RedisCache(URICache):
 
         module_logger.debug("setting up Redis cache at with credentials {}".format(credentials))
 
-        self.conn = redis.StrictRedis(
+        self.conn = StrictRedis(
             host=credentials['host'],
             port=credentials['port'],
             password=credentials['password'],
-            db=credentials['dbnumber']
+            db=credentials['dbnumber'],
+            namespace='uricache:'
         )
 
         module_logger.debug("Redis cache set up with object {}".format(self.conn))
@@ -75,8 +76,6 @@ class RedisCache(URICache):
 
         module_logger.debug("URI {} should now be written to the cache {}".format(
             uri, self.conn))
-        
-        # raise Exception("done writing, delete me!!!")
 
     def get(self, uri, headers={}, timeout=None):
 
