@@ -5,7 +5,6 @@ import traceback
 import hashlib
 
 import htmlmin
-import requests_cache
 
 from urllib.parse import urlparse
 

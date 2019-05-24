@@ -2,7 +2,8 @@ import logging
 
 import requests
 import brotli
-import requests_cache
+
+from .memstock import uricache
 
 module_logger = logging.getLogger('mementoembed.sessions')   
 
@@ -53,18 +54,12 @@ class BrotliResponse:
 
 class ManagedSession:
 
-    def __init__(self, timeout, user_agent, starting_uri, session=None):
+    def __init__(self, timeout, user_agent, starting_uri, uricache):
 
         self.timeout = float(timeout)
         self.starting_uri = starting_uri
         self.user_agent = user_agent
-        
-        if session is not None:
-            self.session = session
-        else:
-            self.session = requests.Session()
-
-        self.session.headers.update( {'User-Agent': user_agent} )
+        self.uricache = uricache
 
     def get(self, uri, headers={}, use_referrer=True):
 
@@ -82,7 +77,9 @@ class ManagedSession:
             if uri != self.starting_uri:
                 req_headers['Referer'] = self.starting_uri
 
-        response = self.session.get(uri, headers=req_headers, timeout=self.timeout)
+        headers['User-Agent'] = self.user_agent
+
+        response = self.uricache.get(uri, headers=req_headers, timeout=self.timeout)
 
         module_logger.debug("request headers sent were {}".format(response.request.headers))
         module_logger.debug("response status: {}".format(response.status_code))

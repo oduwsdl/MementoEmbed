@@ -2,8 +2,11 @@ import sqlite3
 import json
 import logging
 import datetime
+import time
 
 from sqlite3 import OperationalError, ProgrammingError
+
+import redis
 
 import requests
 from requests.models import Response
@@ -24,166 +27,100 @@ class URICacheError(Exception):
 class URINotInCacheError(URICacheError):
     pass
 
-def dbtable_exists_already(dbconn):
-
-    query = '''SELECT name from sqlite_master where type="table"'''
-
-    c = dbconn.cursor()
-    c.execute(query, ())
-
-    records = c.fetchall()
-
-    if len(records) == 1:
-        return records[0][0] == "URICACHE"
-    else:
-        return False
-
-def create_uricache_table(dbconn):
-
-    query = '''CREATE TABLE URICACHE (
-            uri TEXT,
-            request_headers TEXT,
-            request_method TEXT,
-            response_status INTEGER,
-            response_reason TEXT,
-            response_elapsed INTEGER,
-            response_headers TEXT,
-            response_encoding TEXT,
-            response_history TEXT,
-            response_content BLOB, 
-            observation_datetime TIMESTAMP)'''
-
-    dbconn.execute(query)
-    dbconn.commit()
-
-def uri_exists_already(uri, dbconn):
-
-    exists = False
-
-    try:
-        get_uri_datafield(uri, dbconn, 'observation_datetime')
-        exists = True
-    except URINotInCacheError:
-        pass
-
-    return exists
-
-def purgeuri(uri, dbconn):
-
-    try:
-        query = "DELETE FROM URICACHE WHERE URI == ?"
-        queryargs = (uri, )
-        c = dbconn.cursor()
-        c.execute(query, queryargs)
-        dbconn.commit()
-
-    except (OperationalError, ProgrammingError) as e:
-        module_logger.exception("Database error for uri: {}".format(uri))
-        raise e
-
-def purgeuri_if_expired(uri, dbconn, expiration_delta):
-
-    if (datetime.datetime.now() - get_uri_datafield(uri, dbconn, 'observation_datetime')) > expiration_delta:
-        purgeuri(uri, dbconn)
-
-def saveuri(uri, dbconn, session, expiration_delta=None):
-
-    if expiration_delta is not None:
-        purgeuri_if_expired(uri, dbconn, expiration_delta)
-
-    try:
-        r = session.get(uri)
-
-        query = '''INSERT INTO URICACHE (
-                uri, 
-                request_headers,
-                request_method,
-                response_status,
-                response_reason,
-                response_elapsed,
-                response_headers,
-                response_encoding,
-                response_history,
-                response_content,
-                observation_datetime
-            ) VALUES(
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?)'''
-        queryargs = (
-            uri,
-            json.dumps(dict(r.request.headers)),
-            r.request.method,
-            r.status_code,
-            r.reason,
-            r.elapsed.microseconds,
-            json.dumps(dict(r.headers)),
-            r.encoding,
-            json.dumps(r.history),
-            r.content, 
-            datetime.datetime.utcnow()
-            )
-
-        c = dbconn.cursor()
-        c.execute(query, queryargs)
-        dbconn.commit()
-
-    except (OperationalError, ProgrammingError) as e:
-        module_logger.exception("Database error for uri: {}".format(uri))
-        raise e
-
-def get_uri_datafield(uri, dbconn, field):
-
-    query = "SELECT {} from URICACHE WHERE URI == ?".format(field)
-    queryargs = (uri,)
-    c = dbconn.cursor()
-    c.execute(query, queryargs)
-
-    records = c.fetchall()
-
-    if len(records) == 1:
-        return records[0][0]
-    else:
-        raise URINotInCacheError("This URI is not in the cache: {}".format(uri))
-
 class URICache:
 
-    def __init__(self, dbname, session, expiration_delta):
-
-        self.dbconn = sqlite3.connect(dbname)
+    def __init__(self, credentials, session, expiration_delta):
+        self.credentials = credentials
         self.session = session
         self.expiration_delta = expiration_delta
 
-        if dbtable_exists_already(self.dbconn) == False:
-            create_uricache_table(self.dbconn)
+class RedisCache(URICache):
+
+    def __init__(self, credentials, session, expiration_delta):
+
+        module_logger.debug("setting up Redis cache at with credentials {}".format(credentials))
+
+        self.conn = redis.Redis(
+            host=credentials['host'],
+            port=credentials['port'],
+            password=credentials['password'],
+            db=credentials['dbnumber']
+        )
+
+        module_logger.debug("Redis cache set up with object {}".format(self.conn))
+
+        self.conn.set("started", "yes")
+
+        self.session = session
+        self.expiration_delta = expiration_delta
+
+    def purgeuri(self, uri):
+        module_logger.debug("purging URI {}".format(uri))
+        self.conn.delete(uri)
+
+    def saveuri(self, uri):
+
+        self.conn.set("savingurl {}".format(uri), "yes")
+
+        module_logger.debug("saving URI to cache: {}".format(uri))
+
+        # TODO: purge URI if expired
+
+        r = self.session.get(uri)
+
+        observation_datetime = datetime.datetime.utcnow()
+
+        ret = self.conn.hset(uri, "obdt", observation_datetime)
+        module_logger.debug("hset {} obdt returned {}".format(uri, ret))
+
+        self.conn.hset(uri, "request_headers", json.dumps(dict(r.request.headers)))
+        self.conn.hset(uri, "request_method", r.request.method)
+        self.conn.hset(uri, "response_status", r.status_code)
+        self.conn.hset(uri, "response_reason", r.reason)
+        self.conn.hset(uri, "response_elapsed", r.elapsed.microseconds)
+        self.conn.hset(uri, "response_headers", json.dumps(dict(r.headers)))
+        self.conn.hset(uri, "response_encoding", r.encoding)
+        self.conn.hset(uri, "response_content", r.content)
+        self.conn.hset(uri, "observation_datetime", observation_datetime)
+
+        module_logger.debug("URI {} should now be written to the cache {}".format(
+            uri, self.conn))
+        
+        # raise Exception("done writing, delete me!!!")
 
     def get(self, uri, headers={}, timeout=None):
 
-        if not uri_exists_already(uri, self.dbconn):
-            saveuri(uri, self.dbconn, session=self.session)
+        if self.conn.hget(uri, "status") is None:
+            self.saveuri(uri)
 
-        req_headers = CaseInsensitiveDict(json.loads(get_uri_datafield(uri, self.dbconn, 'request_headers')))
-        req_method = get_uri_datafield(uri, self.dbconn, 'request_method')
+        req_headers = CaseInsensitiveDict(json.loads(self.conn.hget(uri, "request_headers")))
+        req_method = self.conn.hget(uri, "request_method")
         request = requests.Request(req_method, uri, headers=req_headers)
         request.prepare()
 
         response = Response()
         response.request = request
-        response.status_code = get_uri_datafield(uri, self.dbconn, 'response_status')
-        response.reason = get_uri_datafield(uri, self.dbconn, 'response_reason')
-        response.elapsed = datetime.timedelta(microseconds=get_uri_datafield(uri, self.dbconn, 'response_elapsed'))
-        response.encoding = get_uri_datafield(uri, self.dbconn, 'response_encoding')
-        response.history = json.loads(get_uri_datafield(uri, self.dbconn, 'response_history'))
-        response.headers = CaseInsensitiveDict(json.loads(get_uri_datafield(uri, self.dbconn, 'response_headers')))
-        response._content = get_uri_datafield(uri, self.dbconn, 'response_content')
+        response.status_code = int(self.conn.hget(uri, "response_status"))
+        response.reason = self.conn.hget(uri, "response_reason")
+        response.elapsed = datetime.timedelta(microseconds=int(self.conn.hget(uri, "response_elapsed")))
+        response.encoding = self.conn.hget(uri, "response_encoding")
+        response.headers = CaseInsensitiveDict(json.loads(self.conn.hget(uri, "response_headers")))
+        response._content = self.conn.hget(uri, "response_content")
         response.url = uri
 
         return response
+
+class NoCache(URICache):
+
+    def __init__(self, credentials, session, expiration_delta):
+
+        self.session = session
+    
+    def purgeuri(self, uri):
+
+        # We purge NOTHING! NO PURGE FOR YOU!
+        pass
+
+    def get(self, uri, headers={}, timeout=None):
+
+        return self.session.get(uri)
