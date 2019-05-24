@@ -46,7 +46,7 @@ class RedisCache(URICache):
         module_logger.debug("Redis cache set up with object {}".format(self.conn))
 
         self.session = session
-        self.expiration_delta = expiration_delta
+        self.expiration_delta = int(expiration_delta)
 
     def purgeuri(self, uri):
         module_logger.debug("purging URI {}".format(uri))
@@ -78,6 +78,19 @@ class RedisCache(URICache):
             uri, self.conn))
 
     def get(self, uri, headers={}, timeout=None):
+
+        observation_datetime = self.conn.hget(uri, "observation_datetime")
+
+        if observation_datetime is not None:
+
+            odt = datetime.datetime.strptime(observation_datetime.decode('utf-8'), "%Y-%m-%dT%H:%M:%S")
+            module_logger.debug("expiring URI if it more than {} seconds old".format(self.expiration_delta))
+
+            age = (datetime.datetime.utcnow() - odt).seconds
+            module_logger.debug("URI is {} - {} = {} seconds old".format(datetime.datetime.utcnow(), odt, age))
+
+            if age > self.expiration_delta:
+                self.purgeuri(uri)
 
         if self.conn.hget(uri, "response_status") is None:
             self.saveuri(uri)
