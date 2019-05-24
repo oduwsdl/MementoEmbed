@@ -22,6 +22,7 @@ from mementoembed.version import __useragent__
 
 from .errors import handle_errors
 from . import extract_urim_from_request_path
+from .. import getURICache
 
 module_logger = logging.getLogger('mementoembed.services.product')
 
@@ -83,7 +84,8 @@ def generate_socialcard_response(urim, preferences):
     httpcache = ManagedSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
         user_agent=__useragent__,
-        starting_uri=urim
+        starting_uri=urim,
+        uricache=getURICache()
         )
 
     s = MementoSurrogate(
@@ -216,7 +218,8 @@ def thumbnail_endpoint(subpath):
         httpcache = ManagedSession(
             timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
             user_agent=__useragent__,
-            starting_uri=urim
+            starting_uri=urim,
+            uricache=getURICache()
             )
 
         mt = MementoThumbnail(
