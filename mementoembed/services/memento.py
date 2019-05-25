@@ -137,10 +137,11 @@ def bestimage(urim, preferences):
 
 def imagedata(urim, preferences):
 
-    httpcache = CacheSession(
+    httpcache = ManagedSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
         user_agent=__useragent__,
-        starting_uri=urim
+        starting_uri=urim,
+        uricache=getURICache()
         )
 
     memento = memento_resource_factory(urim, httpcache)

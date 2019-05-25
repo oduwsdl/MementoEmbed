@@ -15,8 +15,9 @@ from mementoembed.mementothumbnail import MementoThumbnail, \
     MementoThumbnailGenerationError, MementoThumbnailFolderNotFound, \
     MementoThumbnailSizeInvalid, MementoThumbnailViewportInvalid, \
     MementoThumbnailTimeoutInvalid
-from mementoembed.mementoresource import MementoURINotAtArchiveFailure
-from mementoembed.imageselection import convert_imageuri_to_pngdata_uri
+from mementoembed.mementoimagereel import MementoImageReel
+from mementoembed.mementoresource import MementoURINotAtArchiveFailure, memento_resource_factory
+from mementoembed.imageselection import convert_imageuri_to_pngdata_uri, generate_images_and_scores
 from mementoembed.sessions import ManagedSession
 from mementoembed.version import __useragent__
 
@@ -160,6 +161,31 @@ def generate_socialcard_response(urim, preferences):
 
     return response, 200
 
+def generate_imagereel_response(urim, prefs):
+
+    httpcache = ManagedSession(
+        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        user_agent=__useragent__,
+        starting_uri=urim,
+        uricache=getURICache()
+        )
+
+    mir = MementoImageReel(
+        user_agent=__useragent__,
+        working_directory=current_app.config['IMAGEREEL_WORKING_FOLDER'],
+        httpcache=httpcache
+    )
+
+    data = mir.generate_imagereel(urim, current_app.config['IMAGEREEL_DURATION'])
+
+    response = make_response(data)
+
+    response.headers['Content-Type'] = 'image/gif'
+
+    module_logger.info("Finished with image reel generation")
+
+    return response, 200
+
 @bp.route('/services/product/socialcard/<path:subpath>')
 def socialcard_endpoint(subpath):
 
@@ -181,6 +207,18 @@ def socialcard_endpoint(subpath):
             prefs[key] = value.lower()
 
     return handle_errors(generate_socialcard_response, urim, prefs)
+
+@bp.route('/services/product/imagereel/<path:subpath>')
+def imagereel_endpoint(subpath):
+
+    module_logger.info("Beginning imagereel generation")
+
+    # because Flask trims off query strings
+    urim = extract_urim_from_request_path(request.full_path, '/services/product/imagereel/')
+
+    prefs = {}
+
+    return handle_errors(generate_imagereel_response, urim, prefs)
 
 @bp.route('/services/product/thumbnail/<path:subpath>')
 def thumbnail_endpoint(subpath):
