@@ -11,6 +11,7 @@ from mementoembed.mementoresource import NotAMementoError, MementoContentError, 
     MementoConnectionError, MementoTimeoutError, MementoInvalidURI, \
     MementoURINotAtArchiveFailure
 from mementoembed.textprocessing import TextProcessingError
+from .. import getURICache
 
 module_logger = logging.getLogger('mementoembed.services.errors')
 
@@ -19,7 +20,7 @@ def attempt_cache_deletion(urim):
     baduris = ["", None]
 
     if urim not in baduris:
-        requests_cache.get_cache().delete_url(urim)
+        getURICache().purgeuri(urim)
 
 def handle_errors(function_name, urim, preferences):
 

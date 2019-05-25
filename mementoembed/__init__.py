@@ -6,12 +6,13 @@ import base64
 
 import redis
 import requests
-import requests_cache
 
 from time import strftime
 
 from redis import RedisError
-from flask import Flask, request, render_template, make_response
+from flask import Flask, request, render_template, make_response, current_app
+
+from .memstock.uricache import RedisCache, NoCache
 
 application_logger = logging.getLogger(__name__)
 access_logger = logging.getLogger('mementoembed_access')
@@ -46,81 +47,22 @@ def test_file_access(filename):
     except Exception as e:
         raise e
 
-def setup_cache(config):
+def getURICache():
 
-    if 'CACHEENGINE' in config:
+    credentials = {}
 
-        if config['CACHEENGINE'] == 'Redis':
+    if current_app.config['CACHEENGINE'] == 'Redis':
+        credentials['dbnumber'] = current_app.config["CACHE_DBNUMBER"]
+        credentials['host'] = current_app.config["CACHE_DBHOST"]
+        credentials['port'] = current_app.config["CACHE_DBPORT"]
+        credentials['password'] = current_app.config["CACHE_DBPASSWORD"]
+        session = requests.Session()
+        expiration_delta = current_app.config['URICACHE_EXPIRATION']
 
-            if 'CACHEHOST' in config:
-                dbhost = config['CACHEHOST']
-            else:
-                dbhost = "localhost"
-
-            if 'CACHEPORT' in config:
-                dbport = config['CACHEPORT']
-            else:
-                dbport = "6379"
-
-            if 'CACHEDB' in config:
-                dbno = config['CACHEDB']
-            else:
-                dbno = "0"
-
-            if 'CACHE_EXPIRETIME' in config:
-                expiretime = int(config['CACHE_EXPIRETIME'])
-            else:
-                expiretime = 7 * 24 * 60 * 60
-
-            application_logger.info("Using Redis as cache engine with host={}, "
-                "port={}, database_number={}, and expiretime={}".format(
-                    dbhost, dbport, dbno, expiretime
-                ))
-
-            try:
-                rconn = redis.StrictRedis(host=dbhost, port=dbport, db=dbno)
-
-                rconn.set("mementoembed_test_key", "success")
-                rconn.delete("mementoembed_test_key")
-
-            except redis.exceptions.RedisError as e:
-                application_logger.exception("Logging exception in redis database setup")
-                application_logger.critical("The Redis database settings are invalid, the application cannot continue")
-                raise e
-
-            requests_cache.install_cache('mementoembed', backend='redis', 
-                expire_after=expiretime, connection=rconn)
-
-        elif config['CACHEENGINE'] == 'SQLite':
-
-            if 'CACHE_FILENAME' in config:
-                cachefile = config['CACHE_FILENAME']
-            else:
-                cachefile = "mementoembed"
-
-            application_logger.info("Setting up SQLite as cache engine with "
-                "file named {}".format(cachefile))
-
-            try:
-                test_file_access("{}.sqlite".format(cachefile))
-                requests_cache.install_cache(cachefile)
-                application_logger.info("SQLite cache file {}.sqlite is writeable".format(cachefile))
-            except Exception as e:
-                application_logger.critical("SQLite cache file {}.sqlite is NOT WRITEABLE, "
-                    "the application cannot continue".format(cachefile))
-                raise e
-
-        else:
-
-            application_logger.info("With no other supported cache engines detected, "
-                "setting up SQLite as cache engine with file named 'mementoembed'")
-
-            requests_cache.install_cache('mementoembed_cache')
+        return RedisCache(credentials, session, expiration_delta)
 
     else:
-        requests_cache.install_cache('mementoembed')
-
-    application_logger.info("Application request web cache has been successfuly configured")
+        return NoCache(None, session, expiration_delta)
 
 def get_requests_timeout(config):
 
@@ -217,7 +159,7 @@ def create_app():
     app.config.from_pyfile("/etc/mementoembed.cfg", silent=True)
 
     setup_logging_config(app.config)
-    setup_cache(app.config)
+    # setup_cache(app.config)
 
     app.config['REQUEST_TIMEOUT_FLOAT'] = get_requests_timeout(app.config)
 
@@ -236,7 +178,7 @@ def create_app():
         application_logger.info("Converting image data to a base64 data URI")
         app.config['DEFAULT_IMAGE_URI'] = "data:png;base64,{}".format( base64.b64encode(imgdata).decode('utf-8') )
         application_logger.info("Done with image conversion")
-        application_logger.debug("Default image path now set to {}".format(app.config['DEFAULT_IMAGE_URI']))
+        # application_logger.debug("Default image path now set to {}".format(app.config['DEFAULT_IMAGE_URI']))
 
     application_logger.info("All Configuration successfully loaded for MementoEmbed")
     
