@@ -4,14 +4,12 @@ import traceback
 
 from datetime import datetime
 
-import requests_cache
-
 from flask import render_template, request, make_response, Blueprint, current_app
 
 from mementoembed.mementoresource import memento_resource_factory
 from mementoembed.originalresource import OriginalResource
 from mementoembed.textprocessing import extract_text_snippet, extract_title
-from mementoembed.cachesession import CacheSession
+from mementoembed.sessions import ManagedSession
 from mementoembed.archiveresource import ArchiveResource
 from mementoembed.seedresource import SeedResource
 from mementoembed.imageselection import get_best_image, convert_imageuri_to_pngdata_uri, generate_images_and_scores
@@ -19,6 +17,7 @@ from mementoembed.version import __useragent__
 
 from .errors import handle_errors
 from . import extract_urim_from_request_path
+from .. import getURICache
 
 bp = Blueprint('services.memento', __name__)
 
@@ -28,10 +27,11 @@ def contentdata(urim, preferences):
 
     output = {}
 
-    httpcache = CacheSession(
+    httpcache = ManagedSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
         user_agent=__useragent__,
-        starting_uri=urim
+        starting_uri=urim,
+        uricache=getURICache()
         )
 
     memento = memento_resource_factory(urim, httpcache)
@@ -51,10 +51,11 @@ def originaldata(urim, preferences):
 
     output = {}
 
-    httpcache = CacheSession(
+    httpcache = ManagedSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
         user_agent=__useragent__,
-        starting_uri=urim
+        starting_uri=urim,
+        uricache=getURICache()
         )
 
     memento = memento_resource_factory(urim, httpcache)
@@ -100,10 +101,11 @@ def originaldata(urim, preferences):
 
 def bestimage(urim, preferences):
 
-    httpcache = CacheSession(
+    httpcache = ManagedSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
         user_agent=__useragent__,
-        starting_uri=urim
+        starting_uri=urim,
+        uricache=getURICache()
         )
 
     memento = memento_resource_factory(urim, httpcache)
@@ -167,10 +169,11 @@ def imagedata(urim, preferences):
 
 def archivedata(urim, preferences):
 
-    httpcache = CacheSession(
+    httpcache = ManagedSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
         user_agent=__useragent__,
-        starting_uri=urim
+        starting_uri=urim,
+        uricache=getURICache()
         )
 
     # TODO: only here because we need to detect NotAMemento, need a better solution
@@ -207,10 +210,13 @@ def archivedata(urim, preferences):
 
 def seeddata(urim, preferences):
 
-    httpcache = CacheSession(
+    uricache = getURICache() 
+
+    httpcache = ManagedSession(
         timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
         user_agent=__useragent__,
-        starting_uri=urim
+        starting_uri=urim,
+        uricache=uricache
         )
 
     memento = memento_resource_factory(urim, httpcache)
