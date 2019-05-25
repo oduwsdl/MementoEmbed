@@ -53,7 +53,7 @@ class MementoImageReel:
               
             baseims = []
 
-            for imageuri in [ i[1] for i in sorted(scorelist) ]:
+            for imageuri in [ i[1] for i in sorted(scorelist, reverse=True) ]:
 
                 r = self.httpcache.get(imageuri)
                 ifp = io.BytesIO(r.content)
@@ -89,7 +89,7 @@ class MementoImageReel:
             with open(reelfile, 'wb') as outputfp:
                 imout.save(
                     outputfp, save_all=True, format="GIF", 
-                    append_images=ims, duration=300, loop=0
+                    append_images=ims, duration=duration, loop=0
                 )
 
             with open(reelfile, 'rb') as f:
