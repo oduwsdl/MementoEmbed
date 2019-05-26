@@ -29,7 +29,7 @@ class MementoImageReel:
         # TODO: image size (height, width) defaults
 
 
-    def generate_imagereel(self, urim, duration):
+    def generate_imagereel(self, urim, duration, countlimit, requested_width, requested_height):
 
         if os.path.isdir(self.working_directory):
 
@@ -57,13 +57,21 @@ class MementoImageReel:
               
             baseims = []
 
+            imagecount = 1
+
             for imageuri in [ i[1] for i in sorted(scorelist, reverse=True) ]:
 
                 r = self.httpcache.get(imageuri)
                 ifp = io.BytesIO(r.content)
+
                 baseims.append( 
                     Image.open(ifp).convert("RGBA", palette=Image.ADAPTIVE)
                 )
+
+                imagecount += 1
+
+                if imagecount > countlimit:
+                    break
 
             maxwidth = 0
             maxheight = 0
@@ -82,8 +90,9 @@ class MementoImageReel:
             # TODO: should we just make a square of the greatest one?
 
             module_logger.debug("creating a base image of size w:{} x h:{}".format(maxwidth, maxheight))
-            imout = Image.new("RGBA", (maxwidth, maxheight))
-            imbase = Image.new("RGBA", (maxwidth, maxheight), "black")
+            
+            imout = Image.new("RGBA", (requested_width, requested_height))
+            imbase = Image.new("RGBA", (requested_width, requested_height), "black")
 
             working_ims = []
 
@@ -95,18 +104,33 @@ class MementoImageReel:
                 # is the width or height greater
                 if im_width > im_height:
                     # width is greater
-                    newwidth = maxwidth
-                    newheight = (maxwidth / im_width) * im_height
+
+                    if maxwidth < requested_width:
+                        newwidth = maxwidth
+                        newheight = (maxwidth / im_width) * im_height
+                    else:
+                        newwidth = requested_width
+                        newheight = (requested_width / im_width) * im_height
 
                 elif im_height > im_width:
                     # height is greater
-                    newheight = maxheight
-                    newwidth = (maxheight / im_height) * im_width
+
+                    if maxheight > requested_height:
+                        newheight = maxheight
+                        newwidth = (maxheight / im_height) * im_width
+                    else:
+                        newheight = requested_height
+                        newwidth = (requested_height / im_height) * im_width
 
                 elif im_height == im_width:
                     # either works fine
-                    newheight = (maxheight / im_height) * im_height
-                    newwidth = (maxheight / im_height) * im_width
+
+                    if maxwidth < requested_width:
+                        newheight = (maxheight / im_height) * im_height
+                        newwidth = (maxheight / im_height) * im_width
+                    else:
+                        newheight = (requested_height / im_height) * im_height
+                        newwidth = (requested_height / im_height) * im_width
 
                 im = im.resize((int(newwidth), int(newheight)))
 
@@ -129,28 +153,17 @@ class MementoImageReel:
                 newim.paste(im, offset)
 
                 outputims.append(imbase)
-                outputims.append( Image.blend(imbase, newim, 0.1) )
-                outputims.append( Image.blend(imbase, newim, 0.2) )
-                outputims.append( Image.blend(imbase, newim, 0.3) )
-                outputims.append( Image.blend(imbase, newim, 0.4) )
-                outputims.append( Image.blend(imbase, newim, 0.5) )
-                outputims.append( Image.blend(imbase, newim, 0.6) )
-                outputims.append( Image.blend(imbase, newim, 0.7) )
-                outputims.append( Image.blend(imbase, newim, 0.8) )
-                outputims.append( Image.blend(imbase, newim, 0.9) )
-                outputims.append(newim)
-                outputims.append(newim)
-                outputims.append(newim)
-                outputims.append(newim)
-                outputims.append( Image.blend(newim, imbase, 0.1) )
-                outputims.append( Image.blend(newim, imbase, 0.2) )
-                outputims.append( Image.blend(newim, imbase, 0.3) )
-                outputims.append( Image.blend(newim, imbase, 0.4) )
-                outputims.append( Image.blend(newim, imbase, 0.5) )
-                outputims.append( Image.blend(newim, imbase, 0.6) )
-                outputims.append( Image.blend(newim, imbase, 0.7) )
-                outputims.append( Image.blend(newim, imbase, 0.8) )
-                outputims.append( Image.blend(newim, imbase, 0.9) )
+                # TODO: loop this! also, maybe do increments of 0.01?
+                for i in range(1, 99, 5):
+                    i = i / 100
+                    outputims.append( Image.blend(imbase, newim, i))
+
+                for i in range(0, 30):
+                    outputims.append(newim)
+
+                for i in range(1, 99, 5):
+                    i = i / 100
+                    outputims.append( Image.blend(newim, imbase, i) )
 
             with open(reelfile, 'wb') as outputfp:
                 imout.save(

@@ -176,7 +176,13 @@ def generate_imagereel_response(urim, prefs):
         httpcache=httpcache
     )
 
-    data = mir.generate_imagereel(urim, current_app.config['IMAGEREEL_DURATION'])
+    data = mir.generate_imagereel(
+        urim, 
+        prefs['duration'],
+        prefs['imagecount'],
+        prefs['width'],
+        prefs['height']
+        )
 
     response = make_response(data)
 
@@ -217,6 +223,18 @@ def imagereel_endpoint(subpath):
     urim = extract_urim_from_request_path(request.full_path, '/services/product/imagereel/')
 
     prefs = {}
+    prefs['duration'] = current_app.config['IMAGEREEL_DURATION']
+    prefs['imagecount'] = current_app.config['IMAGEREEL_COUNT']
+    prefs['width'] = current_app.config['IMAGEREEL_WIDTH']
+    prefs['height'] = current_app.config['IMAGEREEL_HEIGHT']
+
+    if 'Prefer' in request.headers:
+
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = value.lower()
 
     return handle_errors(generate_imagereel_response, urim, prefs)
 

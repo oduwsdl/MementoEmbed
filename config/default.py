@@ -20,3 +20,6 @@ THUMBNAIL_REMOVE_BANNERS = "No"
 DEFAULT_IMAGE_PATH = "mementoembed/static/images/96px-Sphere_wireframe.svg.png"
 IMAGEREEL_WORKING_FOLDER = "/tmp/mementoembed/imagereels"
 IMAGEREEL_DURATION = 100
+IMAGEREEL_COUNT = 20
+IMAGEREEL_WIDTH = 96
+IMAGEREEL_HEIGHT = 96
