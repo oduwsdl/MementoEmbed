@@ -62,7 +62,7 @@ class MementoImageReel:
                 r = self.httpcache.get(imageuri)
                 ifp = io.BytesIO(r.content)
                 baseims.append( 
-                    Image.open(ifp).convert("P", palette=Image.ADAPTIVE)
+                    Image.open(ifp).convert("RGBA", palette=Image.ADAPTIVE)
                 )
 
             maxwidth = 0
@@ -79,18 +79,47 @@ class MementoImageReel:
                 if im.size[1] > maxheight:
                     maxheight = im.size[1]
 
+            # TODO: should we just make a square of the greatest one?
+
             module_logger.debug("creating a base image of size w:{} x h:{}".format(maxwidth, maxheight))
             imout = Image.new("RGBA", (maxwidth, maxheight))
             imbase = Image.new("RGBA", (maxwidth, maxheight), "black")
 
-            ims = []
+            working_ims = []
 
-            # Thanks: https://stackoverflow.com/questions/2563822/how-do-you-composite-an-image-onto-another-image-with-pil-in-python
             for im in baseims:
 
-                imconv = im.convert("RGBA")
+                im_width = im.size[0]
+                im_height = im.size[1]
 
-                im_w, im_h = imconv.size
+                # is the width or height greater
+                if im_width > im_height:
+                    # width is greater
+                    newwidth = maxwidth
+                    newheight = (maxwidth / im_width) * im_height
+
+                elif im_height > im_width:
+                    # height is greater
+                    newheight = maxheight
+                    newwidth = (maxheight / im_height) * im_width
+
+                elif im_height == im_width:
+                    # either works fine
+                    newheight = (maxheight / im_height) * im_height
+                    newwidth = (maxheight / im_height) * im_width
+
+                im = im.resize((int(newwidth), int(newheight)))
+
+                working_ims.append(im)
+
+            outputims = []
+
+            # Thanks: https://stackoverflow.com/questions/2563822/how-do-you-composite-an-image-onto-another-image-with-pil-in-python
+            for im in working_ims:
+
+                # imconv = im.convert("RGBA")
+
+                im_w, im_h = im.size
 
                 newim = imbase.copy()
                 bg_w, bg_h = newim.size
@@ -99,34 +128,34 @@ class MementoImageReel:
 
                 newim.paste(im, offset)
 
-                ims.append(imbase)
-                ims.append( Image.blend(imbase, newim, 0.1) )
-                ims.append( Image.blend(imbase, newim, 0.2) )
-                ims.append( Image.blend(imbase, newim, 0.3) )
-                ims.append( Image.blend(imbase, newim, 0.4) )
-                ims.append( Image.blend(imbase, newim, 0.5) )
-                ims.append( Image.blend(imbase, newim, 0.6) )
-                ims.append( Image.blend(imbase, newim, 0.7) )
-                ims.append( Image.blend(imbase, newim, 0.8) )
-                ims.append( Image.blend(imbase, newim, 0.9) )
-                ims.append(newim)
-                ims.append(newim)
-                ims.append(newim)
-                ims.append(newim)
-                ims.append( Image.blend(newim, imbase, 0.1) )
-                ims.append( Image.blend(newim, imbase, 0.2) )
-                ims.append( Image.blend(newim, imbase, 0.3) )
-                ims.append( Image.blend(newim, imbase, 0.4) )
-                ims.append( Image.blend(newim, imbase, 0.5) )
-                ims.append( Image.blend(newim, imbase, 0.6) )
-                ims.append( Image.blend(newim, imbase, 0.7) )
-                ims.append( Image.blend(newim, imbase, 0.8) )
-                ims.append( Image.blend(newim, imbase, 0.9) )
+                outputims.append(imbase)
+                outputims.append( Image.blend(imbase, newim, 0.1) )
+                outputims.append( Image.blend(imbase, newim, 0.2) )
+                outputims.append( Image.blend(imbase, newim, 0.3) )
+                outputims.append( Image.blend(imbase, newim, 0.4) )
+                outputims.append( Image.blend(imbase, newim, 0.5) )
+                outputims.append( Image.blend(imbase, newim, 0.6) )
+                outputims.append( Image.blend(imbase, newim, 0.7) )
+                outputims.append( Image.blend(imbase, newim, 0.8) )
+                outputims.append( Image.blend(imbase, newim, 0.9) )
+                outputims.append(newim)
+                outputims.append(newim)
+                outputims.append(newim)
+                outputims.append(newim)
+                outputims.append( Image.blend(newim, imbase, 0.1) )
+                outputims.append( Image.blend(newim, imbase, 0.2) )
+                outputims.append( Image.blend(newim, imbase, 0.3) )
+                outputims.append( Image.blend(newim, imbase, 0.4) )
+                outputims.append( Image.blend(newim, imbase, 0.5) )
+                outputims.append( Image.blend(newim, imbase, 0.6) )
+                outputims.append( Image.blend(newim, imbase, 0.7) )
+                outputims.append( Image.blend(newim, imbase, 0.8) )
+                outputims.append( Image.blend(newim, imbase, 0.9) )
 
             with open(reelfile, 'wb') as outputfp:
                 imout.save(
                     outputfp, save_all=True, format="GIF", 
-                    append_images=ims, duration=duration, loop=0
+                    append_images=outputims, duration=duration, loop=0
                 )
 
             with open(reelfile, 'rb') as f:
