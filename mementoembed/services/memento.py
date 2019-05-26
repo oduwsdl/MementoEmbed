@@ -12,7 +12,7 @@ from mementoembed.textprocessing import extract_text_snippet, extract_title
 from mementoembed.sessions import ManagedSession
 from mementoembed.archiveresource import ArchiveResource
 from mementoembed.seedresource import SeedResource
-from mementoembed.imageselection import get_best_image, convert_imageuri_to_pngdata_uri
+from mementoembed.imageselection import get_best_image, convert_imageuri_to_pngdata_uri, generate_images_and_scores
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
@@ -135,6 +135,39 @@ def bestimage(urim, preferences):
 
     return response, 200
 
+def imagedata(urim, preferences):
+
+    httpcache = ManagedSession(
+        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        user_agent=__useragent__,
+        starting_uri=urim,
+        uricache=getURICache()
+        )
+
+    memento = memento_resource_factory(urim, httpcache)
+
+    output = {}
+
+    output['urim'] = urim
+    output['processed urim'] = memento.im_urim
+    output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['images'] = generate_images_and_scores(memento.im_urim, httpcache)
+
+    scorelist = []
+    output["ranked images"] = []
+
+    for imageuri in output['images']:
+        if 'calculated score' in output['images'][imageuri]:
+            scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
+
+    for item in sorted(scorelist, reverse=True):
+        output["ranked images"].append(item[1])
+
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+
+    return response, 200
+
 def archivedata(urim, preferences):
 
     httpcache = ManagedSession(
@@ -249,6 +282,24 @@ def bestimage_endpoint(subpath):
             prefs[key] = value.lower()
 
     return handle_errors(bestimage, urim, prefs)
+
+@bp.route('/services/memento/imagedata/<path:subpath>')
+def imagedata_endpoint(subpath):
+
+    # because Flask trims off query strings
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/bestimage/')
+
+    prefs = {}
+
+    # if 'Prefer' in request.headers:
+
+    #     preferences = request.headers['Prefer'].split(',')
+
+    #     for pref in preferences:
+    #         key, value = pref.split('=')
+    #         prefs[key] = value.lower()
+
+    return handle_errors(imagedata, urim, prefs)
 
 @bp.route('/services/memento/archivedata/<path:subpath>')
 def archivedata_endpoint(subpath):

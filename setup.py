@@ -21,6 +21,7 @@ setup(
         'flask==1.0.2',
         'html5lib==1.0.1',
         'htmlmin==0.1.12',
+        'imageio==2.5.0',
         'justext==2.2.0',
         'Pillow==5.2.0',
         'python-magic==0.4.15',

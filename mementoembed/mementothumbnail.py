@@ -198,6 +198,7 @@ class MementoThumbnail:
                     ).encode('utf8')
                     )
 
+            # TODO: why m.hexdigest twice?
             thumbfile = m.hexdigest()
             thumbfile = "{}/{}.png".format(self.working_directory, m.hexdigest())
 
