@@ -108,6 +108,7 @@ def get_image_list(uri, http_cache):
         try:
             for imgtag in soup.find_all("img"):
                 imageuri = urljoin(uri, imgtag.get("src"))
+                module_logger.debug("adding imageuri {} to list".format(imageuri))
                 image_list.append(imageuri)
         except Exception as e:
             module_logger.error("failed to find images in document using BeautifulSoup")
@@ -140,6 +141,8 @@ def generate_images_and_scores(uri, http_cache):
         
         images_and_scores[imageuri] = {}
 
+        module_logger.debug("examining image {}".format(imageuri))
+
         try:
             r = http_cache.get(imageuri)
         except RequestException:
@@ -148,6 +151,8 @@ def generate_images_and_scores(uri, http_cache):
             )
             images_and_scores[imageuri] = "Image could not be downloaded"
             continue
+
+        module_logger.debug("image {} was successfully downloaded with status {}".format(imageuri, r.status_code))
 
         if r.status_code == 200:
 
@@ -217,7 +222,7 @@ def generate_images_and_scores(uri, http_cache):
                 images_and_scores[imageuri] = "Content type is not an image"
 
         else:
-            images_and_scores[imageuri] = "Image could not be downloaded"
+            images_and_scores[imageuri] = "Image URI {} returned a status of {}, it could not be downloaded".format(imageuri, r.status_code)
 
     return images_and_scores
 
