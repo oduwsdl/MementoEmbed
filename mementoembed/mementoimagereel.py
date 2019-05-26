@@ -72,26 +72,8 @@ class MementoImageReel:
 
                 if imagecount > countlimit:
                     break
-
-            maxwidth = 0
-            maxheight = 0
-
-            # get width, height of largest image to create a base image for others
-            for im in baseims:
-
-                module_logger.debug("image size is {}".format(im.size))
-                
-                if im.size[0] > maxwidth:
-                    maxwidth = im.size[0]
-
-                if im.size[1] > maxheight:
-                    maxheight = im.size[1]
-
-            # TODO: should we just make a square of the greatest one?
-
-            module_logger.debug("creating a base image of size w:{} x h:{}".format(maxwidth, maxheight))
             
-            imout = Image.new("RGBA", (requested_width, requested_height))
+            imout = Image.new("RGBA", (requested_width, requested_height), "black")
             imbase = Image.new("RGBA", (requested_width, requested_height), "black")
 
             working_ims = []
@@ -101,42 +83,31 @@ class MementoImageReel:
                 im_width = im.size[0]
                 im_height = im.size[1]
 
-                # is the width or height greater
+                module_logger.debug("image size is {}".format(im.size))
+
                 if im_width > im_height:
-                    # width is greater
-
-                    if maxwidth < requested_width:
-                        newwidth = maxwidth
-                        newheight = (maxwidth / im_width) * im_height
-                    else:
-                        newwidth = requested_width
-                        newheight = (requested_width / im_width) * im_height
-
+                    newwidth = requested_width
+                    newheight = (requested_width / im_width) * im_height
+                        
                 elif im_height > im_width:
-                    # height is greater
-
-                    if maxheight > requested_height:
-                        newheight = maxheight
-                        newwidth = (maxheight / im_height) * im_width
-                    else:
-                        newheight = requested_height
-                        newwidth = (requested_height / im_height) * im_width
+                    newheight = requested_height
+                    newwidth = (requested_height / im_height) * im_width
 
                 elif im_height == im_width:
-                    # either works fine
+                    newheight = (requested_width / im_width) * im_height
+                    newwidth = (requested_height / im_height) * im_width
 
-                    if maxwidth < requested_width:
-                        newheight = (maxheight / im_height) * im_height
-                        newwidth = (maxheight / im_height) * im_width
-                    else:
-                        newheight = (requested_height / im_height) * im_height
-                        newwidth = (requested_height / im_height) * im_width
+                module_logger.debug("resizing")
 
-                im = im.resize((int(newwidth), int(newheight)))
+                module_logger.debug("newimage size is {}".format( (int(newwidth), int(newheight)) ))
+
+                im = im.resize((int(newwidth), int(newheight)), resample=Image.BICUBIC)
 
                 working_ims.append(im)
 
             outputims = []
+
+            module_logger.debug("building animated GIF")
 
             # Thanks: https://stackoverflow.com/questions/2563822/how-do-you-composite-an-image-onto-another-image-with-pil-in-python
             for im in working_ims:
@@ -154,16 +125,18 @@ class MementoImageReel:
 
                 outputims.append(imbase)
                 # TODO: loop this! also, maybe do increments of 0.01?
-                for i in range(1, 99, 5):
+                for i in range(1, 99, 10):
                     i = i / 100
                     outputims.append( Image.blend(imbase, newim, i))
 
                 for i in range(0, 30):
                     outputims.append(newim)
 
-                for i in range(1, 99, 5):
+                for i in range(1, 99, 10):
                     i = i / 100
                     outputims.append( Image.blend(newim, imbase, i) )
+
+            module_logger.debug("saving animated GIF")
 
             with open(reelfile, 'wb') as outputfp:
                 imout.save(
