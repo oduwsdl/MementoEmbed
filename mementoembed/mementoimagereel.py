@@ -88,23 +88,40 @@ class MementoImageReel:
             # Thanks: https://stackoverflow.com/questions/2563822/how-do-you-composite-an-image-onto-another-image-with-pil-in-python
             for im in baseims:
 
-                # imconv = im.convert("RGBA")
+                imconv = im.convert("RGBA")
 
-                im_w, im_h = im.size
+                im_w, im_h = imconv.size
 
-                background = imbase.copy()
-                bg_w, bg_h = background.size
+                newim = imbase.copy()
+                bg_w, bg_h = newim.size
 
                 offset = ((bg_w - im_w) // 2, (bg_h - im_h) // 2)
 
-                background.paste(im, offset)
+                newim.paste(im, offset)
 
-                ims.append(background)
-
-                # ims.append(imfade)
-                # ims.append( Image.composite(imfade, imconv, 0.5) )
-                # ims.append(imconv)
-                # ims.append( Image.blend(imconv, imfade, 0.5) )
+                ims.append(imbase)
+                ims.append( Image.blend(imbase, newim, 0.1) )
+                ims.append( Image.blend(imbase, newim, 0.2) )
+                ims.append( Image.blend(imbase, newim, 0.3) )
+                ims.append( Image.blend(imbase, newim, 0.4) )
+                ims.append( Image.blend(imbase, newim, 0.5) )
+                ims.append( Image.blend(imbase, newim, 0.6) )
+                ims.append( Image.blend(imbase, newim, 0.7) )
+                ims.append( Image.blend(imbase, newim, 0.8) )
+                ims.append( Image.blend(imbase, newim, 0.9) )
+                ims.append(newim)
+                ims.append(newim)
+                ims.append(newim)
+                ims.append(newim)
+                ims.append( Image.blend(newim, imbase, 0.1) )
+                ims.append( Image.blend(newim, imbase, 0.2) )
+                ims.append( Image.blend(newim, imbase, 0.3) )
+                ims.append( Image.blend(newim, imbase, 0.4) )
+                ims.append( Image.blend(newim, imbase, 0.5) )
+                ims.append( Image.blend(newim, imbase, 0.6) )
+                ims.append( Image.blend(newim, imbase, 0.7) )
+                ims.append( Image.blend(newim, imbase, 0.8) )
+                ims.append( Image.blend(newim, imbase, 0.9) )
 
             with open(reelfile, 'wb') as outputfp:
                 imout.save(
