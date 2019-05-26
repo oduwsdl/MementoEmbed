@@ -3,6 +3,8 @@ import io
 import logging
 import hashlib
 
+import numpy as np
+
 from PIL import ImageFile, Image
 
 from .imageselection import generate_images_and_scores
@@ -42,6 +44,8 @@ class MementoImageReel:
                 self.httpcache
             )
 
+            # TODO: what if imagelist is empty?
+
             scorelist = []
 
             for imageuri in imagelist:
@@ -58,13 +62,13 @@ class MementoImageReel:
                 r = self.httpcache.get(imageuri)
                 ifp = io.BytesIO(r.content)
                 baseims.append( 
-                    Image.open(ifp)
+                    Image.open(ifp).convert("P", palette=Image.ADAPTIVE)
                 )
 
             maxwidth = 0
             maxheight = 0
 
-            # 1. get width, height of largest image
+            # get width, height of largest image to create a base image for others
             for im in baseims:
 
                 module_logger.debug("image size is {}".format(im.size))
@@ -76,15 +80,31 @@ class MementoImageReel:
                     maxheight = im.size[1]
 
             module_logger.debug("creating a base image of size w:{} x h:{}".format(maxwidth, maxheight))
-            imout = Image.new("RGB", (maxwidth, maxheight))
-
-            # 2. TODO: create an image of that size as a "fade-in" image
+            imout = Image.new("RGBA", (maxwidth, maxheight))
+            imbase = Image.new("RGBA", (maxwidth, maxheight), "black")
 
             ims = []
 
+            # Thanks: https://stackoverflow.com/questions/2563822/how-do-you-composite-an-image-onto-another-image-with-pil-in-python
             for im in baseims:
-                ims.append(imout)
-                ims.append(im)
+
+                # imconv = im.convert("RGBA")
+
+                im_w, im_h = im.size
+
+                background = imbase.copy()
+                bg_w, bg_h = background.size
+
+                offset = ((bg_w - im_w) // 2, (bg_h - im_h) // 2)
+
+                background.paste(im, offset)
+
+                ims.append(background)
+
+                # ims.append(imfade)
+                # ims.append( Image.composite(imfade, imconv, 0.5) )
+                # ims.append(imconv)
+                # ims.append( Image.blend(imconv, imfade, 0.5) )
 
             with open(reelfile, 'wb') as outputfp:
                 imout.save(
