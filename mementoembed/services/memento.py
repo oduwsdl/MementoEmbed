@@ -8,7 +8,9 @@ from flask import render_template, request, make_response, Blueprint, current_ap
 
 from mementoembed.mementoresource import memento_resource_factory
 from mementoembed.originalresource import OriginalResource
-from mementoembed.textprocessing import extract_text_snippet, extract_title
+from mementoembed.textprocessing import extract_text_snippet, extract_title, \
+    get_sentence_scores_by_textrank, get_section_scores_by_readability, \
+    get_sentence_scores_by_readability_and_textrank, get_sentence_scores_by_readability_and_lede3
 from mementoembed.sessions import ManagedSession
 from mementoembed.archiveresource import ArchiveResource
 from mementoembed.seedresource import SeedResource
@@ -22,6 +24,94 @@ from .. import getURICache
 bp = Blueprint('services.memento', __name__)
 
 module_logger = logging.getLogger('mementoembed.services.memento')
+
+def textrankdata(urim, preferences):
+
+    output = {}
+
+    httpcache = ManagedSession(
+        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        user_agent=__useragent__,
+        starting_uri=urim,
+        uricache=getURICache()
+        )
+
+    memento = memento_resource_factory(urim, httpcache)
+
+    output['urim'] = urim
+    output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    output['scored_sentences'] = get_sentence_scores_by_textrank(memento.raw_content)
+
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+    return response, 200
+
+def readabilitydata(urim, preferences):
+
+    output = {}
+
+    httpcache = ManagedSession(
+        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        user_agent=__useragent__,
+        starting_uri=urim,
+        uricache=getURICache()
+        )
+
+    memento = memento_resource_factory(urim, httpcache)
+
+    output['urim'] = urim
+    output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    output['scored_sentences'] = get_section_scores_by_readability(memento.raw_content)
+
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+    return response, 200
+
+def readabilitytextrankscoresdata(urim, preferences):
+
+    output = {}
+
+    httpcache = ManagedSession(
+        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        user_agent=__useragent__,
+        starting_uri=urim,
+        uricache=getURICache()
+        )
+
+    memento = memento_resource_factory(urim, httpcache)
+
+    output['urim'] = urim
+    output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    output['scored_sentences'] = get_sentence_scores_by_readability_and_textrank(memento.raw_content)
+
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+    return response, 200
+
+def readabilitylede3scoresdata(urim, preferences):
+
+    output = {}
+
+    httpcache = ManagedSession(
+        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        user_agent=__useragent__,
+        starting_uri=urim,
+        uricache=getURICache()
+        )
+
+    memento = memento_resource_factory(urim, httpcache)
+
+    output['urim'] = urim
+    output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    output['scored_sentences'] = get_sentence_scores_by_readability_and_lede3(memento.raw_content)
+
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+    return response, 200
 
 def contentdata(urim, preferences):
 
@@ -251,6 +341,50 @@ def no_urim():
     path = request.url_rule.rule
     return """WARNING: no URI-M submitted, please append a URI-M to {}
 Example: {}/https://web.archive.org/web/20180515130056/http://www.cs.odu.edu/~mln/""".format(path, path), 200
+
+@bp.route('/services/memento/textrankdata/<path:subpath>')
+def textrankdata_endpoint(subpath):
+    module_logger.debug("full path: {}".format(request.full_path))
+
+    # because Flask trims off query strings
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/textrankdata/')
+
+    preferences = {}
+    module_logger.debug("URI-M for textrank data is {}".format(urim))
+    return handle_errors(textrankdata, urim, preferences)
+
+@bp.route('/services/memento/readabilitydata/<path:subpath>')
+def readabilitydata_endpoint(subpath):
+    module_logger.debug("full path: {}".format(request.full_path))
+
+    # because Flask trims off query strings
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/readabilitydata/')
+
+    preferences = {}
+    module_logger.debug("URI-M for readability data is {}".format(urim))
+    return handle_errors(readabilitydata, urim, preferences)
+
+@bp.route('/services/memento/readabilitytextrankscores/<path:subpath>')
+def textscoring_endpoint(subpath):
+    module_logger.debug("full path: {}".format(request.full_path))
+
+    # because Flask trims off query strings
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/readabilitytextrankscores/')
+
+    preferences = {}
+    module_logger.debug("URI-M for readability data is {}".format(urim))
+    return handle_errors(readabilitytextrankscoresdata, urim, preferences)
+
+@bp.route('/services/memento/readabilitylede3scores/<path:subpath>')
+def readabilitylede3scoring_endpoint(subpath):
+    module_logger.debug("full path: {}".format(request.full_path))
+
+    # because Flask trims off query strings
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/readabilitylede3scores/')
+
+    preferences = {}
+    module_logger.debug("URI-M for readability data is {}".format(urim))
+    return handle_errors(readabilitylede3scoresdata, urim, preferences)
 
 @bp.route('/services/memento/contentdata/<path:subpath>')
 def textinformation_endpoint(subpath):
