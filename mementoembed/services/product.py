@@ -178,10 +178,10 @@ def generate_imagereel_response(urim, prefs):
 
     data = mir.generate_imagereel(
         urim, 
-        prefs['duration'],
-        prefs['imagecount'],
-        prefs['width'],
-        prefs['height']
+        int(prefs['duration']),
+        int(prefs['imagecount']),
+        int(prefs['width']),
+        int(prefs['height'])
         )
 
     response = make_response(data)
@@ -223,10 +223,10 @@ def imagereel_endpoint(subpath):
     urim = extract_urim_from_request_path(request.full_path, '/services/product/imagereel/')
 
     prefs = {}
-    prefs['duration'] = current_app.config['IMAGEREEL_DURATION']
-    prefs['imagecount'] = current_app.config['IMAGEREEL_COUNT']
-    prefs['width'] = current_app.config['IMAGEREEL_WIDTH']
-    prefs['height'] = current_app.config['IMAGEREEL_HEIGHT']
+    prefs['duration'] = int(current_app.config['IMAGEREEL_DURATION'])
+    prefs['imagecount'] = int(current_app.config['IMAGEREEL_COUNT'])
+    prefs['width'] = int(current_app.config['IMAGEREEL_WIDTH'])
+    prefs['height'] = int(current_app.config['IMAGEREEL_HEIGHT'])
 
     if 'Prefer' in request.headers:
 
