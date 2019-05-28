@@ -35,7 +35,7 @@ RUN pip install .
 
 COPY sample_appconfig.cfg /etc/mementoembed.cfg
 
-RUN mkdir /app/logs && mkdir -p /app/thumbnails
+RUN mkdir /app/logs && mkdir -p /app/thumbnails && mkdir -p /app/imagereels
 
 EXPOSE 5550
 
