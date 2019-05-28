@@ -131,31 +131,42 @@ def get_sentence_scores_by_readability_and_textrank(htmlcontent):
 
     scored_elements = get_section_scores_by_readability(htmlcontent)
 
-    complex_scores = []
+    sentences_seen = []
+
+    paranumber = 0
+
+    output_data = []
 
     for paragraph in sorted(scored_elements, reverse=True):
 
-        para_score = paragraph[0]
+        paragraph_data = {}
+
+        paragraph_data["readability score"] = paragraph[0]
         text = paragraph[1]
 
-        # module_logger.debug("paragraph text: {}".format(text))
+        sentences = get_sentence_scores_by_textrank(text)
+        paragraph_data["sentence scoring algorithm"] = "textrank"
 
-        scored_sentences = get_sentence_scores_by_textrank(text)
+        paragraph_data["weighted paragraph rank"] = len(scored_elements) - paranumber
 
-        # module_logger.debug("scored_sentences: {}".format(scored_sentences))
+        output_data.append(paragraph_data)
 
-        if len(scored_sentences) != 0:
+        scored_sentences = []
 
-            for sentence in scored_sentences:
-                # module_logger.debug("looking at sentence {}".format(sentence))
-                complex_scores.append(
-                    (para_score, sentence[0], sentence[1])
-                )
-                # module_logger.debug("complex_scores is now {}".format(complex_scores))
+        for sentence in sentences:
 
-    # module_logger.debug("returning: {}".format(complex_scores))
+            if sentence[1] not in scored_sentences:
+                sentence_data = {}
+                sentence_data["textrank score"] = len(scored_sentences) - sentence[0]
+                sentence_data["text"] = sentence[1]
+                scored_sentences.append(sentence_data)
+                sentences_seen.append(sentence[1])
 
-    return sorted(complex_scores, reverse=True)
+        paragraph_data["scored sentences"] = scored_sentences
+
+        paranumber += 1
+
+    return output_data
 
 def get_sentence_scores_by_readability_and_lede3(htmlcontent):
 
@@ -165,24 +176,40 @@ def get_sentence_scores_by_readability_and_lede3(htmlcontent):
 
     sentences_seen = []
 
+    paranumber = 0
+
+    output_data = []
+
     for paragraph in sorted(scored_elements, reverse=True):
 
-        para_score = paragraph[0]
-        text = paragraph[1]
+        paragraph_data = {}
 
-        module_logger.debug("paragraph text: {}".format(text))
+        paragraph_data["readability score"] = paragraph[0]
+        text = paragraph[1]
+        paragraph_data["sentence scoring algorithm"] = "lede3"
+
+        paragraph_data["weighted paragraph rank"] = len(scored_elements) - paranumber
+
+        output_data.append(paragraph_data)
 
         sentences = _clean_text_by_sentences(text, "english", None)
+
+        scored_sentences = []
 
         for sentence in sentences:
 
             if sentence.text not in sentences_seen:
-                complex_scores.append( (para_score, sentence.index, sentence.text) )
+                sentence_data = {}
+                sentence_data["position score"] = len(sentences) - sentence.index
+                sentence_data["text"] = sentence.text
+                scored_sentences.append(sentence_data)
                 sentences_seen.append(sentence.text)
 
-    # module_logger.debug("returning: {}".format(complex_scores))
+        paragraph_data["scored sentences"] = scored_sentences
 
-    return complex_scores
+        paranumber += 1
+
+    return output_data
 
 def get_best_description(htmlcontent):
 
