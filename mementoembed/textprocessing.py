@@ -110,9 +110,15 @@ def get_section_scores_by_readability(htmlcontent):
             "failed to process document using readability",
             original_exception=e)
 
+    output_data = {
+        "algorithm": "readability",
+        "scored paragraphs": []
+    }
+
     scored_elements = []
 
     for para in d:
+
 
         try:
             score = d[para]['content_score']
@@ -125,7 +131,19 @@ def get_section_scores_by_readability(htmlcontent):
                 "failed to process document using readability",
                 original_exception=e)
 
-    return sorted(scored_elements, reverse=True)
+    for element in sorted(scored_elements, reverse=True):
+
+        score = element[0]
+        text = element[1]
+
+        output_data["scored paragraphs"].append(
+            {
+                "score": score,
+                "text": text
+            }
+        )
+
+    return output_data
 
 def get_sentence_scores_by_readability_and_textrank(htmlcontent):
 

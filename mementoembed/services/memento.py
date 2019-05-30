@@ -47,7 +47,7 @@ def textrankdata(urim, preferences):
     response.headers['Content-Type'] = 'application/json'
     return response, 200
 
-def readabilitydata(urim, preferences):
+def paragraphrank(urim, preferences):
 
     output = {}
 
@@ -63,7 +63,8 @@ def readabilitydata(urim, preferences):
     output['urim'] = urim
     output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    output['scored_sentences'] = get_section_scores_by_readability(memento.raw_content)
+    scoredata = get_section_scores_by_readability(memento.raw_content)
+    output.update(scoredata)
 
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
@@ -353,16 +354,16 @@ def textrankdata_endpoint(subpath):
     module_logger.debug("URI-M for textrank data is {}".format(urim))
     return handle_errors(textrankdata, urim, preferences)
 
-@bp.route('/services/memento/readabilitydata/<path:subpath>')
-def readabilitydata_endpoint(subpath):
+@bp.route('/services/memento/paragraphrank/<path:subpath>')
+def paragraphrank_endpoint(subpath):
     module_logger.debug("full path: {}".format(request.full_path))
 
     # because Flask trims off query strings
-    urim = extract_urim_from_request_path(request.full_path, '/services/memento/readabilitydata/')
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/paragraphrank/')
 
     preferences = {}
     module_logger.debug("URI-M for readability data is {}".format(urim))
-    return handle_errors(readabilitydata, urim, preferences)
+    return handle_errors(paragraphrank, urim, preferences)
 
 @bp.route('/services/memento/readabilitytextrankscores/<path:subpath>')
 def textscoring_endpoint(subpath):
