@@ -92,7 +92,7 @@ def readabilitytextrankscoresdata(urim, preferences):
     response.headers['Content-Type'] = 'application/json'
     return response, 200
 
-def readabilitylede3scoresdata(urim, preferences):
+def sentencerank(urim, preferences):
 
     output = {}
 
@@ -108,7 +108,8 @@ def readabilitylede3scoresdata(urim, preferences):
     output['urim'] = urim
     output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    output['scored_sentences'] = get_sentence_scores_by_readability_and_lede3(memento.raw_content)
+    scoredata = get_sentence_scores_by_readability_and_lede3(memento.raw_content)
+    output.update(scoredata)
 
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
@@ -343,17 +344,6 @@ def no_urim():
     return """WARNING: no URI-M submitted, please append a URI-M to {}
 Example: {}/https://web.archive.org/web/20180515130056/http://www.cs.odu.edu/~mln/""".format(path, path), 200
 
-@bp.route('/services/memento/textrankdata/<path:subpath>')
-def textrankdata_endpoint(subpath):
-    module_logger.debug("full path: {}".format(request.full_path))
-
-    # because Flask trims off query strings
-    urim = extract_urim_from_request_path(request.full_path, '/services/memento/textrankdata/')
-
-    preferences = {}
-    module_logger.debug("URI-M for textrank data is {}".format(urim))
-    return handle_errors(textrankdata, urim, preferences)
-
 @bp.route('/services/memento/paragraphrank/<path:subpath>')
 def paragraphrank_endpoint(subpath):
     module_logger.debug("full path: {}".format(request.full_path))
@@ -365,27 +355,16 @@ def paragraphrank_endpoint(subpath):
     module_logger.debug("URI-M for readability data is {}".format(urim))
     return handle_errors(paragraphrank, urim, preferences)
 
-@bp.route('/services/memento/readabilitytextrankscores/<path:subpath>')
-def textscoring_endpoint(subpath):
+@bp.route('/services/memento/sentencerank/<path:subpath>')
+def sentencerank_endpoint(subpath):
     module_logger.debug("full path: {}".format(request.full_path))
 
     # because Flask trims off query strings
-    urim = extract_urim_from_request_path(request.full_path, '/services/memento/readabilitytextrankscores/')
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/sentencerank/')
 
     preferences = {}
     module_logger.debug("URI-M for readability data is {}".format(urim))
-    return handle_errors(readabilitytextrankscoresdata, urim, preferences)
-
-@bp.route('/services/memento/readabilitylede3scores/<path:subpath>')
-def readabilitylede3scoring_endpoint(subpath):
-    module_logger.debug("full path: {}".format(request.full_path))
-
-    # because Flask trims off query strings
-    urim = extract_urim_from_request_path(request.full_path, '/services/memento/readabilitylede3scores/')
-
-    preferences = {}
-    module_logger.debug("URI-M for readability data is {}".format(urim))
-    return handle_errors(readabilitylede3scoresdata, urim, preferences)
+    return handle_errors(sentencerank, urim, preferences)
 
 @bp.route('/services/memento/contentdata/<path:subpath>')
 def textinformation_endpoint(subpath):

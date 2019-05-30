@@ -190,42 +190,46 @@ def get_sentence_scores_by_readability_and_lede3(htmlcontent):
 
     scored_elements = get_section_scores_by_readability(htmlcontent)
 
-    complex_scores = []
-
     sentences_seen = []
 
     paranumber = 0
 
-    output_data = []
+    output_data = {
+        "paragraph scoring algorithm": "readability",
+        "sentence ranking algorithm": "lede3",
+        "scored sentences": []
+    }
 
-    for paragraph in sorted(scored_elements, reverse=True):
+    scored_sentences = []
 
-        paragraph_data = {}
+    for item in scored_elements["scored paragraphs"]:
 
-        paragraph_data["readability score"] = paragraph[0]
-        text = paragraph[1]
-        paragraph_data["sentence scoring algorithm"] = "lede3"
-
-        paragraph_data["weighted paragraph rank"] = len(scored_elements) - paranumber
-
-        output_data.append(paragraph_data)
-
-        sentences = _clean_text_by_sentences(text, "english", None)
-
-        scored_sentences = []
+        sentences = _clean_text_by_sentences(item["text"], "english", None)
 
         for sentence in sentences:
 
             if sentence.text not in sentences_seen:
-                sentence_data = {}
-                sentence_data["position score"] = len(sentences) - sentence.index
-                sentence_data["text"] = sentence.text
-                scored_sentences.append(sentence_data)
+
+                scored_sentences.append(
+                    (
+                        item["score"],
+                        # len(scored_elements["scored paragraphs"]) - paranumber,
+                        len(sentences) - sentence.index,
+                        sentence.text
+                    )
+                )
                 sentences_seen.append(sentence.text)
 
-        paragraph_data["scored sentences"] = scored_sentences
-
         paranumber += 1
+
+    for sentencedata in sorted(scored_sentences, reverse=True):
+        output_data["scored sentences"].append(
+            {
+                "paragraph score": sentencedata[0],
+                "sentence score": sentencedata[1],
+                "text": sentencedata[2]
+            }
+        )
 
     return output_data
 
