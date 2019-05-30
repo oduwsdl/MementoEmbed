@@ -167,11 +167,20 @@ def bestimage(urim, preferences):
 
     memento = memento_resource_factory(urim, httpcache)
 
+    module_logger.debug("trying to find best image with {}".format(memento.im_urim))
     best_image_uri = get_best_image(
         memento.im_urim, 
         httpcache,
         current_app.config['DEFAULT_IMAGE_URI']
     )
+
+    if best_image_uri == current_app.config['DEFAULT_IMAGE_URI']:
+        module_logger.debug("got back a blank image, trying again with {}".format(memento.urim))
+        best_image_uri = get_best_image(
+            memento.urim, 
+            httpcache,
+            current_app.config['DEFAULT_IMAGE_URI']
+        )   
 
     if preferences['datauri_image'].lower() == 'yes':
         if best_image_uri[0:5] != 'data:':
@@ -219,6 +228,19 @@ def imagedata(urim, preferences):
 
     for item in sorted(scorelist, reverse=True):
         output["ranked images"].append(item[1])
+
+    if len(output["ranked images"]) == 0:
+        output['images'] = generate_images_and_scores(memento.urim, httpcache)
+
+        scorelist = []
+        output["ranked images"] = []
+
+        for imageuri in output['images']:
+            if 'calculated score' in output['images'][imageuri]:
+                scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
+
+        for item in sorted(scorelist, reverse=True):
+            output["ranked images"].append(item[1])
 
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
