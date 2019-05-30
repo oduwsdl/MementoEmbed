@@ -9,7 +9,7 @@ from flask import render_template, request, make_response, Blueprint, current_ap
 from mementoembed.mementoresource import memento_resource_factory
 from mementoembed.originalresource import OriginalResource
 from mementoembed.textprocessing import extract_text_snippet, extract_title, \
-    get_sentence_scores_by_textrank, get_section_scores_by_readability, \
+    get_sentence_scores_by_just_textrank, get_section_scores_by_readability, \
     get_sentence_scores_by_readability_and_textrank, get_sentence_scores_by_readability_and_lede3
 from mementoembed.sessions import ManagedSession
 from mementoembed.archiveresource import ArchiveResource
@@ -24,28 +24,6 @@ from .. import getURICache
 bp = Blueprint('services.memento', __name__)
 
 module_logger = logging.getLogger('mementoembed.services.memento')
-
-def textrankdata(urim, preferences):
-
-    output = {}
-
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
-
-    memento = memento_resource_factory(urim, httpcache)
-
-    output['urim'] = urim
-    output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    output['scored_sentences'] = get_sentence_scores_by_textrank(memento.raw_content)
-
-    response = make_response(json.dumps(output, indent=4))
-    response.headers['Content-Type'] = 'application/json'
-    return response, 200
 
 def paragraphrank(urim, preferences):
 
@@ -70,28 +48,6 @@ def paragraphrank(urim, preferences):
     response.headers['Content-Type'] = 'application/json'
     return response, 200
 
-def readabilitytextrankscoresdata(urim, preferences):
-
-    output = {}
-
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
-
-    memento = memento_resource_factory(urim, httpcache)
-
-    output['urim'] = urim
-    output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    output['scored_sentences'] = get_sentence_scores_by_readability_and_textrank(memento.raw_content)
-
-    response = make_response(json.dumps(output, indent=4))
-    response.headers['Content-Type'] = 'application/json'
-    return response, 200
-
 def sentencerank(urim, preferences):
 
     output = {}
@@ -108,11 +64,20 @@ def sentencerank(urim, preferences):
     output['urim'] = urim
     output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    scoredata = get_sentence_scores_by_readability_and_lede3(memento.raw_content)
+    if preferences["algorithm"] == "readability/lede3":
+        scoredata = get_sentence_scores_by_readability_and_lede3(memento.raw_content)
+    elif preferences["algorithm"] == "readability/textrank":
+        scoredata = get_sentence_scores_by_readability_and_textrank(memento.raw_content)
+    elif preferences["algorithm"] == "justext/textrank":
+        scoredata = get_sentence_scores_by_just_textrank(memento.raw_content)
+    
     output.update(scoredata)
 
     response = make_response(json.dumps(output, indent=4))
     response.headers['Content-Type'] = 'application/json'
+    response.headers['Preference-Applied'] = \
+        "algorithm={}".format(preferences['algorithm'])
+
     return response, 200
 
 def contentdata(urim, preferences):
@@ -362,9 +327,20 @@ def sentencerank_endpoint(subpath):
     # because Flask trims off query strings
     urim = extract_urim_from_request_path(request.full_path, '/services/memento/sentencerank/')
 
-    preferences = {}
+    prefs = {
+        "algorithm": "readability/lede3"
+    }
+
+    if 'Prefer' in request.headers:
+
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = value.lower()
+
     module_logger.debug("URI-M for readability data is {}".format(urim))
-    return handle_errors(sentencerank, urim, preferences)
+    return handle_errors(sentencerank, urim, prefs)
 
 @bp.route('/services/memento/contentdata/<path:subpath>')
 def textinformation_endpoint(subpath):

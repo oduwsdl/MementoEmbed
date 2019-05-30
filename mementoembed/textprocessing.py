@@ -60,9 +60,9 @@ def get_text_without_boilerplate(htmlcontent):
 
     return allparatext   
 
-def get_sentence_scores_by_textrank(htmlcontent):
+def get_sentence_scores_by_textrank(text):
 
-    text = get_text_without_boilerplate(htmlcontent)
+    # text = get_text_without_boilerplate(htmlcontent)
 
     # the following code was adapted from the source code 
     # of the summa summarizer function by Federico Barrios et al.
@@ -151,38 +151,78 @@ def get_sentence_scores_by_readability_and_textrank(htmlcontent):
 
     sentences_seen = []
 
-    paranumber = 0
+    output_data = {
+        "paragraph scoring algorithm": "readability",
+        "sentence ranking algorithm": "textrank",
+        "scored sentences": []
+    }
 
-    output_data = []
+    scored_sentences = []
 
-    for paragraph in sorted(scored_elements, reverse=True):
+    for item in scored_elements["scored paragraphs"]:
 
-        paragraph_data = {}
-
-        paragraph_data["readability score"] = paragraph[0]
-        text = paragraph[1]
-
-        sentences = get_sentence_scores_by_textrank(text)
-        paragraph_data["sentence scoring algorithm"] = "textrank"
-
-        paragraph_data["weighted paragraph rank"] = len(scored_elements) - paranumber
-
-        output_data.append(paragraph_data)
-
-        scored_sentences = []
+        sentences = get_sentence_scores_by_textrank(item["text"])
 
         for sentence in sentences:
 
-            if sentence[1] not in scored_sentences:
-                sentence_data = {}
-                sentence_data["textrank score"] = len(scored_sentences) - sentence[0]
-                sentence_data["text"] = sentence[1]
-                scored_sentences.append(sentence_data)
+            if sentence[1] not in sentences_seen:
+
+                scored_sentences.append(
+                    (
+                        item["score"],
+                        sentence[0],
+                        sentence[1]
+                    )
+                )
                 sentences_seen.append(sentence[1])
 
-        paragraph_data["scored sentences"] = scored_sentences
+    for sentencedata in sorted(scored_sentences, reverse=True):
+        output_data["scored sentences"].append(
+            {
+                "paragraph score": sentencedata[0],
+                "sentence score": sentencedata[1],
+                "text": sentencedata[2]
+            }
+        )
 
-        paranumber += 1
+    return output_data
+
+def get_sentence_scores_by_just_textrank(htmlcontent):
+
+    sentences_seen = []
+
+    output_data = {
+        "paragraph scoring algorithm": None,
+        "sentence ranking algorithm": "textrank",
+        "scored sentences": []
+    }
+
+    text = get_text_without_boilerplate(htmlcontent)
+    sentences = get_sentence_scores_by_textrank(text)
+
+    scored_sentences = []
+
+    for sentence in sentences:
+
+        if sentence[1] not in sentences_seen:
+
+            scored_sentences.append(
+                (
+                    None,
+                    sentence[0],
+                    sentence[1]
+                )
+            )
+            sentences_seen.append(sentence[1])
+
+    for sentencedata in sorted(scored_sentences, reverse=True):
+        output_data["scored sentences"].append(
+            {
+                "paragraph score": sentencedata[0],
+                "sentence score": sentencedata[1],
+                "text": sentencedata[2]
+            }
+        )
 
     return output_data
 
@@ -191,8 +231,6 @@ def get_sentence_scores_by_readability_and_lede3(htmlcontent):
     scored_elements = get_section_scores_by_readability(htmlcontent)
 
     sentences_seen = []
-
-    paranumber = 0
 
     output_data = {
         "paragraph scoring algorithm": "readability",
@@ -213,14 +251,11 @@ def get_sentence_scores_by_readability_and_lede3(htmlcontent):
                 scored_sentences.append(
                     (
                         item["score"],
-                        # len(scored_elements["scored paragraphs"]) - paranumber,
                         len(sentences) - sentence.index,
                         sentence.text
                     )
                 )
                 sentences_seen.append(sentence.text)
-
-        paranumber += 1
 
     for sentencedata in sorted(scored_sentences, reverse=True):
         output_data["scored sentences"].append(
