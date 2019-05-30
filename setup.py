@@ -31,6 +31,7 @@ setup(
         'requests>=2.20.0',
         'requests_cache==0.4.13',
         'sphinx==1.8.4',
+        'summa==1.2.0',
         'tldextract==2.2.0'
     ],
     scripts=['bin/fetch_surrogate_data'],
