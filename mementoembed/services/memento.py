@@ -167,11 +167,20 @@ def bestimage(urim, preferences):
 
     memento = memento_resource_factory(urim, httpcache)
 
+    module_logger.debug("trying to find best image with {}".format(memento.im_urim))
     best_image_uri = get_best_image(
         memento.im_urim, 
         httpcache,
         current_app.config['DEFAULT_IMAGE_URI']
     )
+
+    if best_image_uri == current_app.config['DEFAULT_IMAGE_URI']:
+        module_logger.debug("got back a blank image, trying again with {}".format(memento.urim))
+        best_image_uri = get_best_image(
+            memento.urim, 
+            httpcache,
+            current_app.config['DEFAULT_IMAGE_URI']
+        )   
 
     if preferences['datauri_image'].lower() == 'yes':
         if best_image_uri[0:5] != 'data:':
