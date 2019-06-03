@@ -33,7 +33,7 @@ class MementoDocreel:
         # TODO: image size (height, width) defaults
 
 
-    def generate_docreel(self, urim, duration, imgcountlimit, sentencecountlimit, requested_width, requested_height):
+    def generate_docreel(self, urim, duration, imgcountlimit, sentencecountlimit, requested_width, requested_height, fontfile):
 
         if os.path.isdir(self.working_directory):
 
@@ -104,8 +104,8 @@ class MementoDocreel:
                 if imagecount > imgcountlimit:
                     break
 
-            toptitlefnt = ImageFont.truetype('/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/static/fonts/OpenSans-Regular.ttf', 18)
-            metadatafnt = ImageFont.truetype('/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/static/fonts/OpenSans-Regular.ttf', 14)
+            toptitlefnt = ImageFont.truetype(fontfile, 18)
+            metadatafnt = ImageFont.truetype(fontfile, 14)
             imout = Image.new("RGBA", (requested_width, requested_height), "black")
             imbase = Image.new("RGBA", (requested_width, requested_height), "black")
             d = ImageDraw.Draw(imbase)
@@ -126,7 +126,7 @@ class MementoDocreel:
 
             textims = []
             sentencecount = 1
-            sentencefnt = ImageFont.truetype('/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/static/fonts/OpenSans-Regular.ttf', 20)
+            sentencefnt = ImageFont.truetype(fontfile, 20)
 
             for sentenceitem in sentencedata["scored sentences"]:
 

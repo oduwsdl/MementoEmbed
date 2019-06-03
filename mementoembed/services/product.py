@@ -214,7 +214,8 @@ def generate_docreel_response(urim, prefs):
         int(prefs['imagecount']),
         int(prefs['sentencecount']),
         int(prefs['width']),
-        int(prefs['height'])
+        int(prefs['height']),
+        current_app.config['DOCREEL_DEFAULT_FONT_PATH']
         )
 
     response = make_response(data)
