@@ -105,7 +105,14 @@ class RedisCache(URICache):
         response.status_code = int(self.conn.hget(uri, "response_status"))
         response.reason = self.conn.hget(uri, "response_reason")
         response.elapsed = datetime.timedelta(microseconds=int(self.conn.hget(uri, "response_elapsed")))
-        response.encoding = self.conn.hget(uri, "response_encoding")
+        
+        if type(self.conn.hget(uri, "response_encoding")) is bytes:
+            response.encoding = self.conn.hget(uri, "response_encoding").decode('utf-8')
+        else:
+            response.encoding = self.conn.hget(uri, "response_encoding")
+        
+
+        module_logger.debug("encoding set to {} for URI {}".format(response.encoding, uri))
         response.headers = CaseInsensitiveDict(json.loads(self.conn.hget(uri, "response_headers")))
         response._content = self.conn.hget(uri, "response_content")
         response.url = uri
