@@ -97,14 +97,10 @@
       </div>
 
       <div class="row">
-        <div class="col-md-6">
-          <input type="radio" id="imagereel" name="surrogate_type" value="imagereel" checked />
-          <label for="imagereel">Imagereel (Downloadable only)</label>
+        <div class="col-md-12">
+          <input type="radio" id="imagereel" name="surrogate_type" value="imagereel" />
+          <label for="imagereel">Imagereel</label>
         </div>
-        <!-- <div class="col-md-6">
-          <input type="radio" id="docreel" name="surrogate_type" value="docreel" />
-          <label for="thumbnail">Docreel (Downloadable only)</label>
-        </div> -->
       </div>
 
       <hr>
@@ -272,7 +268,7 @@
             <div class="col-md-6">
                 <div class="row">
                   <div class="col-md-6">
-                    <label for="thumbnail_width">Imagereel Width<br>(in pixels)</label>
+                    <label for="imagereel_width">Imagereel Width<br>(in pixels)</label>
                   </div>
                   <div class="col-md-6">  
                     <input type="text" id="imagereel_width" name="imagereel_width" value="{{ imagereel_width }}">
@@ -283,7 +279,7 @@
             <div class="col-md-6">
                 <div class="row">
                   <div class="col-md-6">
-                    <label for="thumbnail_height">Imagereel Height<br>(in pixels)</label>
+                    <label for="imagereel_height">Imagereel Height<br>(in pixels)</label>
                   </div>
                   <div class="col-md-6">
                     <input type="text" id="imagereel_height" name="imagereel_height" value="{{ imagereel_height }}">
@@ -297,7 +293,7 @@
             <div class="col-md-6">
                 <div class="row">
                   <div class="col-md-6">
-                    <label for="thumbnail_width">Duration Of Frames<br>(in milliseconds)</label>
+                    <label for="imagereel_duration">Duration Of Frames<br>(in milliseconds)</label>
                   </div>
                   <div class="col-md-6">  
                     <input type="text" id="imagereel_duration" name="imagereel_duration" value="{{ imagereel_duration }}">
@@ -438,6 +434,14 @@
 
   $( "#social_card" ).bind( "click", function() {
     console.log("social card clicked!");
+    s_opts.style.display = "none";
+    t_opts.style.display = "none";
+    ir_opts.style.display = "none";
+    opts_open = false;
+  });
+
+  $( "#imagereel" ).bind( "click", function() {
+    console.log("imagereel clicked!");
     s_opts.style.display = "none";
     t_opts.style.display = "none";
     ir_opts.style.display = "none";

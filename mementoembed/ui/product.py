@@ -83,43 +83,31 @@ def generate_thumbnail(subpath):
     prefs['thumbnail_width'] = int(current_app.config['THUMBNAIL_WIDTH'])
     prefs['remove_banner'] = current_app.config['THUMBNAIL_REMOVE_BANNERS'].lower()
 
-    if 'Prefer' in request.headers:
+    module_logger.debug("received path {}".format(subpath))
 
-        preferences = request.headers['Prefer'].split(',')
+    # because Flask trims off query strings
+    urim = request.full_path[len('/ui/product/thumbnail/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
 
-        for pref in preferences:
-            key, value = pref.split('=')
-            prefs[key] = int(value)
+    if urim[0:4] != "http":
 
-        module_logger.debug("The user hath preferences! ")
+        pathprefs, urim = urim.split('/', 1)
+        module_logger.debug("prefs: {}".format(pathprefs))
+        module_logger.debug("urim: {}".format(urim))
 
-    else:
+        for entry in pathprefs.split(','):
+            module_logger.debug("examining entry {}".format(entry))
+            key, value = entry.split('=')
+            module_logger.debug("setting preference {} to value {}".format(key, value))
 
-        module_logger.debug("received path {}".format(subpath))
+            try:
+                prefs[key] = int(value)
+            except ValueError:
 
-        # because Flask trims off query strings
-        urim = request.full_path[len('/ui/product/thumbnail/'):]
-        urim = urim[:-1] if urim[-1] == '?' else urim
-
-        if urim[0:4] != "http":
-
-            pathprefs, urim = urim.split('/', 1)
-            module_logger.debug("prefs: {}".format(pathprefs))
-            module_logger.debug("urim: {}".format(urim))
-
-            for entry in pathprefs.split(','):
-                module_logger.debug("examining entry {}".format(entry))
-                key, value = entry.split('=')
-                module_logger.debug("setting preference {} to value {}".format(key, value))
-
-                try:
-                    prefs[key] = int(value)
-                except ValueError:
-
-                    if key == 'remove_banner':
-                        prefs[key] = value
-                    else:
-                        module_logger.exception("failed to set value for preference {}".format(key))
+                if key == 'remove_banner':
+                    prefs[key] = value
+                else:
+                    module_logger.exception("failed to set value for preference {}".format(key))
 
     return render_template('generate_thumbnail.html', 
         urim = urim,
@@ -144,43 +132,31 @@ def generate_imagereel(subpath):
     prefs['duration'] = int(current_app.config['IMAGEREEL_DURATION'])
     prefs['imagecount'] = int(current_app.config['IMAGEREEL_COUNT'])
 
-    if 'Prefer' in request.headers:
+    module_logger.debug("received path {}".format(subpath))
 
-        preferences = request.headers['Prefer'].split(',')
+    # because Flask trims off query strings
+    urim = request.full_path[len('/ui/product/imagereel/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
 
-        for pref in preferences:
-            key, value = pref.split('=')
-            prefs[key] = int(value)
+    if urim[0:4] != "http":
 
-        module_logger.debug("The user hath preferences! ")
+        pathprefs, urim = urim.split('/', 1)
+        module_logger.debug("prefs: {}".format(pathprefs))
+        module_logger.debug("urim: {}".format(urim))
 
-    else:
+        for entry in pathprefs.split(','):
+            module_logger.debug("examining entry {}".format(entry))
+            key, value = entry.split('=')
+            module_logger.debug("setting preference {} to value {}".format(key, value))
 
-        module_logger.debug("received path {}".format(subpath))
+            try:
+                prefs[key] = int(value)
+            except ValueError:
 
-        # because Flask trims off query strings
-        urim = request.full_path[len('/ui/product/imagereel/'):]
-        urim = urim[:-1] if urim[-1] == '?' else urim
-
-        if urim[0:4] != "http":
-
-            pathprefs, urim = urim.split('/', 1)
-            module_logger.debug("prefs: {}".format(pathprefs))
-            module_logger.debug("urim: {}".format(urim))
-
-            for entry in pathprefs.split(','):
-                module_logger.debug("examining entry {}".format(entry))
-                key, value = entry.split('=')
-                module_logger.debug("setting preference {} to value {}".format(key, value))
-
-                try:
-                    prefs[key] = int(value)
-                except ValueError:
-
-                    if key == 'remove_banner':
-                        prefs[key] = value
-                    else:
-                        module_logger.exception("failed to set value for preference {}".format(key))
+                if key == 'remove_banner':
+                    prefs[key] = value
+                else:
+                    module_logger.exception("failed to set value for preference {}".format(key))
 
     return render_template('generate_imagereel.html', 
         urim = urim,
