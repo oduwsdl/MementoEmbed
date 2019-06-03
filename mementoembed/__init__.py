@@ -96,6 +96,13 @@ def setup_logging_config(config):
         logfile = config['APPLICATION_LOGFILE']
 
         try:
+
+            if not os.path.exists( os.path.dirname(config['APPLICATION_LOGFILE']) ):
+                application_logger.info("creating folder for application log file at {}".format(
+                    os.path.dirname(config['APPLICATION_LOGFILE'])
+                ))
+                os.makedirs( os.path.dirname(config['APPLICATION_LOGFILE']) )
+
             test_file_access(logfile) # should throw if file is invalid
 
             if loglevel == logging.DEBUG:
@@ -130,6 +137,13 @@ def setup_logging_config(config):
         logfile = config['ACCESS_LOGFILE']
 
         try:
+
+            if not os.path.exists( os.path.dirname(config['ACCESS_LOGFILE']) ):
+                application_logger.info("creating folder for application log file at {}".format(
+                    os.path.dirname(config['APPLICATION_LOGFILE'])
+                ))
+                os.makedirs( os.path.dirname(config['ACCESS_LOGFILE']) )
+
             test_file_access(logfile) # should throw if file is invalid
 
             handler = logging.FileHandler(logfile)
@@ -159,7 +173,6 @@ def create_app():
     app.config.from_pyfile("/etc/mementoembed.cfg", silent=True)
 
     setup_logging_config(app.config)
-    # setup_cache(app.config)
 
     app.config['REQUEST_TIMEOUT_FLOAT'] = get_requests_timeout(app.config)
 
@@ -192,6 +205,23 @@ def create_app():
 
     from .ui import product as pd
     app.register_blueprint(pd.bp)
+
+    application_logger.info("Reviewing the existence of working folders")
+
+    if app.config['ENABLE_THUMBNAILS'].lower() == "yes":
+        if not os.path.exists( app.config['THUMBNAIL_WORKING_FOLDER'] ):
+            application_logger.info("creating thumbnail folder at {}".format(app.config['THUMBNAIL_WORKING_FOLDER']))
+            os.makedirs( app.config['THUMBNAIL_WORKING_FOLDER'] )
+
+    if app.config['ENABLE_IMAGEREEL'].lower() == "yes":
+        if not os.path.exists( app.config['IMAGEREEL_WORKING_FOLDER'] ):
+            application_logger.info("creating imagereel folder at {}".format(app.config['IMAGEREEL_WORKING_FOLDER']))
+            os.makedirs( app.config['IMAGEREEL_WORKING_FOLDER'] )
+
+    if app.config['ENABLE_DOCREEL'].lower() == "yes":
+        if not os.path.exists( app.config['DOCREEL_WORKING_FOLDER'] ):
+            application_logger.info("creating imagereel folder at {}".format(app.config['DOCREEL_WORKING_FOLDER']))
+            os.makedirs( app.config['DOCREEL_WORKING_FOLDER'] )
 
     application_logger.info("MementoEmbed is now initialized and ready to receive requests")
 
