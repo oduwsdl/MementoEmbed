@@ -56,7 +56,7 @@ Best image
 
 Endpoint: ``/services/memento/bestimage/<URI-M>``
 
-On success, this service produces an HTTP response with a MIME-type of ``application-json`` that contains information about the image selected by the image selection algorithm::
+On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about the image selected by the image selection algorithm::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -64,12 +64,87 @@ On success, this service produces an HTTP response with a MIME-type of ``applica
         "generation-time": "2018-07-20T16:34:12Z"
     }
 
+Image data
+~~~~~~~~~~
+
+Endpoint: ``/services/memento/imagedata/<URI-M>``
+
+This service exposes the information used to rank images for selection with social cards. On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about all images discovered in the memento::
+
+    {
+        "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
+        "processed urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http://blasttheory.co.uk/",
+        "generation-time": "2019-05-30T03:19:08Z",
+        "images": {
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/bt_logo.gif": {
+                "content-type": "image/gif",
+                "magic type": "GIF image data, version 89a, 169 x 28",
+                "imghdr type": "gif",
+                "width": 169,
+                "height": 28,
+                "blank columns in histogram": 14,
+                "size in pixels": 4732,
+                "ratio width/height": 6.035714285714286,
+                "byte size": 2346,
+                "N": 14,
+                "n": 1,
+                "k1": 0.1,
+                "k2": 0.4,
+                "k3": 10,
+                "k4": 0.5,
+                "calculated score": 1751.082142857143
+            },
+            ... other records omitted for brevity ...
+        },
+        "ranked images": [
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/dotf/Untitled-1.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/cysmn/cy_icon.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/trucold/trucold_icon.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/yougetme/ygm_icon.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/ulrikeandeamon/ulrikeandeamon_small.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/rider_spoke/rs_icon.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/uncleroy/ur_icon.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/bt_logo.gif",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/latest.gif",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/about.gif",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/home.gif",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/recent.gif",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/types.gif",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/chrono.gif"
+        ]
+    }
+
+Each record in the ``images`` dictionary has a key of the URI-M of the image with the following values:
+
+* ``content-type`` - the value of the ``content-type`` HTTP header
+* ``magic type`` - the file magic value of the image
+* ``imghdr type`` - the image type as determined by the Python ``imghdr`` library
+* ``width`` - the width of the image, in pixels
+* ``height`` - the height of the image, in pixels
+* ``blank columns in histogram`` - a high number of columns with a value of 0 indicates an image of few colors, likely text used for navigational hints; listed as `h` in the ranking equation below
+* ``size in pixels`` - the overall number of pixels in the image determined by ``width`` multiplied by ``height``; `s` in the ranking equation
+* ``ratio width/height`` - the ratio of width to height, which can be useful fo detecting advertising banners; `r` in the ranking equation
+* ``byte size`` - the size of the image, in bytes, useful for detecting small images typically used for spacing
+* ``N`` - the number of images detected on the page
+* ``n`` - the order the image was detected on the page
+* ``k1`` - the weight used for the first term of the ranking equation (N - n) 
+* ``k2`` - the weight used in the ranking equation for the size of the image in pixels
+* ``k3`` - the weight used in the ranking equation for the number of blank columns in the histogram
+* ``k4`` - the weight used in the ranking equation for the ratio of width/height
+* ``calculated score`` - the score, as determined by the ranking equation; `S` in the equation below
+
+The current image ranking equation is as follows:
+
+.. image:: images/image_eq.png
+
+After the ``images`` list is a ``ranked images`` list 
+
 Archive data
 ~~~~~~~~~~~~
 
 Endpoint: ``/services/memento/archivedata/<URI-M>``
 
-On success, this service produces an HTTP response with a MIME-type of ``application-json`` that contains information about the archive, and if possible, archive collection containing the memento::
+On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about the archive, and if possible, archive collection containing the memento::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -89,7 +164,7 @@ Original Resource data
 
 Endpoint: ``/services/memento/originalresourcedata/<URI-M>``
 
-On success, this service produces an HTTP response with a MIME-type of ``application-json`` that contains information about the original resource::
+On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about the original resource::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -105,7 +180,7 @@ Seed data
 
 Endpoint: ``/services/memento/seeddata/<URI-M>``
 
-On success, this service produces an HTTP response with a MIME-type of ``application-json`` that contains information about the seed::
+On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about the seed::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
