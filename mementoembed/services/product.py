@@ -330,8 +330,13 @@ def thumbnail_endpoint(subpath):
             for pref in preferences:
                 key, value = pref.split('=')
 
-                if key != 'remove_banner':
-                    prefs[key] = int(value)
+                if key in prefs:
+
+                    if key != 'remove_banner':
+                        prefs[key] = int(value)
+                    else:
+                        prefs[key] = int(value)
+
                 else:
                     prefs[key] = value.lower()
 
