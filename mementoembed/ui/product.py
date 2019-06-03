@@ -134,3 +134,62 @@ def generate_thumbnail(subpath):
         thumbnail_width=prefs['thumbnail_width'],
         remove_banner=prefs['remove_banner']
     ), 200
+
+@bp.route('/ui/product/imagereel/<path:subpath>', methods=['HEAD', 'GET'])
+def generate_imagereel(subpath):
+
+    prefs = {}
+    prefs['imagereel_height'] = int(current_app.config['IMAGEREEL_HEIGHT'])
+    prefs['imagereel_width'] = int(current_app.config['IMAGEREEL_WIDTH'])
+    prefs['duration'] = int(current_app.config['IMAGEREEL_DURATION'])
+    prefs['imagecount'] = int(current_app.config['IMAGEREEL_COUNT'])
+
+    if 'Prefer' in request.headers:
+
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = int(value)
+
+        module_logger.debug("The user hath preferences! ")
+
+    else:
+
+        module_logger.debug("received path {}".format(subpath))
+
+        # because Flask trims off query strings
+        urim = request.full_path[len('/ui/product/imagereel/'):]
+        urim = urim[:-1] if urim[-1] == '?' else urim
+
+        if urim[0:4] != "http":
+
+            pathprefs, urim = urim.split('/', 1)
+            module_logger.debug("prefs: {}".format(pathprefs))
+            module_logger.debug("urim: {}".format(urim))
+
+            for entry in pathprefs.split(','):
+                module_logger.debug("examining entry {}".format(entry))
+                key, value = entry.split('=')
+                module_logger.debug("setting preference {} to value {}".format(key, value))
+
+                try:
+                    prefs[key] = int(value)
+                except ValueError:
+
+                    if key == 'remove_banner':
+                        prefs[key] = value
+                    else:
+                        module_logger.exception("failed to set value for preference {}".format(key))
+
+    return render_template('generate_imagereel.html', 
+        urim = urim,
+        pagetitle="MementoEmbed - Generate an Imagereel",
+        surrogate_type="Imagereel",
+        imagereel_endpoint="/services/product/imagereel/",
+        appversion = __appversion__,
+        imagereel_width=prefs['imagereel_width'],
+        imagereel_height=prefs['imagereel_height'],
+        duration=prefs['duration'],
+        imagecount=prefs['imagecount']
+    ), 200
