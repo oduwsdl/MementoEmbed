@@ -137,7 +137,7 @@ The current image ranking equation is as follows:
 
 .. image:: images/image_eq.png
 
-After the ``images`` list is a ``ranked images`` list 
+After the ``images`` list is a ``ranked images`` list containing the URI-Ms of each image in order by score.
 
 Archive data
 ~~~~~~~~~~~~
@@ -243,6 +243,109 @@ For Archive-It mementos, the ``application-json`` contains the metadata supplied
 
 Note that the ``metadata`` key is a list. Sometimes an Archive-It collection contains the same seed multiple times. Each instance of the same seed will be a separate list entry in value for the ``metadata`` key.
 
+Paragraph ranking
+~~~~~~~~~~~~~~~~~
+
+Endpoint: ``/services/memento/paragraphrank/<URI-M>``
+
+On success, this service provides an HTTP 200 response with a MIME-type of ``application-json`` that contains a set of paragraphs discovered in the memento::
+
+    {
+        "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
+        "generation-time": "2019-06-03T21:24:46Z",
+        "algorithm": "readability",
+        "scored paragraphs": [
+            {
+                "score": 39.42995104039168,
+                "text": "Sam Pearson and Clara Garcia Fraile are in residence for one month Sam Pearson and Clara Garcia Fraile are in residence for one month working on a new project called In My Shoes. They are developing a 'wearable film' which seemingly places the viewer within someone else's body.    This is our first residency at 20 Wellington Road and we are delighted to welcome, support and mentor Sam and Clara on this exciting project.    They have successfully received research and development funding from the Arts Council South East and are supported by Lighthouse.    For more information     www.parachutesandpuzzles.com       Ulrike and Eamon Compliant premieres at 53rd Venice Biennale Blast Theory presents a new work 'Ulrike and Eamon Compliant', commissioned by the De La Warr Pavilion for the 53rd Venice Biennale.    At the Palazzo Zenobio  Fondamenta del Soccorso  Dorodurso  Venice, Italy    Dates: 4th - 7th June, daily 10am - 6pm    Ulrike and Eamon Compliant is a new ambulatory work exploring subjectivity in the heart of the streets, squares and churches of Venice. It invites audiences to become participants and interlocutors with the artists.    Developed with the support of the Mixed Reality Lab, University of Nottingham and made possible by the generous support of Arts Council England and Turning Point South East with the cooperation of Nuova Icona and Oratorio di San Ludovico.    www.dlwp.com       Shockwave developer required We're looking for an experienced Shockwave 3D developer to take responsibility for bug-fixing an existing Shockwave 3D client used for our online performances.     You will be responsible for identifying and implementing a solution, liaising with the original developers and preparing tests for signing off the work.    For full details and how to apply please download the pdf.       Rider Spoke reviewed in RealTime Arts Magazine David Williams took part in Rider Spoke in Sydney. To find out what he thought read his review published in RealTime Arts Magazine here    www.realtimearts.net       Desert Rain acclaimed in The Guardian Lyn Gardner has listed nine productions since 1983 that transformed theatre and has included Desert Rain at the Riverside Studios.    Link: www.guardian.co.uk/stage       New blog on Pervasive Games In the run up to the publication of Pervasive Games: Theory and Design for which Matt Adams has written a text, the authors - Markus Montola and Jaakko Stenros - have started a blog on pervasive games.    pervasivegames.wordpress.com                               News              Archive"
+            },
+            {
+                "score": 31.514459798994977,
+                "text": "Online                 Video                 Live                  Games                 Mobile                 Gallery \t\t\t\tResearch \t\t\t\t                       Ulrike and Eamon Compliant                         Ulrike and Eamon Compliant is a new ambulatory work exploring subjectivity. more...                           You Get Me                         You Get Me is a work about understanding, intimacy              and mediation. more...                          Rider Spoke                         Rider Spoke is a work for cyclists. more...                          Day Of The Figurines                                    Day Of The Figurines is set in a fictional              town that is littered, dark and underpinned with steady decay. more...                          Uncle Roy All Around              You                         Using web cams, audio and text messages players              must work together. more...                          Can You See Me Now?                                    Tracked by satellites, Blast Theory's runners              appear online next to your player on a map of the city centre. more...                          TRUCOLD                         Darkness, fog and a slow shutter speed all              accentuate the ambiguity and precariousness of urban experience. more..."
+            },
+            ... additional entries omitted for brevity ...
+        ]
+    }
+
+The keys of this JSON response have the following meanings:
+
+* ``urim`` - the URI-M submitted to the service
+* ``generation-time`` - the time this response was generated
+* ``algorithm`` - the algorithm used to rank the paragraphs
+
+Each list entry in ``scored paragraphs`` contains dictionaries with the following keys:
+
+* ``score`` - the score of the paragraph as determined by the algorithm
+* ``text`` - the text of the paragraph with this score
+
+Currently `readability`, from the `ARC90 Readability project <https://github.com/buriy/python-readability>`_, is the only paragraph ranking algorithm available. 
+
+
+Sentence ranking
+~~~~~~~~~~~~~~~~~
+
+Endpoint: ``/services/memento/sentencerank/<URI-M>``
+
+On success, this service provides an HTTP 200 response with a MIME-type of ``application-json`` that contains a set of setences discovered in the memento::
+
+    {
+        "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
+        "generation-time": "2019-06-03T21:34:03Z",
+        "paragraph scoring algorithm": "readability",
+        "sentence ranking algorithm": "lede3",
+        "scored sentences": [
+            {
+                "paragraph score": 39.42995104039168,
+                "sentence score": 15,
+                "text": "Sam Pearson and Clara Garcia Fraile are in residence for one month Sam Pearson and Clara Garcia Fraile are in residence for one month working on a new project called In My Shoes."
+            },
+            {
+                "paragraph score": 39.42995104039168,
+                "sentence score": 14,
+                "text": "They are developing a 'wearable film' which seemingly places the viewer within someone else's body."
+            },
+        ... other sentences omitted for brevity ...
+        ]
+    }
+
+The keys of this JSON response have the following meanings:
+
+* ``urim`` - the URI-M submitted to the service
+* ``generation-time`` - the time this response was generated
+* ``paragraph ranking algorithm`` - the algorithm used to rank the sentences
+* ``sentence ranking algorithm`` - the algorithm used to rank the sentences
+
+Each list entry in ``scored sentences`` contains dictionaries with the following keys:
+
+* ``paragraph score`` - the score of the paragraph as determined by the given algorithm (``readability`` by default)
+* ``sentence score`` - the score of the sentence as determiend by the given algorithm (``lede3`` by default)
+* ``text`` - the text of the sentence with this score
+
+By default, paragraphs are scored first using the paragraph ranking algorithm and sentences from each paragraph are input into the sentence ranking algorithm. This appears to provide the best results.
+
+Using the HTTP ``Prefer`` header, a client can request different algorithms via the ``algorithm`` preference, like so::
+
+    GET /services/memento/sentencerank/https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/ HTTP/1.1
+    Host: localhost:5000
+    User-Agent: curl/7.54.0
+    Accept: */*
+    Prefer: algorithm=readability/textrank
+
+MementoEmbed responds with the algorithm applied via the ``Preference-Applied`` HTTP response header::
+
+    HTTP/1.0 200 OK
+    Content-Type: application/json
+    Content-Length: 9547
+    Preference-Applied: algorithm=readability/textrank
+    Server: Werkzeug/0.15.4 Python/3.7.3
+    Date: Mon, 03 Jun 2019 21:42:44 GMT
+
+The algorithms are combinations of paragraph ranking and sentence ranking algorithms separated by a ``/``. The following preferences are available for ``algorithm``:
+
+* ``readability/lede3`` - instructs MementoEmbed to score paragraphs via the ``readability`` algorithm (see above) and then rank the sentences by their position in the paragraph
+* ``readability/textrank`` - instructs MementoEmbed to score paragraphs via the ``readability`` algorithm and then rank the sentences within each paragraph via  `Barrios et al.'s Summa implementation <https://github.com/summanlp/textrank>`_ of `Mihalcea's Textrank algorithm <http://www.aclweb.org/anthology/W04-3252>`_
+* ``justext/textrank`` - instructs MementoEmbed to use the `jusText library <https://pypi.org/project/jusText/>`_ to extract text from the memento and then feed it through ``textrank``; the Textrank scores in this case are built based on the entire document rather than within ranked paragraphs
+
 
 Product Endpoints for Requesting a Surrogate Directly
 -----------------------------------------------------
@@ -330,7 +433,7 @@ On success, the thumbnail service produces an HTTP 200 status response containin
 On failure, the thumbnail service produces an HTTP 500 status response with a MIME-type of `application/json` that indicates the nature of the failure::
 
     {
-        "error": "a thumbnail failed to generated in 30 seconds",
+        "error": "a thumbnail failed to generate in 30 seconds",
         "error details": "'Traceback (most recent call last):\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/services/product.py\", line 109, in thumbnail_endpoint\\n    p.wait(timeout=timeout)\\n  File \"/usr/local/lib/python3.6/subprocess.py\", line 1449, in wait\\n    raise TimeoutExpired(self.args, timeout)\\nsubprocess.TimeoutExpired: Command \\'[\\'node\\', \\'mementoembed/static/js/create_screenshot.js\\']\\' timed out after 30 seconds\\n'"
     }
 
@@ -358,7 +461,7 @@ The response from MementoEmbed uses the ``Preference-Applied`` header to indicat
     Server: Werkzeug/0.14.1 Python/3.6.5
     Date: Wed, 25 Jul 2018 20:59:21 GMT
 
-    ...437589 bytes of data follows...
+    ...437589 bytes of data follow...
 
 MementoEmbed supports several options for specifying desired options for thumbnails.
 
@@ -373,3 +476,56 @@ The following options are supported:
 If the viewport size requested is less than the thumbnail size, the thumbnail size will match the viewport size.
 
 If the thumbnail height is not specified, the ratio of width to height of the viewport will be used to calculate the height of the thumbnail.
+
+Imagereels
+~~~~~~~~~~
+
+Endpoint: ``/services/product/imagereel/<URI-M>``
+
+On success, the imagereel service produces an HTTP 200 status response containing an animated GIF with a MIME-type of ``image/gif``.
+
+.. image:: images/imagereel-example.gif
+
+On failure, the thumbnail service produces an HTTP 500 status response with a MIME-type of `application/json` that indicates the nature of the failure::
+
+    {
+        "content": "<div class=\"row\">\n    <div class=\"col\">\n        <p style=\"text-align: left;\">The URL you supplied ( <a href=\"https://www.cnn.com)\">https://www.cnn.com</a> ) is not a memento or comes from an archive that is not Memento-Compliant.</p>\n        <p style=\"text-align: left;\">\n            For a live web resource, you can create a memento that resides on the web in the following ways:\n            <ul>\n                <li style=\"text-align: left;\">Using the <a href=\"https://web.archive.org\">Internet Archive's Save Page Now button.</a></li>\n                <!-- <li style=\"text-align: left;\">Saving the web page at Archive.is</li> -->\n                <li style=\"text-align: left;\">Using the <a href=\"https://github.com/oduwsdl/archivenow\">ArchiveNow</a> utility.</li>\n                <li style=\"text-align: left;\">Using a browser plugin, like <a href=\"https://chrome.google.com/webstore/detail/mink-integrate-live-archi/jemoalkmipibchioofomhkgimhofbbem?hl=en-US\">Mink</a>.</li>\n            </ul>\n\n        </p>\n        <p style=\"text-align: center; font-weight: bold;\">Happy Memento Making! \ud83d\ude00</p>\n    </div>\n</div>\n",
+        "error details": "'Traceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 88, in get_memento_datetime_from_response\\n    response.headers[\\'memento-datetime\\'],\\n  File \"/Users/smj/.virtualenvs/MementoEmbed/lib/python3.7/site-packages/requests/structures.py\", line 52, in __getitem__\\n    return self._store[key.lower()][1]\\nKeyError: \\'memento-datetime\\'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/errors.py\", line 28, in handle_errors\\n    return function_name(urim, preferences)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/product.py\", line 185, in generate_imagereel_response\\n    int(prefs[\\'height\\'])\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoimagereel.py\", line 36, in generate_imagereel\\n    memento = memento_resource_factory(urim, self.httpcache)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 240, in memento_resource_factory\\n    memento_dt = get_memento_datetime_from_response(response)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 99, in get_memento_datetime_from_response\\n    response=response, original_exception=e)\\nmementoembed.mementoresource.NotAMementoError: no memento-datetime header\\n'"
+    }
+
+This response contains two keys:
+
+* ``error`` - this provides an explanation of the failure
+* ``error details`` - this provides a Traceback of the MementoEmbed application that may be useful for diagnosing the error if it is a failure in the application
+
+**Specifying desired options for the imagreel with HTTP Prefer**
+
+Using the HTTP ``Prefer`` header specified in `RFC 7240 <https://tools.ietf.org/html/rfc7240>`_, a client can request a thumbnail with specific features. For example, this client has contacted MementoEmbed at endpoint ``/services/product/thumbnail/``, requesting a thumbnail of URI-M ``http://web.archive.org/web/20180128152127/http://www.cs.odu.edu/~mkelly/`` with a viewport width of 4096 pixels and a thumbnail width of 2048 pixels::
+
+    GET /services/product/imagereel/https://wayback.archive-it.org/2358/20110211072257/http://news.blogs.cnn.com/category/world/egypt-world-latest-news/ HTTP/1.1
+    Host: mementoembed.ws-dl.cs.odu.edu
+    User-Agent: curl/7.54.0
+    Accept: */*
+    Prefer: width=320,height=240
+
+The response from MementoEmbed uses the ``Preference-Applied`` header to indicate which preferences have been applied, as shown in the following headers::
+
+    HTTP/1.0 200 OK
+    Content-Type: image/gif
+    Content-Length: 3275339
+    Preference-Applied: duration=100,imagecount=5,width=320,height=240
+    Server: Werkzeug/0.15.4 Python/3.7.3
+    Date: Mon, 03 Jun 2019 21:21:34 GMT
+
+    ...3275339 bytes of data follow...
+
+MementoEmbed supports several options for specifying desired options for thumbnails.
+
+The following options are supported:
+
+* ``duration`` - the number of milliseconds for each frame of the animated GIF
+* ``imagecount`` - the number of images to include in the imagereel
+* ``width`` - the width of the imagereel in pixels
+* ``height`` - the height of the imagereel in pixels
+
+If the imagereel height is not specified, the ratio of width to height of the viewport will be used to calculate the height of the thumbnail.

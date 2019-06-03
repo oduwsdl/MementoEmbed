@@ -188,6 +188,13 @@ def generate_imagereel_response(urim, prefs):
     response = make_response(data)
 
     response.headers['Content-Type'] = 'image/gif'
+    response.headers['Preference-Applied'] = \
+        "duration={},imagecount={},width={},height={}".format(
+            prefs['duration'],
+            prefs['imagecount'],
+            prefs['width'],
+            prefs['height']
+        )
 
     module_logger.info("Finished with image reel generation")
 
