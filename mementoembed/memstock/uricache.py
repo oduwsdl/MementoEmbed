@@ -52,11 +52,11 @@ class RedisCache(URICache):
         module_logger.debug("purging URI {}".format(uri))
         self.conn.delete(uri)
 
-    def saveuri(self, uri):
+    def saveuri(self, uri, headers={}):
 
         module_logger.debug("saving URI to cache: {}".format(uri))
 
-        r = self.session.get(uri)
+        r = self.session.get(uri, headers=headers)
 
         observation_datetime = datetime.datetime.utcnow()
 
@@ -81,6 +81,8 @@ class RedisCache(URICache):
 
         observation_datetime = self.conn.hget(uri, "observation_datetime")
 
+        module_logger.debug("received headers of {}".format(headers))
+
         if observation_datetime is not None:
 
             odt = datetime.datetime.strptime(observation_datetime.decode('utf-8'), "%Y-%m-%dT%H:%M:%S")
@@ -93,10 +95,12 @@ class RedisCache(URICache):
                 self.purgeuri(uri)
 
         if self.conn.hget(uri, "response_status") is None:
-            self.saveuri(uri)
+            self.saveuri(uri, headers=headers)
 
         req_headers = CaseInsensitiveDict(json.loads(self.conn.hget(uri, "request_headers")))
         req_method = self.conn.hget(uri, "request_method")
+
+        module_logger.debug("issuing request to URI {} with headers {}".format(uri, req_headers))
         request = requests.Request(req_method, uri, headers=req_headers)
         request.prepare()
 

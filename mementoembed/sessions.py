@@ -77,7 +77,10 @@ class ManagedSession:
             if uri != self.starting_uri:
                 req_headers['Referer'] = self.starting_uri
 
-        headers['User-Agent'] = self.user_agent
+        req_headers['User-Agent'] = self.user_agent
+
+        module_logger.debug("setting user agent to {}".format(self.user_agent))
+        module_logger.debug("sending request with headers {}".format(req_headers))
 
         response = self.uricache.get(uri, headers=req_headers, timeout=self.timeout)
 
