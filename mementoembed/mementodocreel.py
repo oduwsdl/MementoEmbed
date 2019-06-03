@@ -44,9 +44,21 @@ class MementoDocreel:
             reelfile = "{}/{}.gif".format(self.working_directory, m.hexdigest())
 
             imagelist = generate_images_and_scores(
-                memento.im_urim, 
+                memento.im_urim,
                 self.httpcache
             )
+
+            module_logger.debug("imagelist: {}".format(imagelist))
+
+            for imageuri in imagelist:
+
+                imagelist[imageuri]
+
+            if len(imagelist) == 0:
+                imagelist = generate_images_and_scores(
+                    memento.urim,
+                    self.httpcache
+                )
 
             # TODO: what if imagelist is empty?
 
@@ -228,6 +240,8 @@ class MementoDocreel:
                 data = f.read()
 
             module_logger.info("Docreel generation successful, returning video")
+
+            # TODO: resize to 400x300
 
             return data
 

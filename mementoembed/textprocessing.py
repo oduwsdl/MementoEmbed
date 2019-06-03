@@ -102,6 +102,8 @@ def get_sentence_scores_by_textrank(text):
 
 def get_section_scores_by_readability(htmlcontent):
 
+    # module_logger.debug("htmlcontent: {}".format(htmlcontent))
+
     try:
         doc = Document(htmlcontent)
         d = doc.score_paragraphs()
@@ -117,12 +119,15 @@ def get_section_scores_by_readability(htmlcontent):
 
     scored_elements = []
 
+    module_logger.debug("# of scored paragraphs: {}".format(len(d)))
+
     for para in d:
 
 
         try:
             score = d[para]['content_score']
             text = d[para]['elem'].text_content().replace('\n', ' ').replace('\r', ' ').strip()
+            module_logger.debug("looking at text {}".format(text))
 
             scored_elements.append( (score, text) )
 
