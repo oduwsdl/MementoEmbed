@@ -79,14 +79,14 @@ class ManagedSession:
 
         req_headers['User-Agent'] = self.user_agent
 
-        module_logger.debug("setting user agent to {}".format(self.user_agent))
-        module_logger.debug("sending request with headers {}".format(req_headers))
+        module_logger.debug("setting user agent to {} for URI {}".format(self.user_agent, uri))
+        module_logger.debug("sending request with headers {} for URI {}".format(req_headers, uri))
 
         response = self.uricache.get(uri, headers=req_headers, timeout=self.timeout)
 
-        module_logger.debug("request headers sent were {}".format(response.request.headers))
-        module_logger.debug("response status: {}".format(response.status_code))
-        module_logger.debug("response headers: {}".format(response.headers))
+        module_logger.debug("request headers sent were {} for URI {}".format(response.request.headers, uri))
+        module_logger.debug("response status is {} for URI {}".format(response.status_code, uri))
+        module_logger.debug("response headers are {} for URI {}".format(response.headers, uri))
 
         if 'content-encoding' in response.headers:
             if response.headers['content-encoding'] == 'br':

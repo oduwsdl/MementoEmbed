@@ -54,9 +54,11 @@ class RedisCache(URICache):
 
     def saveuri(self, uri, headers={}):
 
-        module_logger.debug("saving URI to cache: {}".format(uri))
+        module_logger.debug("saving URI {} to cache with request headers {}".format(uri, headers))
 
         r = self.session.get(uri, headers=headers)
+
+        module_logger.debug("URI at end of chain was {}".format(r.url))
 
         observation_datetime = datetime.datetime.utcnow()
 
@@ -66,6 +68,10 @@ class RedisCache(URICache):
         self.conn.hset(uri, "response_reason", r.reason)
         self.conn.hset(uri, "response_elapsed", r.elapsed.microseconds)
         self.conn.hset(uri, "response_headers", json.dumps(dict(r.headers)))
+
+        module_logger.debug("response headers for URI {} now stored in cache as: {}".format(
+            uri, self.conn.hget(uri, "response_headers")
+        ))
 
         # sometimes there is no encoding
         if r.encoding is not None:
@@ -100,7 +106,7 @@ class RedisCache(URICache):
         req_headers = CaseInsensitiveDict(json.loads(self.conn.hget(uri, "request_headers")))
         req_method = self.conn.hget(uri, "request_method")
 
-        module_logger.debug("issuing request to URI {} with headers {}".format(uri, req_headers))
+        module_logger.debug("generating request object for URI {} with headers {}".format(uri, req_headers))
         request = requests.Request(req_method, uri, headers=req_headers)
         request.prepare()
 
@@ -114,10 +120,14 @@ class RedisCache(URICache):
             response.encoding = self.conn.hget(uri, "response_encoding").decode('utf-8')
         else:
             response.encoding = self.conn.hget(uri, "response_encoding")
-        
 
         module_logger.debug("encoding set to {} for URI {}".format(response.encoding, uri))
         response.headers = CaseInsensitiveDict(json.loads(self.conn.hget(uri, "response_headers")))
+        
+        module_logger.debug("response headers pulled from caceh for URI {}: {}".format(
+            uri, response.headers
+        ))
+
         response._content = self.conn.hget(uri, "response_content")
         response.url = uri
 

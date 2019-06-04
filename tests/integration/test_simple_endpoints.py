@@ -37,9 +37,9 @@ class TestSimpleMementoEmbedEndpoints(unittest.TestCase):
                 if field not in ['urim', 'generation-time', 'snippet']:
 
                     if datarow[field] == '':
-                        self.assertEqual(data[field], None)
+                        self.assertEqual(data[field], None, msg="failed for field {}".format(field))
                     else:
-                        self.assertEqual(data[field], datarow[field])
+                        self.assertEqual(data[field], datarow[field], msg="failed for field {}".format(field))
 
 
         with open(batteryfilename) as f:
