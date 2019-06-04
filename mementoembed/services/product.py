@@ -332,10 +332,14 @@ def thumbnail_endpoint(subpath):
 
                 if key in prefs:
 
-                    if key != 'remove_banner':
-                        prefs[key] = int(value)
+                    if key == 'remove_banner':
+                        prefs[key] = value
                     else:
-                        prefs[key] = int(value)
+                        try:
+                            prefs[key] = int(value)
+                        except ValueError as e:
+                            module_logger.exception("failed to acquire value for preference {}".format(key))
+                            raise e
 
                 else:
                     prefs[key] = value.lower()
