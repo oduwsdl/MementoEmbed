@@ -34,6 +34,5 @@ setup(
         'summa==1.2.0',
         'tldextract==2.2.0'
     ],
-    scripts=['bin/fetch_surrogate_data'],
-    test_suite="tests"
+    test_suite="tests.unit"
 )
