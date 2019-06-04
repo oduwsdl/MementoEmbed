@@ -5,17 +5,17 @@
 
 ![Image of a Social Card](docs/source/images/socialcard-example.png?raw=true "Social Card Example for http://arquivo.pt/wayback/19980205082901/http://www.caleida.pt/saramago/")
 
-A tool to create archive-aware embeddable surrogates for archived web pages (mementos), like the social card above. MementoEmbed is different from other surrogate-generation systems in that it provides access to archive-specific information, such as the original domain of the URI-M, its memento-datetime, and to which collection a memento belongs.
+MementoEmbed is a tool to create archive-aware embeddable **surrogates** for archived web pages (mementos), like the **social card** above. MementoEmbed is different from other surrogate-generation systems in that it provides access to archive-specific information, such as the original domain of the URI-M, its memento-datetime, and to which collection a memento belongs.
 
-MementoEmbed can also create browser thumbnails like the one below.
+MementoEmbed can also create **browser thumbnails** like the one below.
 
 ![Image of a Browser Thumbnail](docs/source/images/thumbnail-example.png?raw=true "Thumbnail Example for http://arquivo.pt/wayback/19980205082901/http://www.caleida.pt/saramago/")
 
-In addition, MementoEmbed can create imagreels, animate GIFs of the best five images from the memento, as seen below.
+In addition, MementoEmbed can create **imagereels**, animated GIFs of the best five images from the memento, as seen below.
 
 ![Image of an Imagereel](docs/source/images/imagereel-example.gif?raw=true "Imagereel example for https://wayback.archive-it.org/2358/20110211072257/http://news.blogs.cnn.com/category/world/egypt-world-latest-news/")
 
-For more information on this application, please visit our [Documentation Page](https://mementoembed.readthedocs.io/en/latest/).
+For more information on this application, please visit our [Documentation Page](https://mementoembed.readthedocs.io/en/latest/) and read the [original blog post describing the reasons behind MementoEmbed](https://ws-dl.blogspot.com/2018/08/2018-08-01-preview-of-mementoembed.html).
 
 ## Installation and Execution
 
@@ -86,17 +86,16 @@ To use your own configuration file stored at `/path/to/my/config.cfg` with a Doc
 ## Directory Layout
 
 The following directory structure exists for organizing MementoEmbed:
-* /bin/ - scripts using MementoEmbed libraries (was used for early development, to be removed at some future point)
 * /config/ - default Flask configuration for MementoEmbed
 * /docs/ - source for documentation of MementoEmbed, products can be viewed at the project [Documentation Page](https://mementoembed.readthedocs.io/en/latest/).
 * /githooks/ - hooks for use with Git in development (was an experiment, not currently used)
-* /instance/ - default Flask configuration for MementoEmbed
 * /mementoembed/ - main MementoEmbed application
 * /mementoembed/services/ - code containing source code for the machine-accessible MementoEmbed endpoints
 * /mementoembed/static/ - JavaScript and CSS used for the MementoEmbed application
 * /mementoembed/templates/ - Jinja2 templates for the MementoEmbed application
 * /mementoembed/ui/ - code for the user interface MementoEmbed endpoints
-* /tests/ - automated unit tests for core MementoEmbed functionality
+* /tests/unit - automated unit tests for core MementoEmbed functionality
+* /tests/integration - automated integration tests to run against a running MementoEmbed container
 * .dockerignore - used to indicate which files Docker should ignore when building an image
 * .gitignore - used to indicate which files Git should not commit during development
 * .travis.yml - configuration for executing unit tests and testing build of MementoEmbed
@@ -106,8 +105,9 @@ The following directory structure exists for organizing MementoEmbed:
 * MANIFEST.in - used to ensure additional files are installed on the system when pip is run
 * README.md - this file
 * dockerstart.sh - the script run by Docker to start MementoEmbed once a container is started
-* package-lock.json - pakcage version information used by npm
+* package-lock.json - pakcage version information used by npm for thumbnail generation
 * raiseversion.sh - a script run to raise the version of MementoEmbed in both documentation and source code
+* requirements.txt - listing of requirements used in the Docker container's Python environment
 * release.sh - script planned for use when releasing MementoEmbed (not currently used, may be removed at some point)
 * sample_appconfig.cfg - MementoEmbed configuration used by the Docker container
 * setup.py - standard Python installation configuration file
