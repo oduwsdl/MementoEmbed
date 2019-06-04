@@ -5,9 +5,15 @@
 
 ![Image of a Social Card](docs/source/images/socialcard-example.png?raw=true "Social Card Example for http://arquivo.pt/wayback/19980205082901/http://www.caleida.pt/saramago/")
 
-A tool to create archive-aware [oEmbed](https://oembed.com/)-compatible embeddable surrogates for archived web pages (mementos). The system currently creates social cards like the one shown above and thumbnails like the one shown below. MementoEmbed is different from other surrogate-generation systems in that it provides access to archive-specific information, such as the original domain of the URI-M, its memento-datetime, and to which collection a memento belongs.
+A tool to create archive-aware embeddable surrogates for archived web pages (mementos), like the social card above. MementoEmbed is different from other surrogate-generation systems in that it provides access to archive-specific information, such as the original domain of the URI-M, its memento-datetime, and to which collection a memento belongs.
 
-![Image of a Social Card](docs/source/images/thumbnail-example.png?raw=true "Thumbnail Example for http://arquivo.pt/wayback/19980205082901/http://www.caleida.pt/saramago/")
+MementoEmbed can also create browser thumbnails like the one below.
+
+![Image of a Browser Thumbnail](docs/source/images/thumbnail-example.png?raw=true "Thumbnail Example for http://arquivo.pt/wayback/19980205082901/http://www.caleida.pt/saramago/")
+
+In addition, MementoEmbed can create imagreels, animate GIFs of the best five images from the memento, as seen below.
+
+![Image of an Imagereel](docs/source/images/imagereel-example.gif?raw=true "Imagereel example for https://wayback.archive-it.org/2358/20110211072257/http://news.blogs.cnn.com/category/world/egypt-world-latest-news/")
 
 For more information on this application, please visit our [Documentation Page](https://mementoembed.readthedocs.io/en/latest/).
 
