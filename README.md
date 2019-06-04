@@ -115,6 +115,16 @@ $ pip install .
 $ python ./setup.py test
 ```
 
+## Run integration tests
+
+With a fully operational MementoEmbed, integration tests are possible.
+
+```
+python -m unittest discover -s tests/integration
+```
+
+Note that integration tests are heavily dependent on environmental factors.
+
 # Contributing
 
 Please consult the Contribution Guidelines in [CONTRIBUTING.md](https://github.com/oduwsdl/MementoEmbed/blob/master/CONTRIBUTING.md) for submitting bug reports, pull requests, etc.
