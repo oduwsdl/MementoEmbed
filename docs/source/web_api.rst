@@ -60,8 +60,8 @@ On success, this service produces an HTTP 200 response with a MIME-type of ``app
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
-        "best-image-uri": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http:/blasttheory.co.uk/bt/i/yougetme/ygm_icon.jpg",
-        "generation-time": "2018-07-20T16:34:12Z"
+        "best-image-uri": "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/dotf/Untitled-1.jpg",
+        "generation-time": "2019-06-05T19:19:36Z"
     }
 
 Image data
@@ -148,10 +148,10 @@ On success, this service produces an HTTP 200 response with a MIME-type of ``app
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
-        "generation-time": "2018-07-20T16:35:34Z",
+        "generation-time": "2019-06-05T19:18:18Z",
         "archive-uri": "https://www.webarchive.org.uk",
         "archive-name": "WEBARCHIVE.ORG.UK",
-        "archive-favicon": "https://www.webarchive.org.uk/ukwa/static/images/ukwa-icon-16.png",
+        "archive-favicon": "https://www.webarchive.org.uk/favicon.ico",
         "archive-collection-id": null,
         "archive-collection-name": null,
         "archive-collection-uri": null
