@@ -101,6 +101,10 @@ class ArchiveResource:
     @property
     def favicon(self):
 
+        # a workaround for Archive-It's redirection behavior on playback
+        if self.name == 'ARCHIVE-IT.ORG':
+            return "https://www.archive-it.org/favicon.ico"
+
         # self.logger.debug("call stack: {}".format( inspect.stack() ))
 
         self.logger.debug("archive favicon uri: {}".format(self.archive_favicon_uri))
