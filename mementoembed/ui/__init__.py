@@ -17,7 +17,7 @@ def main_page():
     thumbnail_height=current_app.config['THUMBNAIL_HEIGHT'],
     thumbnail_timeout=current_app.config['THUMBNAIL_TIMEOUT'],
     imagereel_width=current_app.config['IMAGEREEL_WIDTH'],
-    imagereel_height=current_app.config['IMAGEREEL_WIDTH'],
+    imagereel_height=current_app.config['IMAGEREEL_HEIGHT'],
     imagereel_duration=current_app.config['IMAGEREEL_DURATION'],
     imagereel_count=current_app.config['IMAGEREEL_COUNT']
     )
