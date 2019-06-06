@@ -52,11 +52,13 @@ class RedisCache(URICache):
         module_logger.debug("purging URI {}".format(uri))
         self.conn.delete(uri)
 
-    def saveuri(self, uri):
+    def saveuri(self, uri, headers={}):
 
-        module_logger.debug("saving URI to cache: {}".format(uri))
+        module_logger.debug("saving URI {} to cache with request headers {}".format(uri, headers))
 
-        r = self.session.get(uri)
+        r = self.session.get(uri, headers=headers)
+
+        module_logger.debug("URI at end of chain was {}".format(r.url))
 
         observation_datetime = datetime.datetime.utcnow()
 
@@ -66,6 +68,10 @@ class RedisCache(URICache):
         self.conn.hset(uri, "response_reason", r.reason)
         self.conn.hset(uri, "response_elapsed", r.elapsed.microseconds)
         self.conn.hset(uri, "response_headers", json.dumps(dict(r.headers)))
+
+        module_logger.debug("response headers for URI {} now stored in cache as: {}".format(
+            uri, self.conn.hget(uri, "response_headers")
+        ))
 
         # sometimes there is no encoding
         if r.encoding is not None:
@@ -81,6 +87,8 @@ class RedisCache(URICache):
 
         observation_datetime = self.conn.hget(uri, "observation_datetime")
 
+        module_logger.debug("received headers of {}".format(headers))
+
         if observation_datetime is not None:
 
             odt = datetime.datetime.strptime(observation_datetime.decode('utf-8'), "%Y-%m-%dT%H:%M:%S")
@@ -93,10 +101,12 @@ class RedisCache(URICache):
                 self.purgeuri(uri)
 
         if self.conn.hget(uri, "response_status") is None:
-            self.saveuri(uri)
+            self.saveuri(uri, headers=headers)
 
         req_headers = CaseInsensitiveDict(json.loads(self.conn.hget(uri, "request_headers")))
         req_method = self.conn.hget(uri, "request_method")
+
+        module_logger.debug("generating request object for URI {} with headers {}".format(uri, req_headers))
         request = requests.Request(req_method, uri, headers=req_headers)
         request.prepare()
 
@@ -105,8 +115,19 @@ class RedisCache(URICache):
         response.status_code = int(self.conn.hget(uri, "response_status"))
         response.reason = self.conn.hget(uri, "response_reason")
         response.elapsed = datetime.timedelta(microseconds=int(self.conn.hget(uri, "response_elapsed")))
-        response.encoding = self.conn.hget(uri, "response_encoding")
+        
+        if type(self.conn.hget(uri, "response_encoding")) is bytes:
+            response.encoding = self.conn.hget(uri, "response_encoding").decode('utf-8')
+        else:
+            response.encoding = self.conn.hget(uri, "response_encoding")
+
+        module_logger.debug("encoding set to {} for URI {}".format(response.encoding, uri))
         response.headers = CaseInsensitiveDict(json.loads(self.conn.hget(uri, "response_headers")))
+        
+        module_logger.debug("response headers pulled from caceh for URI {}: {}".format(
+            uri, response.headers
+        ))
+
         response._content = self.conn.hget(uri, "response_content")
         response.url = uri
 

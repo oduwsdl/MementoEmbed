@@ -29,7 +29,7 @@ class mock_httpcache:
     def __init__(self, cachedict):
         self.cachedict = cachedict
 
-    def get(self, uri):
+    def get(self, uri, use_referrer=True):
         return self.cachedict[uri]
 
 class TestArchiveResource(unittest.TestCase):

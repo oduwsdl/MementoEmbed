@@ -44,14 +44,12 @@
     formarea.innerHTML = "";
     formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
     formarea.innerHTML += '<p>with these settings:</p>';
-    formarea.innerHTML += 'Width: {{ thumbnail_width }}px<br>';
-    formarea.innerHTML += 'Height: {{ thumbnail_height }}px<br>';
-    formarea.innerHTML += 'Viewport Width: {{ viewport_width }}px<br>';
-    formarea.innerHTML += 'Viewport Height: {{ viewport_height }}px<br>';
-    formarea.innerHTML += 'Timeout: {{ timeout }}s<br>';
-    formarea.innerHTML += 'Remove Archive Banner: {{ remove_banner }}';
+    formarea.innerHTML += 'Width: {{ imagereel_width }}px<br>';
+    formarea.innerHTML += 'Height: {{ imagereel_height }}px<br>';
+    formarea.innerHTML += 'Duration: {{ duration }}ms<br>';
+    formarea.innerHTML += 'Image Count: {{ imagecount }}<br>';
     setWorking();
-    requestThumbnail(urim);
+    requestImagereel(urim);
 
     function setWorking() {
         progress.innerHTML = '';
@@ -115,21 +113,19 @@
         return window.btoa(binary);
     };
 
-    function requestThumbnail(uri) {
-        thumbnail_svc = "{{ thumbnail_endpoint }}" + urim;
-        thumbnail_svc = window.location.protocol + '//' + window.location.host + thumbnail_svc
+    function requestImagereel(uri) {
+        imagereel_svc = "{{ imagereel_endpoint }}" + urim;
+        imagereel_svc = window.location.protocol + '//' + window.location.host + imagereel_svc
 
         console.log("creating XHR object");
 
         var xhr = new XMLHttpRequest();
-        console.log("XHR object created, issuing request to " + thumbnail_svc);
-        xhr.open('GET', thumbnail_svc, true);
-        preference_string = "thumbnail_width={{ thumbnail_width }}" + 
-            ",thumbnail_height={{ thumbnail_height }}" + 
-            ",viewport_width={{ viewport_width }}" + 
-            ",viewport_height={{ viewport_height }}" +
-            ",timeout={{ timeout }}" +
-            ",remove_banner={{ remove_banner }}";
+        console.log("XHR object created, issuing request to " + imagereel_svc);
+        xhr.open('GET', imagereel_svc, true);
+        preference_string = "imagereel_width={{ imagereel_width }}" + 
+            ",imagereel_height={{ imagereel_height }}" +
+            ",duration={{ duration }}" +
+            ",imagecount={{ imagecount }}";
         console.log("preference_string is " + preference_string);
         xhr.setRequestHeader("Prefer", preference_string);
         xhr.responseType = 'arraybuffer';
@@ -141,7 +137,7 @@
             if (xhr.readyState === 4) {
                 if (this.status === 200) {
                     console.log("we got a 200 back!");
-                    progress.innerHTML = "Thumbnail Generation Complete";
+                    progress.innerHTML = "Imagereel Generation Complete";
                     // workarea.innerHTML = "GOOD!!!";
                     imagehtml = '<img src="data:image/png;base64,' + 
                         _arrayBufferToBase64(this.response) + '">'
@@ -151,36 +147,34 @@
                     formarea.innerHTML = "";
                     formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
                     formarea.innerHTML += '<p>with these settings:</p>';
-                    formarea.innerHTML += 'Width: {{ thumbnail_width }}px<br>';
-                    formarea.innerHTML += 'Height: {{ thumbnail_height }}px<br>';
-                    formarea.innerHTML += 'Viewport Height: {{ viewport_height }}px<br>';
-                    formarea.innerHTML += 'Viewport Width: {{ viewport_width }}px<br>';
-                    formarea.innerHTML += 'Timeout: {{ timeout }}s<br>';
-                    formarea.innerHTML += 'Remove Archive Banner: {{ remove_banner }}';
+                    formarea.innerHTML += 'Width: {{ imagereel_width }}px<br>';
+                    formarea.innerHTML += 'Height: {{ imagereel_height }}px<br>';
+                    formarea.innerHTML += 'Duration of frames: {{ duration }}ms<br>';
+                    formarea.innerHTML += 'Number of Images: {{ imagecount }}';
 
-                    thumbnail_output = '';
-                    thumbnail_output += '<div class="row">';
-                    thumbnail_output += '<div class="col-md-6">';
-                    thumbnail_output += '<p>If you want to include this thumbnail in your web page:</p>'
-                    thumbnail_output += imagehtml;
-                    thumbnail_output += '</div>';
-                    thumbnail_output += '<div class="col-md-6">';
-                    thumbnail_output += '<div class="row">';
-                    thumbnail_output += '<p>then copy and paste the following code into your page HTML:</p>';
-                    thumbnail_output += '<textarea rows="6" cols="40">' + imagehtml + '</textarea>';
-                    thumbnail_output += '</div>';
-                    thumbnail_output += '</div>';
-                    thumbnail_output += '</div>';
-                    thumbnail_output += '<div class="row">';
-                    thumbnail_output += '<div class="col-md-12">';
-                    thumbnail_output += '<p><strong>Or, right click to download the image and use it on your web site</strong></p>';
-                    thumbnail_output += '</div>';
-                    thumbnail_output += '</div>';
-                    thumbnail_output += '<div class="row"><div class="col-md-12"><br><br>';
-                    thumbnail_output += 'Does this not look right? &nbsp;<a href="https://github.com/oduwsdl/MementoEmbed/issues">Click here to report this URI-M with details of what didn\'t work</a>.'
-                    thumbnail_output += '</div></div>';
+                    imagereel_output = '';
+                    imagereel_output += '<div class="row">';
+                    imagereel_output += '<div class="col-md-6">';
+                    imagereel_output += '<p>If you want to include this imagereel in your web page:</p>'
+                    imagereel_output += imagehtml;
+                    imagereel_output += '</div>';
+                    imagereel_output += '<div class="col-md-6">';
+                    imagereel_output += '<div class="row">';
+                    imagereel_output += '<p>then copy and paste the following code into your page HTML:</p>';
+                    imagereel_output += '<textarea rows="6" cols="40">' + imagehtml + '</textarea>';
+                    imagereel_output += '</div>';
+                    imagereel_output += '</div>';
+                    imagereel_output += '</div>';
+                    imagereel_output += '<div class="row">';
+                    imagereel_output += '<div class="col-md-12">';
+                    imagereel_output += '<p><strong>Or, right click to download the image and use it on your web site</strong></p>';
+                    imagereel_output += '</div>';
+                    imagereel_output += '</div>';
+                    imagereel_output += '<div class="row"><div class="col-md-12"><br><br>';
+                    imagereel_output += 'Does this not look right? &nbsp;<a href="https://github.com/oduwsdl/MementoEmbed/issues">Click here to report this URI-M with details of what didn\'t work</a>.'
+                    imagereel_output += '</div></div>';
 
-                    workarea.innerHTML += thumbnail_output
+                    workarea.innerHTML += imagereel_output
                     
                 } else {
                     unsetWorking();
@@ -193,7 +187,7 @@
                     console.log("response type: " + this.responseType);
                     // console.log("response text: " + this.responseText);
 
-                    message = "There was an error produced while generating a thumbnail for this URI.";
+                    message = "There was an error produced while generating an imagereel for this URI.";
 
                     // handle_error(this.response);
                     setError(message);
@@ -202,21 +196,6 @@
         }
 
         xhr.send(null);
-
-        // $.ajax({
-        //     type: "GET",
-        //     url: thumbnail_svc,
-        //     success: function(data) {
-        //         // var dataUri = "data:image/png;base64," + btoa(data);
-        //         progress.innerHTML = "Thumbnail Generation Complete";
-        //         workarea.innerHTML = "GOOD!!!";
-        //         var dataUri = "data:image/png;base64," + btoa(data);
-        //         // workarea.innerHTML += '<img src="' + dataUri + '>';
-        //     },
-        //     error: function(data, textStatus, errorThrown) {
-        //         handle_error(data);
-        //     }
-        // })
     }
 
 </script>

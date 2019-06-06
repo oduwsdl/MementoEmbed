@@ -63,6 +63,7 @@ def sentencerank(urim, preferences):
 
     output['urim'] = urim
     output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    scoredata = {}
 
     if preferences["algorithm"] == "readability/lede3":
         scoredata = get_sentence_scores_by_readability_and_lede3(memento.raw_content)
@@ -70,6 +71,8 @@ def sentencerank(urim, preferences):
         scoredata = get_sentence_scores_by_readability_and_textrank(memento.raw_content)
     elif preferences["algorithm"] == "justext/textrank":
         scoredata = get_sentence_scores_by_just_textrank(memento.raw_content)
+    else:
+        scoredata = get_sentence_scores_by_readability_and_lede3(memento.raw_content)
     
     output.update(scoredata)
 

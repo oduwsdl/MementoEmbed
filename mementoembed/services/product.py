@@ -16,6 +16,7 @@ from mementoembed.mementothumbnail import MementoThumbnail, \
     MementoThumbnailSizeInvalid, MementoThumbnailViewportInvalid, \
     MementoThumbnailTimeoutInvalid
 from mementoembed.mementoimagereel import MementoImageReel
+from mementoembed.mementodocreel import MementoDocreel
 from mementoembed.mementoresource import MementoURINotAtArchiveFailure, memento_resource_factory
 from mementoembed.imageselection import convert_imageuri_to_pngdata_uri, generate_images_and_scores
 from mementoembed.sessions import ManagedSession
@@ -187,6 +188,46 @@ def generate_imagereel_response(urim, prefs):
     response = make_response(data)
 
     response.headers['Content-Type'] = 'image/gif'
+    response.headers['Preference-Applied'] = \
+        "duration={},imagecount={},width={},height={}".format(
+            prefs['duration'],
+            prefs['imagecount'],
+            prefs['width'],
+            prefs['height']
+        )
+
+    module_logger.info("Finished with image reel generation")
+
+    return response, 200
+
+def generate_docreel_response(urim, prefs):
+
+    httpcache = ManagedSession(
+        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        user_agent=__useragent__,
+        starting_uri=urim,
+        uricache=getURICache()
+        )
+
+    mv = MementoDocreel(
+        user_agent=__useragent__,
+        working_directory=current_app.config['DOCREEL_WORKING_FOLDER'],
+        httpcache=httpcache
+    )
+
+    data = mv.generate_docreel(
+        urim, 
+        int(prefs['duration']),
+        int(prefs['imagecount']),
+        int(prefs['sentencecount']),
+        int(prefs['width']),
+        int(prefs['height']),
+        current_app.config['DOCREEL_DEFAULT_FONT_PATH']
+        )
+
+    response = make_response(data)
+
+    response.headers['Content-Type'] = 'image/gif'
 
     module_logger.info("Finished with image reel generation")
 
@@ -213,6 +254,31 @@ def socialcard_endpoint(subpath):
             prefs[key] = value.lower()
 
     return handle_errors(generate_socialcard_response, urim, prefs)
+
+@bp.route('/services/product/docreel/<path:subpath>')
+def docreel_endpoint(subpath):
+
+    module_logger.info("Beginning docreel generation")
+
+    # because Flask trims off query strings
+    urim = extract_urim_from_request_path(request.full_path, '/services/product/docreel/')
+
+    prefs = {}
+    prefs['duration'] = int(current_app.config['DOCREEL_DURATION'])
+    prefs['imagecount'] = int(current_app.config['DOCREEL_IMAGE_COUNT'])
+    prefs['sentencecount'] = int(current_app.config['DOCREEL_SENTENCE_COUNT'])
+    prefs['width'] = int(current_app.config['DOCREEL_WIDTH'])
+    prefs['height'] = int(current_app.config['DOCREEL_HEIGHT'])
+
+    if 'Prefer' in request.headers:
+
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = value.lower()
+
+    return handle_errors(generate_docreel_response, urim, prefs)
 
 @bp.route('/services/product/imagereel/<path:subpath>')
 def imagereel_endpoint(subpath):
@@ -264,8 +330,17 @@ def thumbnail_endpoint(subpath):
             for pref in preferences:
                 key, value = pref.split('=')
 
-                if key != 'remove_banner':
-                    prefs[key] = int(value)
+                if key in prefs:
+
+                    if key == 'remove_banner':
+                        prefs[key] = value
+                    else:
+                        try:
+                            prefs[key] = int(value)
+                        except ValueError as e:
+                            module_logger.exception("failed to acquire value for preference {}".format(key))
+                            raise e
+
                 else:
                     prefs[key] = value.lower()
 
