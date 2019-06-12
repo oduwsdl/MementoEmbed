@@ -12,3 +12,4 @@ dist
 node_modules
 _build
 working-dontcommit
+*.numbers # used for creating UTF-8 CSV files
