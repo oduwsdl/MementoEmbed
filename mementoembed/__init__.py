@@ -6,10 +6,12 @@ import base64
 
 import redis
 import requests
+import requests_cache
 
 from time import strftime
 
 from redis import RedisError
+from redis_namespace import StrictRedis
 from flask import Flask, request, render_template, make_response, current_app
 
 from .memstock.uricache import RedisCache, NoCache
@@ -49,20 +51,39 @@ def test_file_access(filename):
 
 def getURICache():
 
-    credentials = {}
 
     if current_app.config['CACHEENGINE'] == 'Redis':
-        credentials['dbnumber'] = current_app.config["CACHE_DBNUMBER"]
-        credentials['host'] = current_app.config["CACHE_DBHOST"]
-        credentials['port'] = current_app.config["CACHE_DBPORT"]
-        credentials['password'] = current_app.config["CACHE_DBPASSWORD"]
-        session = requests.Session()
-        expiration_delta = current_app.config['URICACHE_EXPIRATION']
 
-        return RedisCache(credentials, session, expiration_delta)
+        conn = StrictRedis(
+            host=current_app.config["CACHE_DBHOST"],
+            port=current_app.config["CACHE_DBPORT"],
+            password=current_app.config["CACHE_DBPASSWORD"],
+            db=current_app.config["CACHE_DBNUMBER"],
+            namespace='uricache:'
+        )
+
+        return requests_cache.CachedSession(
+            cache_name="uricache",
+            backend="redis",
+            expire_after=current_app.config['URICACHE_EXPIRATION'],
+            old_data_on_error=True,
+            connection=conn,
+            namespace='uricache'
+            )
 
     else:
-        return NoCache(None, session, expiration_delta)
+        # SQLite as default
+
+        if '.' in current_app.config['CACHEDBFILE']:
+            cachename, ext = current_app.config['CACHEDBFILE'].rsplit('.', 1)
+        else:
+            cachename = current_app.config['CACHEDBFILE']
+            ext = '.sqlite'
+
+        return requests_cache.CachedSession(
+            cache_name=cachename,
+            extension=ext
+        )
 
 def get_requests_timeout(config):
 
@@ -211,17 +232,29 @@ def create_app():
     if app.config['ENABLE_THUMBNAILS'].lower() == "yes":
         if not os.path.exists( app.config['THUMBNAIL_WORKING_FOLDER'] ):
             application_logger.info("creating thumbnail folder at {}".format(app.config['THUMBNAIL_WORKING_FOLDER']))
-            os.makedirs( app.config['THUMBNAIL_WORKING_FOLDER'] )
+
+            try:
+                os.makedirs( app.config['THUMBNAIL_WORKING_FOLDER'] )
+            except FileExistsError:
+                pass # TODO: a race condition exists in Flask sometimes
 
     if app.config['ENABLE_IMAGEREEL'].lower() == "yes":
         if not os.path.exists( app.config['IMAGEREEL_WORKING_FOLDER'] ):
             application_logger.info("creating imagereel folder at {}".format(app.config['IMAGEREEL_WORKING_FOLDER']))
-            os.makedirs( app.config['IMAGEREEL_WORKING_FOLDER'] )
+
+            try:
+                os.makedirs( app.config['IMAGEREEL_WORKING_FOLDER'] )
+            except FileExistsError:
+                pass # TODO: a race condition exists in Flask sometimes
 
     if app.config['ENABLE_DOCREEL'].lower() == "yes":
         if not os.path.exists( app.config['DOCREEL_WORKING_FOLDER'] ):
             application_logger.info("creating imagereel folder at {}".format(app.config['DOCREEL_WORKING_FOLDER']))
-            os.makedirs( app.config['DOCREEL_WORKING_FOLDER'] )
+
+            try:
+                os.makedirs( app.config['DOCREEL_WORKING_FOLDER'] )
+            except FileExistsError:
+                pass # TODO: a race condition exists in Flask sometimes
 
     application_logger.info("MementoEmbed is now initialized and ready to receive requests")
 

@@ -1,4 +1,5 @@
 import logging
+from requests.exceptions import ReadTimeout
 
 from urllib.parse import urljoin, urlparse
 
@@ -71,6 +72,9 @@ class OriginalResource:
                         self.memento.memento_datetime,
                         self.http_cache
                     )
+                
+                except ReadTimeout:
+                    module_logger.exception("Failed to download favicon due to timeout error, searching for favicon using a different method...")
                 
                 self.logger.debug("original link favicon is now {}".format(self.original_link_favicon_uri))
 

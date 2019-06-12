@@ -20,7 +20,7 @@ def attempt_cache_deletion(urim):
     baduris = ["", None]
 
     if urim not in baduris:
-        getURICache().purgeuri(urim)
+        getURICache().cache.delete_url(urim)
 
 def handle_errors(function_name, urim, preferences):
 
@@ -38,7 +38,8 @@ def handle_errors(function_name, urim, preferences):
                     'make_your_own_memento.html',
                     urim = urim
                     ),
-                "error details": repr(traceback.format_exc())
+                "error details": repr(
+                    traceback.format_exc())
                 }, indent=4))
         response.headers['Content-Type'] = 'application/json'
         return response, 404

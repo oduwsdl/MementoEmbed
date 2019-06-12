@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from requests.exceptions import Timeout, TooManyRedirects, \
     ChunkedEncodingError, ContentDecodingError, StreamConsumedError, \
     URLRequired, MissingSchema, InvalidSchema, InvalidURL, \
-    UnrewindableBodyError, ConnectionError, SSLError
+    UnrewindableBodyError, ConnectionError, SSLError, ReadTimeout
 
 wayback_pattern = re.compile('(/[0-9]{14})/')
 
@@ -140,7 +140,7 @@ def get_memento(http_cache, urim):
     except (URLRequired, MissingSchema, InvalidSchema, InvalidURL) as e:
         raise MementoInvalidURI("", original_exception=e)
 
-    except Timeout as e:
+    except (Timeout, ReadTimeout) as e:
         raise MementoTimeoutError("", original_exception=e)
 
     except SSLError as e:
