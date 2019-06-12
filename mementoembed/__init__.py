@@ -10,8 +10,7 @@ import requests_cache
 
 from time import strftime
 
-from redis import RedisError
-from redis_namespace import StrictRedis
+from redis import RedisError, StrictRedis
 from flask import Flask, request, render_template, make_response, current_app
 
 from .memstock.uricache import RedisCache, NoCache
@@ -58,17 +57,15 @@ def getURICache():
             host=current_app.config["CACHE_DBHOST"],
             port=current_app.config["CACHE_DBPORT"],
             password=current_app.config["CACHE_DBPASSWORD"],
-            db=current_app.config["CACHE_DBNUMBER"],
-            namespace='uricache:'
+            db=current_app.config["CACHE_DBNUMBER"]
         )
 
         return requests_cache.CachedSession(
             cache_name="uricache",
             backend="redis",
-            expire_after=current_app.config['URICACHE_EXPIRATION'],
+            expire_after=int(current_app.config['URICACHE_EXPIRATION']),
             old_data_on_error=True,
-            connection=conn,
-            namespace='uricache'
+            connection=conn
             )
 
     else:
