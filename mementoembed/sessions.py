@@ -3,8 +3,6 @@ import logging
 import requests
 import brotli
 
-from .memstock import uricache
-
 module_logger = logging.getLogger('mementoembed.sessions')   
 
 class BrotliResponse:

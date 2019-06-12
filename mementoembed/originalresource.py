@@ -1,4 +1,5 @@
 import logging
+from requests.exceptions import ReadTimeout
 
 from urllib.parse import urljoin, urlparse
 
@@ -72,7 +73,10 @@ class OriginalResource:
                         self.http_cache
                     )
                 
-                self.logger.debug("original link favicon is now {}".format(self.original_link_favicon_uri))
+                except ReadTimeout:
+                    module_logger.exception("Failed to download favicon due to timeout error, searching for favicon using a different method...")
+                
+                self.logger.debug("original link favicon after #1 is now {}".format(self.original_link_favicon_uri))
 
         # 2. try to construct the favicon URI and look for it in the archive
         if self.original_link_favicon_uri is None:
@@ -87,6 +91,8 @@ class OriginalResource:
                 self.http_cache   
             )
 
+            self.logger.debug("original link favicon after #2 is now {}".format(self.original_link_favicon_uri))
+
         # 3. request the home page of the site on the live web and look for favicon in its HTML
         if self.original_link_favicon_uri is None:
 
@@ -95,6 +101,8 @@ class OriginalResource:
 
             self.original_link_favicon_uri = get_favicon_from_resource_content(
                 "{}://{}".format(original_scheme, self.domain), self.http_cache)
+
+            self.logger.debug("original link favicon after #3 is now {}".format(self.original_link_favicon_uri))
 
         # 4. try to construct the favicon URI and look for it on the live web
         if self.original_link_favicon_uri is None:
@@ -106,6 +114,8 @@ class OriginalResource:
             self.original_link_favicon_uri = find_conventional_favicon_on_live_web(
                 original_scheme, self.domain, self.http_cache)
 
+            self.logger.debug("original link favicon after #4 is now {}".format(self.original_link_favicon_uri))
+
         # 5. if all else fails, fall back to the Google favicon service
         if self.original_link_favicon_uri is None:
 
@@ -115,7 +125,9 @@ class OriginalResource:
             self.original_link_favicon_uri = get_favicon_from_google_service(
                 self.http_cache, self.uri)
 
-        self.logger.debug("discovered memento favicon at {}".format(self.original_link_favicon_uri))
+            self.logger.debug("original link favicon after #5 is now {}".format(self.original_link_favicon_uri))
+
+        self.logger.debug("discovered original link favicon at {}".format(self.original_link_favicon_uri))
 
         return self.original_link_favicon_uri
 
