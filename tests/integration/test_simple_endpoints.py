@@ -19,6 +19,8 @@ class TestSimpleMementoEmbedEndpoints(unittest.TestCase):
         if configured_serviceport is not None:
             serviceport = configured_serviceport
 
+        assertionerrors = []
+
         def test_service(endpoint, datarow):
 
             urim = datarow['urim']
@@ -46,6 +48,7 @@ class TestSimpleMementoEmbedEndpoints(unittest.TestCase):
                     except AssertionError as e:
                         print("Failed with URI-M {} for field {} at endpoint {}".format(urim, field, endpoint))
                         print("exception: {}".format(e))
+                        assertionerrors.append(e)
 
         with open(batteryfilename) as f:
             reader = csv.DictReader(f)
@@ -59,4 +62,6 @@ class TestSimpleMementoEmbedEndpoints(unittest.TestCase):
                 test_service("http://localhost:{}/services/memento/archivedata/".format(serviceport), row)
                 test_service("http://localhost:{}/services/memento/originalresourcedata/".format(serviceport), row)
 
+            if len(assertionerrors) > 0:
+                self.fail("one or more inputs failed a test")
         
