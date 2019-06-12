@@ -13,8 +13,6 @@ from time import strftime
 from redis import RedisError, StrictRedis
 from flask import Flask, request, render_template, make_response, current_app
 
-from .memstock.uricache import RedisCache, NoCache
-
 application_logger = logging.getLogger(__name__)
 access_logger = logging.getLogger('mementoembed_access')
 
