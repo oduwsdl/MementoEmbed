@@ -121,8 +121,7 @@ class MementoDocreel:
 
             module_logger.debug("archive favicon for docreel is {}".format(archive.favicon))
 
-            # archive_favicon_uri = self.httpcache.get(archive.favicon, use_referrer=False)
-            archive_favicon_uri = self.httpcache.get(archive.favicon)
+            archive_favicon_uri = self.httpcache.get(archive.favicon, use_referrer=False)
             ifp = io.BytesIO(archive_favicon_uri.content)
             ar_favicon_im = Image.open(ifp).convert("RGBA", palette=Image.ADAPTIVE).resize((16, 16), resample=Image.BICUBIC)
             imbase.paste(ar_favicon_im, (3, requested_height - 30), )

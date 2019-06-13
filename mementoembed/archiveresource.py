@@ -114,8 +114,7 @@ class ArchiveResource:
             
             self.logger.debug("attempting to acquire the archive favicon URI from HTML at {}".format(self.uri))
 
-            # r = self.httpcache.get(self.uri, use_referrer=False)
-            r = self.httpcache.get(self.uri)
+            r = self.httpcache.get(self.uri, use_referrer=False)
 
             # self.logger.debug("searching through HTML: \n\n{}\n\n".format(r.text))
 
@@ -129,8 +128,7 @@ class ArchiveResource:
 
             self.logger.debug("got an archive favicon of {}".format(self.archive_favicon_uri))
 
-            # r = self.httpcache.get(self.archive_favicon_uri, use_referrer=False)
-            r = self.httpcache.get(self.archive_favicon_uri)
+            r = self.httpcache.get(self.archive_favicon_uri, use_referrer=False)
 
             if not favicon_resource_test(r):
                 self.archive_favicon_uri = None
