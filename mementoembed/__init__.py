@@ -70,7 +70,7 @@ def getURICache(urim):
             expire_after=int(current_app.config['URICACHE_EXPIRATION']),
             old_data_on_error=True,
             connection=conn,
-            timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+            timeout=current_app.config['REQUEST_TIMEOUT'],
             user_agent=__useragent__,
             starting_uri=urim
         )
@@ -87,7 +87,7 @@ def getURICache(urim):
         return ManagedSession(
             cache_name=cachename,
             extension=ext,
-            timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+            timeout=current_app.config['REQUEST_TIMEOUT'],
             user_agent=__useragent__,
             starting_uri=urim
         )

@@ -136,6 +136,7 @@ class TestImageSelection(unittest.TestCase):
 
                 self.uri_to_content = {}
                 self.uri_to_headers = {}
+                self.timeout = 15
 
                 imagedir = "{}/samples/images".format(
                     os.path.dirname(os.path.realpath(__file__))
@@ -169,11 +170,34 @@ class TestImageSelection(unittest.TestCase):
                     self.uri_to_headers[uri]
                     )
 
+        class mock_future:
+
+            def __init__(self, uri, httpcache):
+                self.uri = uri
+                self.httpcache = httpcache
+
+            def done(self):
+                return True
+
+            def result(self):
+                return self.httpcache.get(self.uri)
+
+            def cancel(self):
+                pass
+
+        class mock_futuressession:
+
+            def __init__(self, httpcache):
+                self.httpcache = httpcache
+
+            def get(self, uri):
+                return mock_future(uri, self.httpcache)
+
         mh = mock_httpcache()
         uri = "http://example.com/example.html"
 
         self.assertEqual(
-            get_best_image(uri, mh),
+            get_best_image(uri, mh, futuressession=mock_futuressession(mh)),
             "http://example.com/images/image2.test"
             )
 
