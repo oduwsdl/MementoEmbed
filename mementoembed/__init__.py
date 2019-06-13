@@ -13,6 +13,9 @@ from time import strftime
 from redis import RedisError, StrictRedis
 from flask import Flask, request, render_template, make_response, current_app
 
+from .version import __useragent__
+from .sessions import ManagedSession
+
 application_logger = logging.getLogger(__name__)
 access_logger = logging.getLogger('mementoembed_access')
 
@@ -46,8 +49,11 @@ def test_file_access(filename):
     except Exception as e:
         raise e
 
-def getURICache():
-
+def getURICache(urim):
+    """
+    Returns an object compliant with requests.Session that provides caching
+    based on the application's configuration.
+    """
 
     if current_app.config['CACHEENGINE'] == 'Redis':
 
@@ -58,13 +64,16 @@ def getURICache():
             db=current_app.config["CACHE_DBNUMBER"]
         )
 
-        return requests_cache.CachedSession(
+        return ManagedSession(
             cache_name="uricache",
             backend="redis",
             expire_after=int(current_app.config['URICACHE_EXPIRATION']),
             old_data_on_error=True,
-            connection=conn
-            )
+            connection=conn,
+            timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+            user_agent=__useragent__,
+            starting_uri=urim
+        )
 
     else:
         # SQLite as default
@@ -75,9 +84,12 @@ def getURICache():
             cachename = current_app.config['CACHEDBFILE']
             ext = '.sqlite'
 
-        return requests_cache.CachedSession(
+        return ManagedSession(
             cache_name=cachename,
-            extension=ext
+            extension=ext,
+            timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+            user_agent=__useragent__,
+            starting_uri=urim
         )
 
 def get_requests_timeout(config):
