@@ -29,12 +29,7 @@ def paragraphrank(urim, preferences):
 
     output = {}
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    httpcache = getURICache(urim)
 
     memento = memento_resource_factory(urim, httpcache)
 
@@ -52,12 +47,7 @@ def sentencerank(urim, preferences):
 
     output = {}
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    httpcache = getURICache(urim)
 
     memento = memento_resource_factory(urim, httpcache)
 
@@ -87,12 +77,7 @@ def contentdata(urim, preferences):
 
     output = {}
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    httpcache = getURICache(urim)
 
     memento = memento_resource_factory(urim, httpcache)
 
@@ -111,12 +96,7 @@ def originaldata(urim, preferences):
 
     output = {}
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    httpcache = getURICache(urim)
 
     memento = memento_resource_factory(urim, httpcache)
 
@@ -161,12 +141,7 @@ def originaldata(urim, preferences):
 
 def bestimage(urim, preferences):
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    httpcache = getURICache(urim)
 
     memento = memento_resource_factory(urim, httpcache)
 
@@ -206,12 +181,7 @@ def bestimage(urim, preferences):
 
 def imagedata(urim, preferences):
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    httpcache = getURICache(urim)
 
     memento = memento_resource_factory(urim, httpcache)
 
@@ -252,12 +222,7 @@ def imagedata(urim, preferences):
 
 def archivedata(urim, preferences):
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    httpcache = getURICache(urim)
 
     # TODO: only here because we need to detect NotAMemento, need a better solution
     memento = memento_resource_factory(urim, httpcache) 
@@ -293,14 +258,7 @@ def archivedata(urim, preferences):
 
 def seeddata(urim, preferences):
 
-    uricache = getURICache() 
-
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=uricache
-        )
+    httpcache = getURICache(urim)
 
     memento = memento_resource_factory(urim, httpcache)
 

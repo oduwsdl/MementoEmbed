@@ -20,7 +20,7 @@ def attempt_cache_deletion(urim):
     baduris = ["", None]
 
     if urim not in baduris:
-        getURICache().cache.delete_url(urim)
+        getURICache(urim).cache.delete_url(urim)
 
 def handle_errors(function_name, urim, preferences):
 

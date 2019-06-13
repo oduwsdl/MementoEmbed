@@ -3,19 +3,27 @@ import base64
 import traceback
 import io
 import sys
+import random
+import datetime
+import imghdr
 
 import cairosvg
 import magic
-import imghdr
 
 from base64 import binascii
-
 from urllib.parse import urljoin, urlparse
+from copy import deepcopy
+
 from bs4 import BeautifulSoup
 from PIL import ImageFile, Image
 from requests.exceptions import RequestException
+from requests import Session
+from requests_cache import CachedSession
+from requests_futures.sessions import FuturesSession
+from datauri import DataURI
 
 from .mementoresource import MementoParsingError
+from .sessions import ManagedSession
 
 module_logger = logging.getLogger('mementoembed.imageselection')
 
@@ -86,6 +94,49 @@ def score_image(imagecontent, n, N):
     
     return score
 
+def scores_for_image(imagecontent, n, N):
+
+    imagedata = {}
+
+    p = ImageFile.Parser()
+    p.feed(imagecontent)
+    p.close()
+
+    width, height = p.image.size
+    h = p.image.histogram().count(0)
+
+    imagedata['width'] = width
+    imagedata['height'] = height
+
+    imagedata['blank columns in histogram'] = h
+
+    s = width * height
+    imagedata['size in pixels'] = s
+
+    r = width / height
+    imagedata['ratio width/height'] = r
+
+    imagedata['byte size'] = \
+        sys.getsizeof(imagecontent)
+
+    k1 = 0.1 
+    k2 = 0.4
+    k3 = 10
+    k4 = 0.5
+
+    score = (k1 * (N - n)) + (k2 * s) - (k3 * h) - (k4 * r)
+
+    imagedata['N'] = N
+    imagedata['n'] = n
+    imagedata['k1'] = k1
+    imagedata['k2'] = k2
+    imagedata['k3'] = k3
+    imagedata['k4'] = k4
+
+    imagedata['calculated score'] = score
+
+    return imagedata
+
 def get_image_list(uri, http_cache):
 
     module_logger.debug("extracting images from the HTML of URI {}".format(uri))
@@ -122,7 +173,7 @@ def get_image_list(uri, http_cache):
     
     return image_list
 
-def generate_images_and_scores(uri, http_cache):
+def generate_images_and_scores(uri, http_cache, futuressession=None):
 
     module_logger.debug("generating list of images and computing their scores")
 
@@ -133,192 +184,159 @@ def generate_images_and_scores(uri, http_cache):
     images_and_scores = {}
 
     N = len(image_list)
-    n = 0
+
+    futures = {}
+    starttimes = {}
+    image_position = {}
+
+    if futuressession is None:
+        module_logger.debug("creating FuturesSession for images from uri {}".format(uri))
+        futuressession = FuturesSession(session=http_cache)
+
+    timeout = http_cache.timeout # in case we fall into a crawler trap (CNN?)
+
+    working_image_list = []
 
     for imageuri in image_list:
 
-        n += 1
-        
-        images_and_scores[imageuri] = {}
+        if imageuri not in working_image_list:
+            working_image_list.append(imageuri)
 
-        module_logger.debug("examining image {}".format(imageuri))
+            if imageuri[0:5] != 'data:':
+                module_logger.debug("adding futures request for {}".format(imageuri))
+                futures[imageuri] = futuressession.get(imageuri)
+                starttimes[imageuri] = datetime.datetime.now()
 
-        try:
-            r = http_cache.get(imageuri)
-        except RequestException:
-            module_logger.warning(
-                "Failed to download image URI {}, skipping...".format(imageuri)
-            )
-            images_and_scores[imageuri] = "Image could not be downloaded"
-            continue
+            image_position[imageuri] = image_list.index(imageuri)
 
-        module_logger.debug("image {} was successfully downloaded with status {}".format(imageuri, r.status_code))
+    # working_image_list = deepcopy(image_list)
 
-        if r.status_code == 200:
+    def imageuri_generator(imagelist):
 
-            try:
+        while len(imagelist) > 0:
+            yield random.choice(imagelist)
 
-                ctype = r.headers['content-type']
-                imagecontent = r.content
-                images_and_scores[imageuri]["content-type"] = ctype
-                images_and_scores[imageuri]["magic type"] = \
-                    magic.from_buffer(r.content)
-                images_and_scores[imageuri]["imghdr type"] = \
-                    imghdr.what(None, r.content)
+    for imageuri in imageuri_generator(working_image_list):
 
-            except KeyError:
-                module_logger.warning(
-                    "could not find a content-type for URI {}".format(imageuri)
-                )
-                images_and_scores[imageuri] = "No content type for image"
-                continue
+        n = image_position[imageuri]
 
-            if 'image/' in ctype:
+        module_logger.debug("looking at image in position {}, URI: {}".format(n, imageuri))
+
+        if imageuri[0:5] == 'data:':
+            datainput = DataURI(imageuri)
+            images_and_scores[imageuri] = {}
+            images_and_scores[imageuri]['content-type'] = datainput.mimetype
+            images_and_scores[imageuri]['magic type'] = magic.from_buffer(datainput.data)
+            images_and_scores[imageuri]['imghdr type'] = imghdr.what(None, datainput.data)
+            images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
+            working_image_list.remove(imageuri)
+
+        elif imageuri in futures:
+
+            if futures[imageuri].done():
+            
+                images_and_scores[imageuri] = {}
+
+                module_logger.debug("examining image {}".format(imageuri))
 
                 try:
-                    
-                    p = ImageFile.Parser()
-                    p.feed(imagecontent)
-                    p.close()
+                    r = futures[imageuri].result()
+                except RequestException:
+                    module_logger.warning(
+                        "Failed to download image URI {}, skipping...".format(imageuri)
+                    )
+                    images_and_scores[imageuri] = "Image could not be downloaded"
+                    working_image_list.remove(imageuri)
+                    del futures[imageuri]
+                    continue
 
-                    width, height = p.image.size
-                    h = p.image.histogram().count(0)
+                module_logger.debug("image {} was successfully downloaded with status {}".format(imageuri, r.status_code))
 
-                    images_and_scores[imageuri]['width'] = width
-                    images_and_scores[imageuri]['height'] = height
+                if r.status_code == 200:
 
-                    # images_and_scores[imageuri]['histogram'] = p.image.histogram()
-                    images_and_scores[imageuri]['blank columns in histogram'] = h
+                    try:
+                        module_logger.debug("extracting image content type information from {}".format(imageuri))
+                        ctype = r.headers['content-type']
+                        imagecontent = r.content
+                        images_and_scores[imageuri]["content-type"] = ctype
+                        images_and_scores[imageuri]["magic type"] = \
+                            magic.from_buffer(r.content)
+                        images_and_scores[imageuri]["imghdr type"] = \
+                            imghdr.what(None, r.content)
 
-                    s = width * height
-                    images_and_scores[imageuri]['size in pixels'] = s
+                    except KeyError:
+                        module_logger.warning(
+                            "could not find a content-type for URI {}".format(imageuri)
+                        )
+                        images_and_scores[imageuri] = "No content type for image"
+                        continue
 
-                    r = width / height
-                    images_and_scores[imageuri]['ratio width/height'] = r
+                    if 'image/' in ctype:
 
-                    images_and_scores[imageuri]['byte size'] = \
-                        sys.getsizeof(imagecontent)
+                        try:
+                            module_logger.debug("acquiring scores for image {}".format(imageuri))
+                            images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
+                            working_image_list.remove(imageuri)
+                            del futures[imageuri]
 
-                    k1 = 0.1 
-                    k2 = 0.4
-                    k3 = 10
-                    k4 = 0.5
+                        except IOError:
+                            images_and_scores[imageuri] = None
+                            working_image_list.remove(imageuri)
+                            del futures[imageuri]
 
-                    score = (k1 * (N - n)) + (k2 * s) - (k3 * h) - (k4 * r)
+                    else:
+                        images_and_scores[imageuri] = "Content type is not an image"
+                        working_image_list.remove(imageuri)
+                        del futures[imageuri]
 
-                    images_and_scores[imageuri]['N'] = N
-                    images_and_scores[imageuri]['n'] = n
-                    images_and_scores[imageuri]['k1'] = k1
-                    images_and_scores[imageuri]['k2'] = k2
-                    images_and_scores[imageuri]['k3'] = k3
-                    images_and_scores[imageuri]['k4'] = k4
-
-                    images_and_scores[imageuri]['calculated score'] = score
-
-                except IOError:
-                    images_and_scores[imageuri] = None
-
+                else:
+                    images_and_scores[imageuri] = "Image URI {} returned a status of {}, it could not be downloaded".format(imageuri, r.status_code)
+                    working_image_list.remove(imageuri)
+                    del futures[imageuri]
+            
             else:
-                images_and_scores[imageuri] = "Content type is not an image"
+
+                module_logger.debug("checking on timeout of image at {}".format(imageuri))
+
+                if (datetime.datetime.now() - starttimes[imageuri]).seconds > timeout:
+                    module_logger.warn("could not download image {} within {} seconds, skipping...".format(imageuri, timeout))
+                    futures[imageuri].cancel()
+                    del futures[imageuri]
+                    working_image_list.remove(imageuri)
 
         else:
-            images_and_scores[imageuri] = "Image URI {} returned a status of {}, it could not be downloaded".format(imageuri, r.status_code)
+            module_logger.error("imageuri {} not found in futures, but yet not removed?".format(imageuri))
 
     return images_and_scores
 
-def get_best_scoring_image(uri, http_cache):
+def get_best_scoring_image(uri, http_cache, futuressession=None):
 
-    module_logger.debug("getting the best image for content at URI {}".format(uri))
-    
-    maxscore = float("-inf")
+    scorelist = []
+
+    scoredata = generate_images_and_scores(uri, http_cache, futuressession=futuressession)
+
+    for imageuri in scoredata:
+
+        if scoredata[imageuri] is not None:
+
+            if "calculated score" in scoredata[imageuri]:
+                scorelist.append(
+                    (
+                        scoredata[imageuri]["calculated score"],
+                        imageuri
+                    )
+                )
+
     max_score_image = None
 
-    imagelist = get_image_list(uri, http_cache)
-    imagescores = {}
-    start = 0
-    N = len(imagelist)
-
-    module_logger.debug("there are {} images to review for URI {}".format(N, uri))
-
-    # TODO: make this value configurable
-    while maxscore < 5000:
-
-        for n in range(start, start + 15):
-
-            if n >= N:
-                break
-
-            imageuri = imagelist[n]
-
-            module_logger.debug("examining image at URI {}".format(imageuri))
-
-            if imageuri not in imagescores:
-
-                try:
-
-                    ctype = ""
-                    imagecontent = ""
-
-                    if imageuri[0:5] == "data:":
-                
-                        ctype = imageuri.split(';')[0].split(':')[1]
-
-                        try:
-                            imagecontent = base64.b64decode(imageuri.split(',')[1])
-                        except binascii.Error as e:
-                            module_logger.exception("failed to process image data at URI {}, skipping...".format(imageuri))
-                            continue
-
-                    else:
-    
-                        r = http_cache.get(imageuri)
-
-                        if r.status_code == 200:
-
-                            try:
-
-                                ctype = r.headers['content-type']
-                                imagecontent = r.content
-                            
-                            except KeyError as e:
-                                module_logger.warn("could not find a content-type for URI {}".format(imageuri))
-
-                    if 'image/' in ctype:
-    
-                        try:
-                            score = score_image(imagecontent, n, N)
-
-                            imagescores[imageuri] = score
-            
-                            if maxscore is None:
-                                maxscore = score
-                            else:
-                                if score > maxscore:
-                                    maxscore = score
-                                    max_score_image = imageuri
-
-                        except IOError:
-                            # if something went wrong with the download
-                            # or the image is not identified correctly
-                            imagescores[imageuri] = None
-
-                    else:
-                        imagescores[imageuri] = None
-
-                except RequestException as e:
-                    module_logger.warning("Failed to download image URI {}, skipping...".format(imageuri))
-                    module_logger.debug("Failed to download image URI {}, details: {}".format(imageuri, e))
-
-        if n >= N:
-            break
-
-        start += 15
+    if len(scorelist) > 0:
+        max_score_image = sorted(scorelist, reverse=True)[0][1]
 
     return max_score_image
 
-def get_best_image(uri, http_cache, default_image_uri=None):
+def get_best_image(uri, http_cache, default_image_uri=None, futuressession=None):
 
-    best_image_uri = get_best_scoring_image(uri, http_cache)
+    best_image_uri = get_best_scoring_image(uri, http_cache, futuressession=futuressession)
 
     if best_image_uri == None:
         if default_image_uri != None:
