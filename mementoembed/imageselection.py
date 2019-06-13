@@ -3,6 +3,7 @@ import base64
 import traceback
 import io
 import sys
+import random
 
 import cairosvg
 import magic
@@ -14,8 +15,12 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from PIL import ImageFile, Image
 from requests.exceptions import RequestException
+from requests import Session
+from requests_cache import CachedSession
+from requests_futures.sessions import FuturesSession
 
 from .mementoresource import MementoParsingError
+from .sessions import ManagedSession
 
 module_logger = logging.getLogger('mementoembed.imageselection')
 
@@ -135,94 +140,137 @@ def generate_images_and_scores(uri, http_cache):
     N = len(image_list)
     n = 0
 
-    for imageuri in image_list:
+    futures = {}
 
-        n += 1
-        
-        images_and_scores[imageuri] = {}
+    try:
+        assert type(http_cache) == ManagedSession
 
-        module_logger.debug("examining image {}".format(imageuri))
+    except AssertionError:
+        module_logger.exception("expected ManagedSession for http_cache, got {} instead, trying CachedSession instead...".format(
+            type(http_cache)
+        ))
 
         try:
-            r = http_cache.get(imageuri)
-        except RequestException:
-            module_logger.warning(
-                "Failed to download image URI {}, skipping...".format(imageuri)
-            )
-            images_and_scores[imageuri] = "Image could not be downloaded"
-            continue
-
-        module_logger.debug("image {} was successfully downloaded with status {}".format(imageuri, r.status_code))
-
-        if r.status_code == 200:
+            assert type(http_cache) == CachedSession
+        except AssertionError:
+            module_logger.exception("wrong object type for http_cache, is {}, expected CachedSession, trying Session instead...".format(type(http_cache)))
 
             try:
+                assert type(http_cache) == Session
+            except AssertionError as e:
+                module_logger.exception("wrong object type for http_cache, is {}, expected Session".format(type(http_cache)))
+                raise e
 
-                ctype = r.headers['content-type']
-                imagecontent = r.content
-                images_and_scores[imageuri]["content-type"] = ctype
-                images_and_scores[imageuri]["magic type"] = \
-                    magic.from_buffer(r.content)
-                images_and_scores[imageuri]["imghdr type"] = \
-                    imghdr.what(None, r.content)
+    session = FuturesSession(session=http_cache)
 
-            except KeyError:
+    for imageuri in image_list:
+
+        module_logger.debug("issuing request for image URI {}".format(imageuri))
+
+        futures[imageuri] = session.get(imageuri)
+
+    def imageuri_generator(futures_dict):
+
+        while len(futures_dict) > 0:
+            yield random.choice(list(futures_dict.keys()))
+
+    for imageuri in imageuri_generator(futures):
+
+        module_logger
+
+        if futures[imageuri].done():
+
+            n += 1
+            
+            images_and_scores[imageuri] = {}
+
+            module_logger.debug("examining image {}".format(imageuri))
+
+            try:
+                # r = http_cache.get(imageuri)
+                r = futures[imageuri].result()
+            except RequestException:
                 module_logger.warning(
-                    "could not find a content-type for URI {}".format(imageuri)
+                    "Failed to download image URI {}, skipping...".format(imageuri)
                 )
-                images_and_scores[imageuri] = "No content type for image"
+                images_and_scores[imageuri] = "Image could not be downloaded"
                 continue
 
-            if 'image/' in ctype:
+            module_logger.debug("image {} was successfully downloaded with status {}".format(imageuri, r.status_code))
+
+            if r.status_code == 200:
 
                 try:
-                    
-                    p = ImageFile.Parser()
-                    p.feed(imagecontent)
-                    p.close()
 
-                    width, height = p.image.size
-                    h = p.image.histogram().count(0)
+                    ctype = r.headers['content-type']
+                    imagecontent = r.content
+                    images_and_scores[imageuri]["content-type"] = ctype
+                    images_and_scores[imageuri]["magic type"] = \
+                        magic.from_buffer(r.content)
+                    images_and_scores[imageuri]["imghdr type"] = \
+                        imghdr.what(None, r.content)
 
-                    images_and_scores[imageuri]['width'] = width
-                    images_and_scores[imageuri]['height'] = height
+                except KeyError:
+                    module_logger.warning(
+                        "could not find a content-type for URI {}".format(imageuri)
+                    )
+                    images_and_scores[imageuri] = "No content type for image"
+                    continue
 
-                    # images_and_scores[imageuri]['histogram'] = p.image.histogram()
-                    images_and_scores[imageuri]['blank columns in histogram'] = h
+                if 'image/' in ctype:
 
-                    s = width * height
-                    images_and_scores[imageuri]['size in pixels'] = s
+                    try:
+                        
+                        p = ImageFile.Parser()
+                        p.feed(imagecontent)
+                        p.close()
 
-                    r = width / height
-                    images_and_scores[imageuri]['ratio width/height'] = r
+                        width, height = p.image.size
+                        h = p.image.histogram().count(0)
 
-                    images_and_scores[imageuri]['byte size'] = \
-                        sys.getsizeof(imagecontent)
+                        images_and_scores[imageuri]['width'] = width
+                        images_and_scores[imageuri]['height'] = height
 
-                    k1 = 0.1 
-                    k2 = 0.4
-                    k3 = 10
-                    k4 = 0.5
+                        # images_and_scores[imageuri]['histogram'] = p.image.histogram()
+                        images_and_scores[imageuri]['blank columns in histogram'] = h
 
-                    score = (k1 * (N - n)) + (k2 * s) - (k3 * h) - (k4 * r)
+                        s = width * height
+                        images_and_scores[imageuri]['size in pixels'] = s
 
-                    images_and_scores[imageuri]['N'] = N
-                    images_and_scores[imageuri]['n'] = n
-                    images_and_scores[imageuri]['k1'] = k1
-                    images_and_scores[imageuri]['k2'] = k2
-                    images_and_scores[imageuri]['k3'] = k3
-                    images_and_scores[imageuri]['k4'] = k4
+                        r = width / height
+                        images_and_scores[imageuri]['ratio width/height'] = r
 
-                    images_and_scores[imageuri]['calculated score'] = score
+                        images_and_scores[imageuri]['byte size'] = \
+                            sys.getsizeof(imagecontent)
 
-                except IOError:
-                    images_and_scores[imageuri] = None
+                        k1 = 0.1 
+                        k2 = 0.4
+                        k3 = 10
+                        k4 = 0.5
+
+                        score = (k1 * (N - n)) + (k2 * s) - (k3 * h) - (k4 * r)
+
+                        images_and_scores[imageuri]['N'] = N
+                        images_and_scores[imageuri]['n'] = n
+                        images_and_scores[imageuri]['k1'] = k1
+                        images_and_scores[imageuri]['k2'] = k2
+                        images_and_scores[imageuri]['k3'] = k3
+                        images_and_scores[imageuri]['k4'] = k4
+
+                        images_and_scores[imageuri]['calculated score'] = score
+                        del futures[imageuri]
+
+                    except IOError:
+                        images_and_scores[imageuri] = None
+                        del futures[imageuri]
+
+                else:
+                    images_and_scores[imageuri] = "Content type is not an image"
+                    del futures[imageuri]
 
             else:
-                images_and_scores[imageuri] = "Content type is not an image"
-
-        else:
-            images_and_scores[imageuri] = "Image URI {} returned a status of {}, it could not be downloaded".format(imageuri, r.status_code)
+                images_and_scores[imageuri] = "Image URI {} returned a status of {}, it could not be downloaded".format(imageuri, r.status_code)
+                del futures[imageuri]
 
     return images_and_scores
 

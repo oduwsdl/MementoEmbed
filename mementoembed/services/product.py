@@ -83,12 +83,14 @@ def generate_social_card_html(urim, surrogate, urlroot,
 
 def generate_socialcard_response(urim, preferences):
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    # httpcache = ManagedSession(
+    #     timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+    #     user_agent=__useragent__,
+    #     starting_uri=urim,
+    #     uricache=getURICache()
+    #     )
+
+    httpcache = getURICache()
 
     s = MementoSurrogate(
         urim,
@@ -164,12 +166,14 @@ def generate_socialcard_response(urim, preferences):
 
 def generate_imagereel_response(urim, prefs):
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    # httpcache = ManagedSession(
+    #     timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+    #     user_agent=__useragent__,
+    #     starting_uri=urim,
+    #     uricache=getURICache()
+    #     )
+
+    httpcache = getURICache()
 
     mir = MementoImageReel(
         user_agent=__useragent__,
@@ -202,12 +206,14 @@ def generate_imagereel_response(urim, prefs):
 
 def generate_docreel_response(urim, prefs):
 
-    httpcache = ManagedSession(
-        timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-        user_agent=__useragent__,
-        starting_uri=urim,
-        uricache=getURICache()
-        )
+    # httpcache = ManagedSession(
+    #     timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+    #     user_agent=__useragent__,
+    #     starting_uri=urim,
+    #     uricache=getURICache()
+    #     )
+
+    httpcache = getURICache()
 
     mv = MementoDocreel(
         user_agent=__useragent__,
@@ -346,12 +352,14 @@ def thumbnail_endpoint(subpath):
 
             module_logger.debug("The user hath preferences! ")
 
-        httpcache = ManagedSession(
-            timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
-            user_agent=__useragent__,
-            starting_uri=urim,
-            uricache=getURICache()
-            )
+        # httpcache = ManagedSession(
+        #     timeout=current_app.config['REQUEST_TIMEOUT_FLOAT'],
+        #     user_agent=__useragent__,
+        #     starting_uri=urim,
+        #     uricache=getURICache()
+        #     )
+
+        httpcache = getURICache()
 
         mt = MementoThumbnail(
             __useragent__,
