@@ -1,6 +1,7 @@
 import logging
 import json
 import traceback
+import pprint
 
 from datetime import datetime
 
@@ -195,9 +196,13 @@ def imagedata(urim, preferences):
     scorelist = []
     output["ranked images"] = []
 
+    module_logger.debug("images data structure: {}".format(pprint.pformat(output['images'], indent=4)))
+
     for imageuri in output['images']:
-        if 'calculated score' in output['images'][imageuri]:
-            scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
+        module_logger.debug("looking for calculated score in imageuri {}".format(imageuri))
+        if output['images'][imageuri] is not None:
+            if 'calculated score' in output['images'][imageuri]:
+                scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
 
     for item in sorted(scorelist, reverse=True):
         output["ranked images"].append(item[1])
