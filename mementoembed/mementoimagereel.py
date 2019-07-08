@@ -49,8 +49,10 @@ class MementoImageReel:
             scorelist = []
 
             for imageuri in imagelist:
-                if 'calculated score' in imagelist[imageuri]:
-                    scorelist.append( (imagelist[imageuri]["calculated score"], imageuri) )
+
+                if imagelist[imageuri] is not None:
+                    if 'calculated score' in imagelist[imageuri]:
+                        scorelist.append( (imagelist[imageuri]["calculated score"], imageuri) )
 
             if not os.path.exists(reelfile):
                 module_logger.info("generating animated GIF of images, output should be in {}".format(reelfile))
