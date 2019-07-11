@@ -129,7 +129,7 @@ With a fully operational MementoEmbed, integration tests are possible.
 python -m unittest discover -s tests/integration
 ```
 
-Note that integration tests are heavily dependent on environmental factors.
+Note that integration tests are heavily dependent on environmental factors such as the current state of web archive playback systems. The favicon detection appears to be especially unpredictable. Because of this, we recommend that integration tests be reviewed by humans and not executed automatically on build.
 
 # Contributing
 
