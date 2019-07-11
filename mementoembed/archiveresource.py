@@ -5,6 +5,7 @@ import logging
 import requests
 import tldextract
 import aiu
+from bs4 import BeautifulSoup
 
 from urllib.parse import urlparse, urljoin
 
@@ -16,11 +17,13 @@ module_logger = logging.getLogger('mementoembed.archiveresource')
 
 archive_collection_patterns = [
     "http://wayback.archive-it.org/([0-9]*)/[0-9]{14}/.*",
-    "https://wayback.archive-it.org/([0-9]*)/[0-9]{14}/.*"
+    "https://wayback.archive-it.org/([0-9]*)/[0-9]{14}/.*",
+    "https://webrecorder.io/([^/]+)/([^/]*)/.*"
 ]
 
 archive_collection_uri_prefixes = {
-    "archive-it.org": "https://archive-it.org/collections/{}"
+    "archive-it.org": "https://archive-it.org/collections/{}",
+    "webrecorder.io": "https://webrecorder.io/{}/{}"
 }
 
 home_uri_list = {
@@ -46,6 +49,7 @@ class ArchiveResource:
         self.archive_collection_uri = None
         self.archive_collection_id = None
         self.archive_collection_name = None
+        self.archive_collection_user = None
 
         # TODO: some kind of archive information cache
 
@@ -176,13 +180,36 @@ class ArchiveResource:
 
             if self.collection_id:
 
-                aic = aiu.ArchiveItCollection(
-                    collection_id=self.collection_id,
-                    session=self.httpcache,
-                    logger=self.logger
-                    )
+                if 'archive-it.org' in self.urim:
 
-                self.archive_collection_name = aic.get_collection_name()
+                    aic = aiu.ArchiveItCollection(
+                        collection_id=self.collection_id,
+                        session=self.httpcache,
+                        logger=self.logger
+                        )
+
+                    self.archive_collection_name = aic.get_collection_name()
+
+                elif 'webrecorder.io' in self.urim:
+
+                    foundname = False
+
+                    try:
+                        r = self.httpcache.get(self.collection_uri)
+
+                        if r.status_code == 200:
+                            soup = BeautifulSoup(r.content, 'html5lib')
+                            divs = soup.find_all("div", { "class": "capstone-column"} )
+
+                            self.archive_collection_name = divs[0].find_all('h3')[0].get_text()
+                            foundname = True
+
+                    except Exception:
+                        module_logger.exception("Something went wrong while trying to find a Webrecorder collection name.")
+
+                    if foundname is False:
+                        module_logger.warning("Falling back to guessing WR colleciton name with default text replacement.")
+                        self.archive_collection_name = self.collection_id.replace('-', ' ').title()
 
         return self.archive_collection_name
 
@@ -198,10 +225,16 @@ class ArchiveResource:
                 self.logger.debug("attempting to match pattern {}".format(pattern))
                 m = re.match(pattern, self.urim)
 
-                if m:
-                    self.logger.debug("matched pattern {}".format(m.group(1)))
-                    self.archive_collection_id = m.group(1)
-                    break
+                if m is not None:
+
+                    if len(m.groups()) == 1:
+                        self.logger.debug("matched pattern {}".format(m.group(1)))
+                        self.archive_collection_id = m.group(1)
+                        break
+                    elif len(m.groups()) == 2:
+                        self.logger.debug("matched patterns {} and {}".format(m.group(1), m.group(2)))
+                        self.archive_collection_user = m.group(1)
+                        self.archive_collection_id = m.group(2)
 
             self.logger.debug("discovered collection identifier {}".format(self.archive_collection_id))
 
@@ -215,8 +248,12 @@ class ArchiveResource:
             if self.collection_id:
 
                 try:
-                    self.archive_collection_uri = archive_collection_uri_prefixes[self.registered_domain].format(
-                        self.collection_id)
+                    if self.archive_collection_user is None:
+                        self.archive_collection_uri = archive_collection_uri_prefixes[self.registered_domain].format(
+                            self.collection_id)
+                    else:
+                        self.archive_collection_uri = archive_collection_uri_prefixes[self.registered_domain].format(
+                            self.archive_collection_user, self.collection_id)
                 except KeyError:
                     self.archive_collection_uri = None
 
