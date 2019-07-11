@@ -259,8 +259,13 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                         ctype = r.headers['content-type']
                         imagecontent = r.content
                         images_and_scores[imageuri]["content-type"] = ctype
-                        images_and_scores[imageuri]["magic type"] = \
-                            magic.from_buffer(r.content)
+
+                        try:
+                            images_and_scores[imageuri]["magic type"] = \
+                                magic.from_buffer(r.content)
+                        except Exception as e:
+                            images_and_scores[imageuri]["magic type"] = "ERROR: {}".format(e)
+
                         images_and_scores[imageuri]["imghdr type"] = \
                             imghdr.what(None, r.content)
 
