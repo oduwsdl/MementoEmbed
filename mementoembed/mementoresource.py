@@ -227,13 +227,32 @@ def memento_resource_factory(urim, http_cache):
     # we search for /[0-9]{14}/ in the URI and then try id_
     if wayback_pattern.search(urim):
         module_logger.debug("URI-M {} matches the wayback pattern".format(urim))
-        candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
 
-        resp = http_cache.get(candidate_raw_urim)
+        o = urlparse(urim)
 
-        if resp.status_code == 200:
-            module_logger.info("memento is a Wayback memento")
-            return WaybackMemento(http_cache, urim, given_uri=given_urim)
+        # TODO: find a way to detect all Webrecorder instances, not just webrecorder.io
+        if o.netloc == 'webrecorder.io':
+
+            real_urim = urim.replace('{}://webrecorder.io'.format(o.scheme), '{}://content.webrecorder.io'.format(o.scheme))
+            real_urim = wayback_pattern.sub(r'\1mp_/', real_urim)
+
+            candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
+
+            resp = http_cache.get(candidate_raw_urim)
+
+            if resp.status_code == 200:
+                module_logger.info("memento is a Webrecorder.io memento")
+                return WaybackMemento(http_cache, real_urim, given_uri=given_urim)
+
+        else:
+
+            candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
+
+            resp = http_cache.get(candidate_raw_urim)
+
+            if resp.status_code == 200:
+                module_logger.info("memento is a Wayback memento")
+                return WaybackMemento(http_cache, urim, given_uri=given_urim)
 
     # if we got here, we haven't categorized the URI-M into an Archive type yet
     # it might be a "hash-style" memento that actually resolves to a Wayback

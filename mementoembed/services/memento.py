@@ -276,9 +276,22 @@ def seeddata(urim, preferences):
     output['timemap'] = sr.urit
     output['original-url'] = sr.urir
     output['memento-count'] = sr.mementocount()
-    output['first-memento-datetime'] = sr.first_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    if sr.mementocount() is None:
+        output['seeddata-error'] = "There was an issue processing the TimeMap discovered at {}".format(sr.urit)
+
+    if sr.first_mdt() is not None:
+        output['first-memento-datetime'] = sr.first_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+    else:
+        output['first-memento-datetime'] = None
+    
     output['first-urim'] = sr.first_urim()
-    output['last-memento-datetime'] = sr.last_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    if sr.last_mdt() is not None:
+        output['last-memento-datetime'] = sr.last_mdt().strftime("%Y-%m-%dT%H:%M:%SZ")
+    else:
+        output['last-memento-datetime'] = None
+
     output['last-urim'] = sr.last_urim()
     output['metadata'] = sr.seed_metadata()
 
