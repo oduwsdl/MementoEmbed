@@ -157,7 +157,7 @@ On success, this service produces an HTTP 200 response with a MIME-type of ``app
         "archive-collection-uri": null
     }
 
-If the archive collection information is not available, those values are filled with ``null``.
+If the archive collection information is not available, those values are filled with ``null``. Collection information is only currently available for Archive-It and Webrecorder collections.
 
 Original Resource data
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -242,6 +242,22 @@ For Archive-It mementos, the ``application-json`` contains the metadata supplied
 
 
 Note that the ``metadata`` key is a list. Sometimes an Archive-It collection contains the same seed multiple times. Each instance of the same seed will be a separate list entry in value for the ``metadata`` key.
+
+If data on other mementos at the archive is not available, then a ``seeddata-error`` key will exist, the ``memento-count``, ``first-urim``, ``last-urim``, ``first-memento-datetime``, and ``last-memento-datetime`` values will be set to ``null``::
+
+    {
+        "urim": "https://webrecorder.io/despens/bear-with-me/list/bookmarks/b1/20170318154741/http://bearwithme.theater/archive/",
+        "generation-time": "2019-07-10T21:17:52Z",
+        "timemap": "https://content.webrecorder.io/despens/bear-with-me/list/bookmarks/b1/timemap/link/http://bearwithme.theater/archive/",
+        "original-url": "http://bearwithme.theater/archive/",
+        "memento-count": null,
+        "seeddata-error": "There was an issue processing the TimeMap discovered at https://content.webrecorder.io/despens/bear-with-me/list/bookmarks/b1/timemap/link/http://bearwithme.theater/archive/",
+        "first-memento-datetime": null,
+        "first-urim": null,
+        "last-memento-datetime": null,
+        "last-urim": null,
+        "metadata": {}
+    }
 
 Paragraph ranking
 ~~~~~~~~~~~~~~~~~
