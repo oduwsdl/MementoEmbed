@@ -129,7 +129,9 @@ With a fully operational MementoEmbed, integration tests are possible.
 python -m unittest discover -s tests/integration
 ```
 
-Note that integration tests are heavily dependent on environmental factors such as the current state of web archive playback systems. The favicon detection appears to be especially unpredictable. Because of this, we recommend that integration tests be reviewed by humans and not executed automatically on build.
+Integration tests, by default, assume that the instance to be tested is running at port 5550. This can be altered with the `TESTPORT` environment variable, like so: `export TESTPORT=9000`.
+
+Integration tests are heavily dependent on environmental factors such as the current state of web archive playback systems. The favicon detection appears to be especially unpredictable. Because of this, we recommend that integration tests be reviewed by humans and not executed automatically on build.
 
 # Contributing
 

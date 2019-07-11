@@ -54,6 +54,7 @@ def handle_errors(function_name, urim, preferences):
                 "content": e.user_facing_error,
                 "response headers": dict(e.response.headers),
                 "response status": e.response.status_code,
+                "uri submitted": e.response.url,
                 "error details": repr(traceback.format_exc())
             }, indent=4))
         response.headers['Content-Type'] = 'application/json'
