@@ -9,7 +9,8 @@ from .favicon import get_favicon_from_google_service, get_favicon_from_html, \
     find_conventional_favicon_on_live_web, query_timegate_for_favicon, \
     get_favicon_from_resource_content, construct_conventional_favicon_uri
 
-from .mementoresource import get_memento_datetime_from_response, NotAMementoError
+from .mementoresource import get_memento_datetime_from_response, NotAMementoError, \
+    MementoURINotAtArchiveFailure
 
 module_logger = logging.getLogger('mementoembed.originalresource')
 
@@ -64,7 +65,7 @@ class OriginalResource:
                         # if we get here, then it is a memento, just use it
                         self.original_link_favicon_uri = candidate_favicon
 
-                except NotAMementoError:
+                except (NotAMementoError, MementoURINotAtArchiveFailure):
                     # try datetime negotiation
                     self.original_link_favicon_uri = query_timegate_for_favicon(
                         self.memento.timegate[0:self.memento.timegate.find(self.uri)],
