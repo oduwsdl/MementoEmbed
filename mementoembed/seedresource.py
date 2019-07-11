@@ -122,34 +122,44 @@ class SeedResource:
 
     def mementocount(self):
         
-        self.fetch_timemap()
-
-        return len(self.timemap["mementos"]["list"])
+        try:
+            self.fetch_timemap()
+            return len(self.timemap["mementos"]["list"])
+        except aiu.timemap.MalformedLinkFormatTimeMap:
+            return None
 
     def first_mdt(self):
 
-        self.fetch_timemap()
-        
-        return self.sorted_mementos_list[0][0]
+        try:
+            self.fetch_timemap()
+            return self.sorted_mementos_list[0][0]
+        except aiu.timemap.MalformedLinkFormatTimeMap:
+            return None        
 
     def first_urim(self):
 
-        self.fetch_timemap()
-
-        return self.sorted_mementos_list[0][1]
+        try:
+            self.fetch_timemap()
+            return self.sorted_mementos_list[0][1]
+        except aiu.timemap.MalformedLinkFormatTimeMap:
+            return None        
 
     def last_mdt(self):
 
-        self.fetch_timemap()
-
-        return self.sorted_mementos_list[-1][0]
+        try:
+            self.fetch_timemap()
+            return self.sorted_mementos_list[-1][0]
+        except aiu.timemap.MalformedLinkFormatTimeMap:
+            return None
 
 
     def last_urim(self):
 
-        self.fetch_timemap()
-
-        return self.sorted_mementos_list[-1][1]
+        try:
+            self.fetch_timemap()
+            return self.sorted_mementos_list[-1][1]
+        except aiu.timemap.MalformedLinkFormatTimeMap:
+            return None
 
 
     def seed_metadata(self):
