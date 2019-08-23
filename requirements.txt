@@ -44,7 +44,7 @@ lxml==4.3.3
 MarkupSafe==1.1.1
 mccabe==0.6.1
 newspaper3k==0.2.8
-nltk==3.4.1
+nltk==3.4.5
 numpy==1.16.3
 packaging==19.0
 parso==0.4.0
