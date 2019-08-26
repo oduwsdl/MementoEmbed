@@ -420,32 +420,44 @@ def extract_title(htmlcontent):
     try:
         for metatag in soup.find_all("meta"):
 
+            module_logger.debug("evaluating metatag {}".format(metatag))
+
             if metatag.get("property") == "og:title":
-                titledict["og:title"] = metatag.get("content")
+                if "og:title" not in titledict:
+                    titledict["og:title"] = metatag.get("content")
 
             if metatag.get("name") == "og:title":
-                titledict["og:title"] = metatag.get("content")
+                if "og:title" not in titledict:
+                    titledict["og:title"] = metatag.get("content")
 
             if metatag.get("name") == "twitter:title":
-                titledict["twitter:title"] = metatag.get("content")
+                if "twitter:title" not in titledict:
+                    titledict["twitter:title"] = metatag.get("content")
 
             if metatag.get("property") == "twitter:title":
-                titledict["twitter:title"] = metatag.get("content")
+                if "twitter:title" not in titledict:
+                    titledict["twitter:title"] = metatag.get("content")
 
     except Exception as e:
         raise TitleExtractionError(
             "failed to process document using BeautifulSoup",
             original_exception=e)
 
+    module_logger.debug("titledict = {}".format(titledict))
+
     # 1. favor title from the OGP metadata
     if "og:title" in titledict:
         title = titledict["og:title"]
+
+    module_logger.debug("after og:title search, title is {}".format(title))    
 
     # 2. favor title from the twitter metadata
     if title is None:
 
         if "twitter:title" in titledict:
             title = titledict["twitter:title"]
+
+    module_logger.debug("after twitter:title search, title is {}".format(title))
 
     if title is None:
         # 3. extract the title from the title tag
@@ -455,6 +467,8 @@ def extract_title(htmlcontent):
         except AttributeError:
             module_logger.warning("Could not extract title from input")
             title = ""
+
+    module_logger.debug("after BeautifulSoup title search, title is {}".format(title))
 
     title = " ".join(title.split())
 
