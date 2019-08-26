@@ -13,7 +13,8 @@ from bs4 import BeautifulSoup
 from requests.exceptions import Timeout, TooManyRedirects, \
     ChunkedEncodingError, ContentDecodingError, StreamConsumedError, \
     URLRequired, MissingSchema, InvalidSchema, InvalidURL, \
-    UnrewindableBodyError, ConnectionError, SSLError, ReadTimeout
+    UnrewindableBodyError, ConnectionError, SSLError, ReadTimeout, \
+    ConnectionError
 
 wayback_pattern = re.compile('(/[0-9]{14})/')
 
@@ -246,7 +247,14 @@ def memento_resource_factory(urim, http_cache):
 
         else:
 
-            candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
+            module_logger.info("response history size is {}".format(len(response.history)))
+
+            if len(response.history) == 0:
+                candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
+            else:
+                candidate_raw_urim = wayback_pattern.sub(r'\1id_/', response.url)
+
+            module_logger.info("candidate_raw_urim is {}".format(candidate_raw_urim))
 
             resp = http_cache.get(candidate_raw_urim)
 
@@ -595,7 +603,13 @@ class WaybackMemento(MementoResource):
             return framecontent
 
         else:
-            self.raw_urim = wayback_pattern.sub(r'\1id_/', self.urim)
+
+            if len(self.response.history) == 0:
+                self.raw_urim = wayback_pattern.sub(r'\1id_/', self.urim)
+            else:
+                self.raw_urim = wayback_pattern.sub(r'\1id_/', self.response.url)
+
+            # self.raw_urim = wayback_pattern.sub(r'\1id_/', self.urim)
             self.logger.debug("using raw URI-M {}".format(self.raw_urim))
-            response = self.http_cache.get(self.raw_urim)
-            return response.text
+            raw_response = self.http_cache.get(self.raw_urim)
+            return raw_response.text
