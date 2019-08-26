@@ -86,9 +86,21 @@ class SeedResource:
         else:
             self.aic = None
 
-        response = get_memento(self.httpcache, memento.urim)
-        self.urit = get_timemap_from_response(response)
-        self.urir = get_original_uri_from_response(response)
+        self.logger.info("given URI: {}".format(self.memento.given_uri))
+        self.logger.info("memento URI-M: {}".format(self.memento.urim))
+
+        if self.memento.given_uri == self.memento.urim:
+
+            response = get_memento(self.httpcache, memento.urim)
+            self.urit = get_timemap_from_response(response)
+            self.urir = get_original_uri_from_response(response)
+
+        else:
+
+            response = get_memento(self.httpcache, memento.given_uri)
+            self.urit = get_timemap_from_response(response.history[0])
+            self.urir = get_original_uri_from_response(response.history[0])
+
         self.sorted_mementos_list = []
 
     def fetch_timemap(self):
@@ -169,6 +181,9 @@ class SeedResource:
         if self.aic is not None:
 
             self.aic.load_seed_metadata() # workaround for aiu bug
+
+            self.logger.info("acquiring seed metadata for seed {}".format(self.urir))
+
             metadata = self.aic.get_seed_metadata(self.urir)['collection_web_pages']
 
         return metadata
