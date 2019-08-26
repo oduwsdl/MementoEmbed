@@ -92,14 +92,25 @@ class SeedResource:
         if self.memento.given_uri == self.memento.urim:
 
             response = get_memento(self.httpcache, memento.urim)
-            self.urit = get_timemap_from_response(response)
-            self.urir = get_original_uri_from_response(response)
+
+            if len(response.history) == 0:
+                self.urit = get_timemap_from_response(response)
+                self.urir = get_original_uri_from_response(response)
+            else:
+                self.urit = get_timemap_from_response(response.history[0])
+                self.urir = get_original_uri_from_response(response.history[0])
 
         else:
 
             response = get_memento(self.httpcache, memento.given_uri)
-            self.urit = get_timemap_from_response(response.history[0])
-            self.urir = get_original_uri_from_response(response.history[0])
+
+            if len(response.history) == 0:
+                self.urit = get_timemap_from_response(response)
+                self.urir = get_original_uri_from_response(response)
+
+            else:
+                self.urit = get_timemap_from_response(response.history[0])
+                self.urir = get_original_uri_from_response(response.history[0])
 
         self.sorted_mementos_list = []
 
