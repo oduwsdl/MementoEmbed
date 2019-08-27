@@ -195,6 +195,20 @@ class SeedResource:
 
             self.logger.info("acquiring seed metadata for seed {}".format(self.urir))
 
-            metadata = self.aic.get_seed_metadata(self.urir)['collection_web_pages']
+            try:
+
+                metadata = self.aic.get_seed_metadata(self.urir)['collection_web_pages']
+
+            except KeyError:
+                self.logger.exception("failed to match seed in collection, trying to add a / to the end")
+
+                try:
+                    metadata = self.aic.get_seed_metadata(self.urir + '/')['collection_web_pages']
+                except KeyError:
+                    self.logger.exception("failed to match seed in collection, trying to remove a / from the end")
+
+                    metadata = self.aic.get_seed_metadata(self.urir[:-1])['collection_web_pages']
+
+            
 
         return metadata
