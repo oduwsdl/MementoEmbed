@@ -254,45 +254,55 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
                 if r.status_code == 200:
 
+                    module_logger.debug("extracting image content type information from {}".format(imageuri))
+
                     try:
-                        module_logger.debug("extracting image content type information from {}".format(imageuri))
-                        ctype = r.headers['content-type']
-                        imagecontent = r.content
-                        images_and_scores[imageuri]["content-type"] = ctype
-
-                        try:
-                            images_and_scores[imageuri]["magic type"] = \
-                                magic.from_buffer(r.content)
-                        except Exception as e:
-                            images_and_scores[imageuri]["magic type"] = "ERROR: {}".format(e)
-
-                        images_and_scores[imageuri]["imghdr type"] = \
-                            imghdr.what(None, r.content)
-
+                        images_and_scores[imageuri]["content-type"] = r.headers['content-type']
                     except KeyError:
                         module_logger.warning(
                             "could not find a content-type for URI {}".format(imageuri)
                         )
-                        images_and_scores[imageuri] = "No content type for image"
-                        working_image_list.remove(imageuri)
-                        del futures[imageuri]
-                        continue
+                        images_and_scores[imageuri]["content-type"] = "No content type for image"
 
-                    if 'image/' in ctype:
+                    imagecontent = r.content
+
+                    try:
+                        images_and_scores[imageuri]["magic type"] = \
+                            magic.from_buffer(r.content)
+                    except Exception as e:
+                        images_and_scores[imageuri]["magic type"] = "ERROR: {}".format(e)
+
+                    images_and_scores[imageuri]["imghdr type"] = \
+                        imghdr.what(None, r.content)
+
+                    if 'image/' in images_and_scores[imageuri]["content-type"]:
 
                         try:
                             module_logger.debug("acquiring scores for image {}".format(imageuri))
                             images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
-                            working_image_list.remove(imageuri)
-                            del futures[imageuri]
 
                         except IOError:
                             images_and_scores[imageuri] = None
-                            working_image_list.remove(imageuri)
-                            del futures[imageuri]
+
+                        working_image_list.remove(imageuri)
+                        del futures[imageuri]
+
+                    elif images_and_scores[imageuri]["imghdr type"] is not None:
+
+                        module_logger.debug("no content-type, so we fall back to imghdr to guess if this URI points to an image: {}".format(imageuri))
+
+                        try:
+                            module_logger.debug("acquiring scores for image {}".format(imageuri))
+                            images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
+
+                        except IOError:
+                            images_and_scores[imageuri] = None
+
+                        working_image_list.remove(imageuri)
+                        del futures[imageuri]
 
                     else:
-                        images_and_scores[imageuri] = "Content type is not an image"
+                        images_and_scores[imageuri] = "Content is not an image"
                         working_image_list.remove(imageuri)
                         del futures[imageuri]
 
