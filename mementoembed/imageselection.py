@@ -274,6 +274,8 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                             "could not find a content-type for URI {}".format(imageuri)
                         )
                         images_and_scores[imageuri] = "No content type for image"
+                        working_image_list.remove(imageuri)
+                        del futures[imageuri]
                         continue
 
                     if 'image/' in ctype:
