@@ -125,17 +125,22 @@ Each record in the ``images`` dictionary has a key of the URI-M of the image wit
 * ``size in pixels`` - the overall number of pixels in the image determined by ``width`` multiplied by ``height``; `s` in the ranking equation
 * ``ratio width/height`` - the ratio of width to height, which can be useful fo detecting advertising banners; `r` in the ranking equation
 * ``byte size`` - the size of the image, in bytes, useful for detecting small images typically used for spacing
+* ``number of colors`` - the number of colors in the image, more colorful images tend to be photographs rather than logos; `c` in the ranking equation
 * ``N`` - the number of images detected on the page
 * ``n`` - the order the image was detected on the page
 * ``k1`` - the weight used for the first term of the ranking equation (N - n) 
 * ``k2`` - the weight used in the ranking equation for the size of the image in pixels
 * ``k3`` - the weight used in the ranking equation for the number of blank columns in the histogram
 * ``k4`` - the weight used in the ranking equation for the ratio of width/height
+* ``k5`` - the weight used in the ranking equation for the number of colors in the image
+
 * ``calculated score`` - the score, as determined by the ranking equation; `S` in the equation below
 
 The current image ranking equation is as follows:
 
-.. image:: images/image_eq.png
+.. math::
+
+    S = k_1 (N-n) + k_2 s - k_3 h - k_4 r + k_5 c
 
 After the ``images`` list is a ``ranked images`` list containing the URI-Ms of each image in order by score.
 
