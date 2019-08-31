@@ -119,12 +119,24 @@ def scores_for_image(imagecontent, n, N):
     imagedata['byte size'] = \
         sys.getsizeof(imagecontent)
 
+    img = Image.open(io.BytesIO(imagecontent))
+
+    # 16777216 is the maximum number of colors in a JPEG
+    colors = img.convert('RGB').getcolors(maxcolors=16777216)
+
+    if colors is not None:
+        c = len(colors)
+        imagedata['colorcount'] = c
+    else:
+        imagedata['colorcount'] = 16777216
+
     k1 = 0.1 
     k2 = 0.4
     k3 = 10
     k4 = 0.5
+    k5 = 10
 
-    score = (k1 * (N - n)) + (k2 * s) - (k3 * h) - (k4 * r)
+    score = (k1 * (N - n)) + (k2 * s) - (k3 * h) - (k4 * r) + (k5 * c)
 
     imagedata['N'] = N
     imagedata['n'] = n
@@ -132,6 +144,7 @@ def scores_for_image(imagecontent, n, N):
     imagedata['k2'] = k2
     imagedata['k3'] = k3
     imagedata['k4'] = k4
+    imagedata['k5'] = k5
 
     imagedata['calculated score'] = score
 
