@@ -39,3 +39,4 @@ http://mementoarchive.lanl.gov/twa/memento/20180705155231/http://lanlsource.lanl
 https://collections.internetmemory.org/proni/content/20170101080206/https://afbini.gov.uk/
 http://wayback.archive-it.org/2823/20110911114626/http://www.nzherald.co.nz/world/news/article.cfm?c_id=2&objectid=10750223
 http://wayback.archive-it.org/2017/20101026004107/http://www.defense.gov/news/newsarticle.aspx?id=61411
+https://wayback.archive-it.org/2358/20110211072257/http://news.blogs.cnn.com/category/world/egypt-world-latest-news/
