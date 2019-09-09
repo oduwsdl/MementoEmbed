@@ -4,6 +4,8 @@ import logging
 import aiu
 import requests
 
+from urllib.parse import urlparse, urlunparse
+
 from requests.exceptions import Timeout, TooManyRedirects, \
     ChunkedEncodingError, ContentDecodingError, StreamConsumedError, \
     URLRequired, MissingSchema, InvalidSchema, InvalidURL, \
@@ -184,6 +186,41 @@ class SeedResource:
         except aiu.timemap.MalformedLinkFormatTimeMap:
             return None
 
+    def _develop_candidate_seed_uris(self):
+
+        candidate_seed_uris = []
+
+        candidate_seed_uris.append(self.urir)
+
+        # replace http with https
+        o = urlparse(self.urir)
+        
+        if o.scheme == 'http':
+            onew = o._replace(scheme='https')
+            candidate_seed_uris.append(urlunparse(onew))
+
+        # replace https with http
+        if o.scheme == 'https':
+            onew = o._replace(scheme='https')
+            candidate_seed_uris.append(urlunparse(onew))
+
+        # remove slash from end
+        if self.urir[-1] == '/':
+            candidate_seed_uris.append(self.urir[:-1])
+        else:
+            # add slash to end
+            candidate_seed_uris.append(self.urir + '/')
+
+        # remove www to domain
+        if o.netloc[0:3] == 'www':
+            onew = o._replace(netloc=o.netloc[4:])
+            candidate_seed_uris.append(urlunparse(onew))
+        else:
+            # insert www into domain
+            onew = o._replace(netloc='www.' + o.netloc)
+            candidate_seed_uris.append(urlunparse(onew))
+
+        return candidate_seed_uris
 
     def seed_metadata(self):
         
@@ -195,20 +232,15 @@ class SeedResource:
 
             self.logger.info("acquiring seed metadata for seed {}".format(self.urir))
 
-            try:
+            candidate_seed_uris = self._develop_candidate_seed_uris()
 
-                metadata = self.aic.get_seed_metadata(self.urir)['collection_web_pages']
-
-            except KeyError:
-                self.logger.exception("failed to match seed in collection, trying to add a / to the end")
+            for urir in candidate_seed_uris:
 
                 try:
-                    metadata = self.aic.get_seed_metadata(self.urir + '/')['collection_web_pages']
+                    metadata = self.aic.get_seed_metadata(urir)['collection_web_pages']
+                    return metadata
+
                 except KeyError:
-                    self.logger.exception("failed to match seed in collection, trying to remove a / from the end")
-
-                    metadata = self.aic.get_seed_metadata(self.urir[:-1])['collection_web_pages']
-
-            
+                    self.logger.exception("failed to match seed in collection, trying alternative candidate urir")
 
         return metadata
