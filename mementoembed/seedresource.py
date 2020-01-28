@@ -4,6 +4,8 @@ import logging
 import aiu
 import requests
 
+from urllib.parse import urlparse, urlunparse
+
 from requests.exceptions import Timeout, TooManyRedirects, \
     ChunkedEncodingError, ContentDecodingError, StreamConsumedError, \
     URLRequired, MissingSchema, InvalidSchema, InvalidURL, \
@@ -86,9 +88,42 @@ class SeedResource:
         else:
             self.aic = None
 
-        response = get_memento(self.httpcache, memento.urim)
-        self.urit = get_timemap_from_response(response)
-        self.urir = get_original_uri_from_response(response)
+        self.logger.info("given URI: {}".format(self.memento.given_uri))
+        self.logger.info("memento URI-M: {}".format(self.memento.urim))
+
+        if self.memento.given_uri == self.memento.urim:
+
+            response = get_memento(self.httpcache, memento.urim)
+
+            self.logger.info("response history length: {}".format(len(response.history)))
+            self.logger.debug("response headers: {}".format(response.headers))
+
+            if len(response.history) == 0:
+                self.urit = get_timemap_from_response(response)
+                self.urir = get_original_uri_from_response(response)
+            else:
+                try:
+                    self.urit = get_timemap_from_response(response.history[0])
+                except NotAMementoError:
+                    self.urit = get_timemap_from_response(response)
+
+                try:
+                    self.urir = get_original_uri_from_response(response.history[0])
+                except NotAMementoError:
+                    self.urir = get_original_uri_from_response(response)
+
+        else:
+
+            response = get_memento(self.httpcache, memento.given_uri)
+
+            if len(response.history) == 0:
+                self.urit = get_timemap_from_response(response)
+                self.urir = get_original_uri_from_response(response)
+
+            else:
+                self.urit = get_timemap_from_response(response.history[0])
+                self.urir = get_original_uri_from_response(response.history[0])
+
         self.sorted_mementos_list = []
 
     def fetch_timemap(self):
@@ -161,6 +196,41 @@ class SeedResource:
         except aiu.timemap.MalformedLinkFormatTimeMap:
             return None
 
+    def _develop_candidate_seed_uris(self):
+
+        candidate_seed_uris = []
+
+        candidate_seed_uris.append(self.urir)
+
+        # replace http with https
+        o = urlparse(self.urir)
+        
+        if o.scheme == 'http':
+            onew = o._replace(scheme='https')
+            candidate_seed_uris.append(urlunparse(onew))
+
+        # replace https with http
+        if o.scheme == 'https':
+            onew = o._replace(scheme='https')
+            candidate_seed_uris.append(urlunparse(onew))
+
+        # remove slash from end
+        if self.urir[-1] == '/':
+            candidate_seed_uris.append(self.urir[:-1])
+        else:
+            # add slash to end
+            candidate_seed_uris.append(self.urir + '/')
+
+        # remove www to domain
+        if o.netloc[0:3] == 'www':
+            onew = o._replace(netloc=o.netloc[4:])
+            candidate_seed_uris.append(urlunparse(onew))
+        else:
+            # insert www into domain
+            onew = o._replace(netloc='www.' + o.netloc)
+            candidate_seed_uris.append(urlunparse(onew))
+
+        return candidate_seed_uris
 
     def seed_metadata(self):
         
@@ -169,6 +239,18 @@ class SeedResource:
         if self.aic is not None:
 
             self.aic.load_seed_metadata() # workaround for aiu bug
-            metadata = self.aic.get_seed_metadata(self.urir)['collection_web_pages']
+
+            self.logger.info("acquiring seed metadata for seed {}".format(self.urir))
+
+            candidate_seed_uris = self._develop_candidate_seed_uris()
+
+            for urir in candidate_seed_uris:
+
+                try:
+                    metadata = self.aic.get_seed_metadata(urir)['collection_web_pages']
+                    return metadata
+
+                except KeyError:
+                    self.logger.exception("failed to match seed in collection, trying alternative candidate urir")
 
         return metadata

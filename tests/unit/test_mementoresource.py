@@ -18,6 +18,7 @@ class mock_response:
         self.text = text
         self.url = url
         self.links = links
+        self.history = []
         
         if content is None:
 
