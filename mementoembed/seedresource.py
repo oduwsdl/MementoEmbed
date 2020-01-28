@@ -95,12 +95,22 @@ class SeedResource:
 
             response = get_memento(self.httpcache, memento.urim)
 
+            self.logger.info("response history length: {}".format(len(response.history)))
+            self.logger.debug("response headers: {}".format(response.headers))
+
             if len(response.history) == 0:
                 self.urit = get_timemap_from_response(response)
                 self.urir = get_original_uri_from_response(response)
             else:
-                self.urit = get_timemap_from_response(response.history[0])
-                self.urir = get_original_uri_from_response(response.history[0])
+                try:
+                    self.urit = get_timemap_from_response(response.history[0])
+                except NotAMementoError:
+                    self.urit = get_timemap_from_response(response)
+
+                try:
+                    self.urir = get_original_uri_from_response(response.history[0])
+                except NotAMementoError:
+                    self.urir = get_original_uri_from_response(response)
 
         else:
 
