@@ -19,6 +19,7 @@ from mementoembed.mementoimagereel import MementoImageReel
 from mementoembed.mementodocreel import MementoDocreel
 from mementoembed.mementoresource import MementoURINotAtArchiveFailure, memento_resource_factory
 from mementoembed.imageselection import convert_imageuri_to_pngdata_uri, generate_images_and_scores
+from mementoembed.mementowordcloud import MementoWordCloud
 from mementoembed.sessions import ManagedSession
 from mementoembed.version import __useragent__
 
@@ -215,6 +216,41 @@ def generate_docreel_response(urim, prefs):
     response.headers['Content-Type'] = 'image/gif'
 
     module_logger.info("Finished with image reel generation")
+
+    return response, 200
+
+def generate_wordcloud_response(urim, prefs):
+    
+    httpcache = getURICache(urim)
+
+    mwc = MementoWordCloud(
+        user_agent=__useragent__,
+        httpcache=httpcache
+    )
+
+    if prefs['textonly'] == 'yes':
+
+        words_and_scores = mwc.generate_words_and_scores(
+            urim
+        )
+
+        response_json = {}
+        response_json["urim"] = urim
+        response_json["words_and_scores"] = words_and_scores
+
+        response = make_response(json.dumps(response_json, indent=4))
+        response.headers['Content-Type'] = 'application/json'
+
+    else:
+        data = mwc.generate_wordcloud(
+            urim, 
+            colormap=prefs['colormap'],
+            background_color=prefs['background_color']
+        )
+        response = make_response(data)
+        response.headers['Content-Type'] = 'image/png'
+
+    module_logger.info("Finished with word cloud generation")
 
     return response, 200
 
@@ -455,3 +491,21 @@ def thumbnail_endpoint(subpath):
 
     else:
         return "The thumbnail service has been disabled by the system administrator", 200
+
+@bp.route('/services/product/wordcloud/<path:subpath>')
+def wordcloud_endpoint(subpath):
+    urim = extract_urim_from_request_path(request.full_path, '/services/product/wordcloud/')
+
+    prefs = {}
+    prefs['colormap'] = 'inferno'
+    prefs['background_color'] = 'white'
+    prefs['textonly'] = 'no'
+
+    if 'Prefer' in request.headers:
+        preferences = request.headers['Prefer'].split(',')
+
+        for pref in preferences:
+            key, value = pref.split('=')
+            prefs[key] = value.lower()
+
+    return handle_errors(generate_wordcloud_response, urim, prefs)
