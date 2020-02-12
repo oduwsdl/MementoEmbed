@@ -34,7 +34,8 @@ setup(
         'requests-futures==0.9.9',
         'sphinx==1.8.4',
         'summa==1.2.0',
-        'tldextract==2.2.0'
+        'tldextract==2.2.0',
+        'wordcloud==1.6.0'
     ],
     test_suite="tests.unit"
 )
