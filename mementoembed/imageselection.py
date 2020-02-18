@@ -236,12 +236,17 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
         module_logger.debug("looking at image in position {}, URI: {}".format(n, imageuri))
 
         if imageuri[0:5] == 'data:':
-            datainput = DataURI(imageuri)
-            images_and_scores[imageuri] = {}
-            images_and_scores[imageuri]['content-type'] = datainput.mimetype
-            images_and_scores[imageuri]['magic type'] = magic.from_buffer(datainput.data)
-            images_and_scores[imageuri]['imghdr type'] = imghdr.what(None, datainput.data)
-            images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
+
+            try:
+                datainput = DataURI(imageuri)
+                images_and_scores[imageuri] = {}
+                images_and_scores[imageuri]['content-type'] = datainput.mimetype
+                images_and_scores[imageuri]['magic type'] = magic.from_buffer(datainput.data)
+                images_and_scores[imageuri]['imghdr type'] = imghdr.what(None, datainput.data)
+                images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
+            except binascii.Error:
+                module_logger.warning("cannot process data image URI discovered in base page at {}, skipping...".format(uri))
+
             working_image_list.remove(imageuri)
 
         elif imageuri in futures:
