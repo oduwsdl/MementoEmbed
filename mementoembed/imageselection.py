@@ -244,8 +244,8 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                 images_and_scores[imageuri]['magic type'] = magic.from_buffer(datainput.data)
                 images_and_scores[imageuri]['imghdr type'] = imghdr.what(None, datainput.data)
                 images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
-            except binascii.Error:
-                module_logger.warning("cannot process data image URI discovered in base page at {}, skipping...".format(uri))
+            except (binascii.Error, IOError):
+                module_logger.exception("cannot process data image URI discovered in base page at {}, skipping...".format(uri))
 
             working_image_list.remove(imageuri)
 
@@ -259,8 +259,8 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
                 try:
                     r = futures[imageuri].result()
-                except RequestException:
-                    module_logger.warning(
+                except Exception:
+                    module_logger.exception(
                         "Failed to download image URI {}, skipping...".format(imageuri)
                     )
                     images_and_scores[imageuri] = "Image could not be downloaded"
