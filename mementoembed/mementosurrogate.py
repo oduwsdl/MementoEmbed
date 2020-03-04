@@ -6,7 +6,7 @@ from .mementoresource import memento_resource_factory
 from .originalresource import OriginalResource
 from .imageselection import get_best_image
 from .archiveresource import ArchiveResource
-from .textprocessing import extract_text_snippet, extract_title
+from .textprocessing import extract_text_snippet, extract_title, TitleExtractionError
 
 module_logger = logging.getLogger('mementoembed.mementosurrogate')
 
@@ -45,7 +45,13 @@ class MementoSurrogate:
 
     @property
     def title(self):
-        return extract_title(self.memento.raw_content)
+        try:
+            pagetitle = extract_title(self.memento.raw_content)
+        except TitleExtractionError:
+            self.logger.exception("failed to extract title from content for {}, attempting with non-raw content".format(self.urim))
+            pagetitle = extract_title(self.memento.content)
+
+        return pagetitle
 
     @property
     def memento_datetime(self):

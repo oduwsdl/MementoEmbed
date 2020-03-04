@@ -11,7 +11,8 @@ from mementoembed.mementoresource import memento_resource_factory
 from mementoembed.originalresource import OriginalResource
 from mementoembed.textprocessing import extract_text_snippet, extract_title, \
     get_sentence_scores_by_just_textrank, get_section_scores_by_readability, \
-    get_sentence_scores_by_readability_and_textrank, get_sentence_scores_by_readability_and_lede3
+    get_sentence_scores_by_readability_and_textrank, get_sentence_scores_by_readability_and_lede3, \
+    TitleExtractionError, SnippetGenerationError
 from mementoembed.sessions import ManagedSession
 from mementoembed.archiveresource import ArchiveResource
 from mementoembed.seedresource import SeedResource
@@ -85,8 +86,22 @@ def contentdata(urim, preferences):
     output['urim'] = urim
     output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    output['title'] = extract_title(memento.raw_content)
-    output['snippet'] = extract_text_snippet(memento.raw_content)
+    try:
+        output['title'] = extract_title(memento.raw_content)
+
+        if output['title'] == '':
+            module_logger.warning("empty title detected for {}, attempting to extract title from non-raw content")
+            output['title'] = extract_title(memento.content)
+    except TitleExtractionError:
+        module_logger.exception("failed to extract title from content for {}, attempting with non-raw content".format(urim))
+        output['title'] = extract_title(memento.content)
+
+    try:
+        output['snippet'] = extract_text_snippet(memento.raw_content)
+    except SnippetGenerationError:
+        module_logger.exception("failed to extract snippet from content for {}, attempting with non-raw content".format(urim))
+        output['snippet'] = extract_text_snippet(memento.content)
+
     output['memento-datetime'] = memento.memento_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
     
     response = make_response(json.dumps(output, indent=4))

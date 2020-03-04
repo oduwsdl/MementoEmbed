@@ -395,6 +395,10 @@ def extract_text_snippet(htmlcontent):
             if len(snippet) == 0:
                 snippet = None
 
+            # # To account for Archive.is behavior
+            # if snippet[0:9] == "archived " and snippet[-3:] == "UTC":
+            #     snippet = None
+
     # 3. use readability or justext
     if snippet is None:
         snippet = get_best_description(htmlcontent)

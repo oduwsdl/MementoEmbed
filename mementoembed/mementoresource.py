@@ -523,16 +523,20 @@ class ArchiveIsMemento(MementoResource):
 
         try:
             z = zipfile.ZipFile(io.BytesIO(response.content))
+            content = z.read('index.html')
+
+            self.logger.debug("from Archive.is type of raw content: {}".format( type(content) ) )
+            self.logger.debug("size of raw content: {}".format( len(content) ) )
+
         except zipfile.BadZipFile as e:
             module_logger.exception("zip file acquired from archive is malformed")
-            raise MementoParsingError(
-                "zip file acquired from archive is malformed",
-                original_exception=e)
+            # raise MementoParsingError(
+            #     "zip file acquired from archive is malformed",
+            #     original_exception=e)
 
-        content = z.read('index.html')
-
-        self.logger.debug("from Archive.is type of raw content: {}".format( type(content) ) )
-        self.logger.debug("size of raw content: {}".format( len(content) ) )
+            # for Archive.today's new behavior: no raw memento content
+            soup = BeautifulSoup(self.content, "html5lib")
+            content = "<html><body>{}</body></html>".format(soup.find(id='CONTENT').contents)
 
         return content
 
