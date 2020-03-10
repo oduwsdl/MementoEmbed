@@ -362,49 +362,49 @@ def get_image_from_metadata(uri, http_cache):
         try:
             metadata_image_url = soup.find_all('meta', { "property": "og:image" } )[0]['content']
             return metadata_image_url
-        except IndexError:
+        except (IndexError, TypeError):
             module_logger.debug("did not find user-specified image with open graph protocol and property attribute...")
 
         try:
             metadata_image_url = soup.find_all('meta', { "name": "og:image" } )[0]['content']
             return metadata_image_url
-        except IndexError:
+        except (IndexError, TypeError):
             module_logger.debug("did not find user-specified image with open graph protocol and name attribute...")
 
         try:
             metadata_image_url = soup.find('meta', { "property": "twitter:image" } )[0]['content']
             return metadata_image_url
-        except IndexError:
+        except (IndexError, TypeError):
             module_logger.debug("did not find user-specified image with new Twitter card standard and property attribute...")
 
         try:
             metadata_image_url = soup.find('meta', { "name": "twitter:image" } )[0]['content']
             return metadata_image_url
-        except IndexError:
+        except (IndexError, TypeError):
             module_logger.debug("did not find user-specified image with new Twitter card standard and name attribute...")
 
         try:
             metadata_image_url = soup.find('meta', { "property": "twitter:image:src" } )[0]['content']
             return metadata_image_url
-        except IndexError:
+        except (IndexError, TypeError):
             module_logger.debug("did not find user-specified image with old Twitter card standard and property attribute...")
 
         try:
             metadata_image_url = soup.find('meta', { "name": "twitter:image:src" } )[0]['content']
             return metadata_image_url
-        except IndexError:
+        except (IndexError, TypeError):
             module_logger.debug("did not find user-specified image with old Twitter card standard and name attribute...")
 
         try:
             metadata_image_url = soup.find('meta', { "property": "image" } )[0]['content']
             return metadata_image_url
-        except IndexError:
+        except (IndexError, TypeError):
             module_logger.debug("did not find user-specified image with 'image' from property attribute...")
 
         try:
             metadata_image_url = soup.find('meta', { "name": "image" } )[0]['content']
             return metadata_image_url
-        except IndexError:
+        except (IndexError, TypeError):
             module_logger.debug("did not find user-specified image with 'image' from name attribute...")
 
     except RequestException:
