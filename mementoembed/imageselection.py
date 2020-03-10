@@ -344,7 +344,80 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
     return images_and_scores
 
+def get_image_from_metadata(uri, http_cache):
+
+    metadata_image_url = None
+
+    try:
+        r = http_cache.get(uri)
+
+        try:
+            soup = BeautifulSoup(r.text, 'html5lib')
+        except Exception as e:
+            module_logger.error("failed to open document using BeautifulSoup")
+            raise MementoParsingError(
+                "failed to open document using BeautifulSoup",
+                original_exception=e)
+
+        try:
+            metadata_image_url = soup.find_all('meta', { "property": "og:image" } )[0]['content']
+            return metadata_image_url
+        except IndexError:
+            module_logger.debug("did not find user-specified image with open graph protocol and property attribute...")
+
+        try:
+            metadata_image_url = soup.find_all('meta', { "name": "og:image" } )[0]['content']
+            return metadata_image_url
+        except IndexError:
+            module_logger.debug("did not find user-specified image with open graph protocol and name attribute...")
+
+        try:
+            metadata_image_url = soup.find('meta', { "property": "twitter:image" } )[0]['content']
+            return metadata_image_url
+        except IndexError:
+            module_logger.debug("did not find user-specified image with new Twitter card standard and property attribute...")
+
+        try:
+            metadata_image_url = soup.find('meta', { "name": "twitter:image" } )[0]['content']
+            return metadata_image_url
+        except IndexError:
+            module_logger.debug("did not find user-specified image with new Twitter card standard and name attribute...")
+
+        try:
+            metadata_image_url = soup.find('meta', { "property": "twitter:image:src" } )[0]['content']
+            return metadata_image_url
+        except IndexError:
+            module_logger.debug("did not find user-specified image with old Twitter card standard and property attribute...")
+
+        try:
+            metadata_image_url = soup.find('meta', { "name": "twitter:image:src" } )[0]['content']
+            return metadata_image_url
+        except IndexError:
+            module_logger.debug("did not find user-specified image with old Twitter card standard and name attribute...")
+
+        try:
+            metadata_image_url = soup.find('meta', { "property": "image" } )[0]['content']
+            return metadata_image_url
+        except IndexError:
+            module_logger.debug("did not find user-specified image with 'image' from property attribute...")
+
+        try:
+            metadata_image_url = soup.find('meta', { "name": "image" } )[0]['content']
+            return metadata_image_url
+        except IndexError:
+            module_logger.debug("did not find user-specified image with 'image' from name attribute...")
+
+    except RequestException:
+        module_logger.warn("Failed to download {} for extracing images, skipping...".format(uri))
+        module_logger.debug("Failed to download {}, details: {}".format(uri, repr(traceback.format_exc())))
+        return metadata_image_url
+
 def get_best_scoring_image(uri, http_cache, futuressession=None):
+
+    metadata_image_url = get_image_from_metadata(uri, http_cache)
+
+    if metadata_image_url is not None:
+        return metadata_image_url
 
     scorelist = []
 
