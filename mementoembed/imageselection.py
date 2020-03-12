@@ -206,8 +206,6 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
     images_and_scores = {}
 
-    N = len(base_image_list)
-
     futures = {}
     starttimes = {}
     image_position = {}
@@ -235,9 +233,13 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
     metadata_image_url, metadata_image_field = get_image_from_metadata(uri, http_cache)
 
     if metadata_image_url is not None:
-        futures[metadata_image_url] = futuressession.get(imageuri)
-        starttimes[metadata_image_url] = datetime.datetime.now()
-        working_image_list.append(metadata_image_url)
+
+        if metadata_image_url[0:5] != 'data:':
+
+            if metadata_image_url not in working_image_list:
+                futures[metadata_image_url] = futuressession.get(imageuri)
+                starttimes[metadata_image_url] = datetime.datetime.now()
+                working_image_list.append(metadata_image_url)
 
     # working_image_list = deepcopy(image_list)
 
@@ -257,10 +259,14 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
     for imageuri in imageuri_generator(working_image_list):
 
-        if imageuri == metadata_image_url:
+        image_source = find_image_source(imageuri, metadata_image_url, base_image_list)
+
+        if imageuri == metadata_image_url and image_source == "metadata":
             n = 0
+            N = 0
         else:
             n = image_position[imageuri]
+            N = len(base_image_list)
 
         module_logger.debug("looking at image in position {}, URI: {}".format(n, imageuri))
 
@@ -273,7 +279,7 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                 images_and_scores[imageuri]['magic type'] = magic.from_buffer(datainput.data)
                 images_and_scores[imageuri]['imghdr type'] = imghdr.what(None, datainput.data)
                 images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
-                images_and_scores[imageuri]['source'] = find_image_source(imageuri, metadata_image_url, base_image_list)
+                images_and_scores[imageuri]['source'] = image_source
 
                 if images_and_scores[imageuri]['source'] == "metadata":
                     images_and_scores[imageuri].update(scores_for_image(imagecontent, 0, 0))
@@ -334,13 +340,12 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
                         try:
                             module_logger.debug("acquiring scores for image {}".format(imageuri))
-                            images_and_scores[imageuri]['source'] = find_image_source(imageuri, metadata_image_url, base_image_list)
+                            images_and_scores[imageuri]['source'] = image_source
 
                             if images_and_scores[imageuri]['source'] == "metadata":
-                                images_and_scores[imageuri].update(scores_for_image(imagecontent, 0, 0))
                                 images_and_scores[imageuri]['source_field'] = metadata_image_field
-                            else:
-                                images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
+                            
+                            images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
                         except IOError:
                             images_and_scores[imageuri] = None
@@ -357,10 +362,9 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                             images_and_scores[imageuri]['source'] = find_image_source(imageuri, metadata_image_url, base_image_list)
 
                             if images_and_scores[imageuri]['source'] == "metadata":
-                                images_and_scores[imageuri].update(scores_for_image(imagecontent, 0, 0))
                                 images_and_scores[imageuri]['source_field'] = metadata_image_field
-                            else:
-                                images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
+                                
+                            images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
                         except IOError:
                             images_and_scores[imageuri] = None
