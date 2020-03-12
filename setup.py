@@ -22,6 +22,7 @@ setup(
         'html5lib==1.0.1',
         'htmlmin==0.1.12',
         'imageio==2.5.0',
+        'ImageHash==4.0',
         'justext==2.2.0',
         'Pillow==5.2.0',
         'python-datauri==0.2.8',

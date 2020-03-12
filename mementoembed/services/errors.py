@@ -33,6 +33,7 @@ def handle_errors(function_name, urim, preferences):
 
         response = make_response(
             json.dumps({
+                "urim": urim,
                 "content":
                     render_template(
                     'make_your_own_memento.html',
@@ -51,6 +52,7 @@ def handle_errors(function_name, urim, preferences):
 
         response = make_response(
             json.dumps({
+                "urim": urim,
                 "content": e.user_facing_error,
                 "response headers": dict(e.response.headers),
                 "response status": e.response.status_code,
@@ -65,6 +67,7 @@ def handle_errors(function_name, urim, preferences):
         module_logger.exception("The submitted URI request timed out")
         response = make_response(
             json.dumps({
+                "urim": urim,
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
             }, indent=4))
@@ -78,6 +81,7 @@ def handle_errors(function_name, urim, preferences):
         module_logger.exception("The submitted URI is not valid")
         response = make_response(
             json.dumps({
+                "urim": urim,
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
             }, indent=4))
@@ -90,6 +94,7 @@ def handle_errors(function_name, urim, preferences):
             "submitted URI: {}".format(e.user_facing_error))
         response = make_response(
             json.dumps({
+                "urim": urim,
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
             }, indent=4))
@@ -101,6 +106,7 @@ def handle_errors(function_name, urim, preferences):
         module_logger.exception("There was a problem processing the content of the submitted URI")
         response = make_response(
             json.dumps({
+                "urim": urim,
                 "content": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
             }, indent=4))
@@ -112,6 +118,7 @@ def handle_errors(function_name, urim, preferences):
         module_logger.exception("A Redis problem has occured")
         response = make_response(
             json.dumps({
+                "urim": urim,
                 "content": "MementoEmbed could not connect to its database cache, please contact the system owner.",
                 "error details": repr(traceback.format_exc())
             }, indent=4))
@@ -123,6 +130,7 @@ def handle_errors(function_name, urim, preferences):
         module_logger.exception("An unforeseen error has occurred")
         response = make_response(
             json.dumps({
+                "urim": urim,
                 "content": "An unforeseen error has occurred with MementoEmbed, please contact the system owner.",
                 "error details": repr(traceback.format_exc())
             }, indent=4))

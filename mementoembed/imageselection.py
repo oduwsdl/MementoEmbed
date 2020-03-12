@@ -9,6 +9,7 @@ import imghdr
 
 import cairosvg
 import magic
+import imagehash
 
 from base64 import binascii
 from urllib.parse import urljoin, urlparse
@@ -105,6 +106,9 @@ def scores_for_image(imagecontent, n, N):
     width, height = p.image.size
     h = p.image.histogram().count(0)
 
+    imagedata['format'] = p.image.format
+    imagedata['mode'] = p.image.mode
+
     imagedata['width'] = width
     imagedata['height'] = height
 
@@ -129,6 +133,12 @@ def scores_for_image(imagecontent, n, N):
         imagedata['colorcount'] = c
     else:
         imagedata['colorcount'] = 16777216
+
+    imagedata['pHash'] = str(imagehash.phash(img))
+    imagedata['aHash'] = str(imagehash.average_hash(img))
+    imagedata['dHash_horizontal'] = str(imagehash.dhash(img))
+    imagedata['dHash_vertical'] = str(imagehash.dhash_vertical(img))
+    imagedata['wHash'] = str(imagehash.whash(img))
 
     k1 = 0.1 
     k2 = 0.4
@@ -190,13 +200,13 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
     module_logger.debug("generating list of images and computing their scores")
 
-    image_list = get_image_list(uri, http_cache)
+    base_image_list = get_image_list(uri, http_cache)
 
     module_logger.debug
 
     images_and_scores = {}
 
-    N = len(image_list)
+    N = len(base_image_list)
 
     futures = {}
     starttimes = {}
@@ -210,7 +220,7 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
     working_image_list = []
 
-    for imageuri in image_list:
+    for imageuri in base_image_list:
 
         if imageuri not in working_image_list:
             working_image_list.append(imageuri)
@@ -220,7 +230,14 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                 futures[imageuri] = futuressession.get(imageuri)
                 starttimes[imageuri] = datetime.datetime.now()
 
-            image_position[imageuri] = image_list.index(imageuri)
+            image_position[imageuri] = base_image_list.index(imageuri)
+
+    metadata_image_url, metadata_image_field = get_image_from_metadata(uri, http_cache)
+
+    if metadata_image_url is not None:
+        futures[metadata_image_url] = futuressession.get(imageuri)
+        starttimes[metadata_image_url] = datetime.datetime.now()
+        working_image_list.append(metadata_image_url)
 
     # working_image_list = deepcopy(image_list)
 
@@ -229,9 +246,21 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
         while len(imagelist) > 0:
             yield random.choice(imagelist)
 
+    def find_image_source(imageuri, metadata_image_url, base_image_list):
+
+        if imageuri == metadata_image_url and imageuri in base_image_list:
+            return "body and metadata"
+        elif imageuri == metadata_image_url:
+            return "metadata"
+        elif imageuri in base_image_list:
+            return "body"
+
     for imageuri in imageuri_generator(working_image_list):
 
-        n = image_position[imageuri]
+        if imageuri == metadata_image_url:
+            n = 0
+        else:
+            n = image_position[imageuri]
 
         module_logger.debug("looking at image in position {}, URI: {}".format(n, imageuri))
 
@@ -244,6 +273,14 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                 images_and_scores[imageuri]['magic type'] = magic.from_buffer(datainput.data)
                 images_and_scores[imageuri]['imghdr type'] = imghdr.what(None, datainput.data)
                 images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
+                images_and_scores[imageuri]['source'] = find_image_source(imageuri, metadata_image_url, base_image_list)
+
+                if images_and_scores[imageuri]['source'] == "metadata":
+                    images_and_scores[imageuri].update(scores_for_image(imagecontent, 0, 0))
+                    images_and_scores[imageuri]['source_field'] = metadata_image_field
+                else:
+                    images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
+                
             except (binascii.Error, IOError):
                 module_logger.exception("cannot process data image URI discovered in base page at {}, skipping...".format(uri))
 
@@ -297,7 +334,13 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
                         try:
                             module_logger.debug("acquiring scores for image {}".format(imageuri))
-                            images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
+                            images_and_scores[imageuri]['source'] = find_image_source(imageuri, metadata_image_url, base_image_list)
+
+                            if images_and_scores[imageuri]['source'] == "metadata":
+                                images_and_scores[imageuri].update(scores_for_image(imagecontent, 0, 0))
+                                images_and_scores[imageuri]['source_field'] = metadata_image_field
+                            else:
+                                images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
                         except IOError:
                             images_and_scores[imageuri] = None
@@ -311,7 +354,13 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
                         try:
                             module_logger.debug("acquiring scores for image {}".format(imageuri))
-                            images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
+                            images_and_scores[imageuri]['source'] = find_image_source(imageuri, metadata_image_url, base_image_list)
+
+                            if images_and_scores[imageuri]['source'] == "metadata":
+                                images_and_scores[imageuri].update(scores_for_image(imagecontent, 0, 0))
+                                images_and_scores[imageuri]['source_field'] = metadata_image_field
+                            else:
+                                images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
                         except IOError:
                             images_and_scores[imageuri] = None
@@ -347,6 +396,7 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 def get_image_from_metadata(uri, http_cache):
 
     metadata_image_url = None
+    field = None
 
     try:
         r = http_cache.get(uri)
@@ -359,65 +409,32 @@ def get_image_from_metadata(uri, http_cache):
                 "failed to open document using BeautifulSoup",
                 original_exception=e)
 
-        try:
-            metadata_image_url = soup.find_all('meta', { "property": "og:image" } )[0]['content']
-            return metadata_image_url
-        except (IndexError, TypeError):
-            module_logger.debug("did not find user-specified image with open graph protocol and property attribute...")
+        for field in [ "og:image", "twitter:image", "twitter:image:src", "image" ]:
 
-        try:
-            metadata_image_url = soup.find_all('meta', { "name": "og:image" } )[0]['content']
-            return metadata_image_url
-        except (IndexError, TypeError):
-            module_logger.debug("did not find user-specified image with open graph protocol and name attribute...")
+            for attribute in [ "property", "name" ]:
 
-        try:
-            metadata_image_url = soup.find('meta', { "property": "twitter:image" } )[0]['content']
-            return metadata_image_url
-        except (IndexError, TypeError):
-            module_logger.debug("did not find user-specified image with new Twitter card standard and property attribute...")
-
-        try:
-            metadata_image_url = soup.find('meta', { "name": "twitter:image" } )[0]['content']
-            return metadata_image_url
-        except (IndexError, TypeError):
-            module_logger.debug("did not find user-specified image with new Twitter card standard and name attribute...")
-
-        try:
-            metadata_image_url = soup.find('meta', { "property": "twitter:image:src" } )[0]['content']
-            return metadata_image_url
-        except (IndexError, TypeError):
-            module_logger.debug("did not find user-specified image with old Twitter card standard and property attribute...")
-
-        try:
-            metadata_image_url = soup.find('meta', { "name": "twitter:image:src" } )[0]['content']
-            return metadata_image_url
-        except (IndexError, TypeError):
-            module_logger.debug("did not find user-specified image with old Twitter card standard and name attribute...")
-
-        try:
-            metadata_image_url = soup.find('meta', { "property": "image" } )[0]['content']
-            return metadata_image_url
-        except (IndexError, TypeError):
-            module_logger.debug("did not find user-specified image with 'image' from property attribute...")
-
-        try:
-            metadata_image_url = soup.find('meta', { "name": "image" } )[0]['content']
-            return metadata_image_url
-        except (IndexError, TypeError):
-            module_logger.debug("did not find user-specified image with 'image' from name attribute...")
+                try:
+                    metadata_image_url = soup.find_all('meta', { "property": field } )[0]['content']
+                    return metadata_image_url, field
+                except (IndexError, TypeError):
+                    module_logger.debug("did not find metadata-specified image with attribute {} and field {}, moving on...".format(attribute, field))
 
     except RequestException:
         module_logger.warn("Failed to download {} for extracing images, skipping...".format(uri))
         module_logger.debug("Failed to download {}, details: {}".format(uri, repr(traceback.format_exc())))
-        return metadata_image_url
+        
+    return metadata_image_url, field
 
 def get_best_scoring_image(uri, http_cache, futuressession=None):
 
-    metadata_image_url = get_image_from_metadata(uri, http_cache)
+    metadata_image_url, field = get_image_from_metadata(uri, http_cache)
 
     if metadata_image_url is not None:
-        return metadata_image_url
+        
+        r = http_cache.get(metadata_image_url)
+
+        if r.status_code == 200:
+            return metadata_image_url
 
     scorelist = []
 

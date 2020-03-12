@@ -411,6 +411,7 @@ def thumbnail_endpoint(subpath):
             module_logger.exception(msg)
                 
             output = {
+                "urim": urim,
                 "error": msg,
                 "error details": repr(traceback.format_exc())
             }
@@ -426,6 +427,7 @@ def thumbnail_endpoint(subpath):
             module_logger.exception(msg)
                 
             output = {
+                "urim": urim,
                 "error": msg,
                 "error details": repr(traceback.format_exc())
             }
@@ -441,6 +443,7 @@ def thumbnail_endpoint(subpath):
             module_logger.exception(msg)
                 
             output = {
+                "urim": urim,
                 "error": msg,
                 "error details": repr(traceback.format_exc())
             }
@@ -456,6 +459,7 @@ def thumbnail_endpoint(subpath):
             module_logger.exception(msg)
                 
             output = {
+                "urim": urim,
                 "error": msg,
                 "error details": repr(traceback.format_exc())
             }
@@ -468,6 +472,7 @@ def thumbnail_endpoint(subpath):
         except MementoThumbnailGenerationError:
 
             output = {
+                "urim": urim,
                 "error": "a thumbnail failed to generated in {} seconds".format(mt.timeout),
                 "error details": repr(traceback.format_exc())
             }
@@ -480,6 +485,7 @@ def thumbnail_endpoint(subpath):
         except MementoURINotAtArchiveFailure as e:
 
             output = {
+                "urim": urim,
                 "error": e.user_facing_error,
                 "error details": repr(traceback.format_exc())
             }
