@@ -230,38 +230,48 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
             image_position[imageuri] = base_image_list.index(imageuri)
 
-    metadata_image_url, metadata_image_field = get_image_from_metadata(uri, http_cache)
+    # metadata_image_url, metadata_image_field = get_image_from_metadata(uri, http_cache)
+    metadata_images = get_image_from_metadata(uri, http_cache)
 
-    if metadata_image_url is not None:
+    # if metadata_image_url is not None:
 
-        if metadata_image_url[0:5] != 'data:':
+    #     if metadata_image_url[0:5] != 'data:':
 
-            if metadata_image_url not in working_image_list:
-                futures[metadata_image_url] = futuressession.get(imageuri)
-                starttimes[metadata_image_url] = datetime.datetime.now()
-                working_image_list.append(metadata_image_url)
+    #         if metadata_image_url not in working_image_list:
+    #             futures[metadata_image_url] = futuressession.get(imageuri)
+    #             starttimes[metadata_image_url] = datetime.datetime.now()
+    #             working_image_list.append(metadata_image_url)
 
-    # working_image_list = deepcopy(image_list)
+    if len(metadata_images) > 0:
+
+        for uri in metadata_images.keys():
+
+            if uri[0:5] != 'data:':
+
+                if uri not in working_image_list:
+                    futures[uri] = futuressession.get(imageuri)
+                    starttimes[uri] = datetime.datetime.now()
+                    working_image_list.append(uri)
 
     def imageuri_generator(imagelist):
 
         while len(imagelist) > 0:
             yield random.choice(imagelist)
 
-    def find_image_source(imageuri, metadata_image_url, base_image_list):
+    def find_image_source(imageuri, metadata_images, base_image_list):
 
-        if imageuri == metadata_image_url and imageuri in base_image_list:
+        if imageuri in metadata_images and imageuri in base_image_list:
             return "body and metadata"
-        elif imageuri == metadata_image_url:
+        elif imageuri in metadata_images:
             return "metadata"
         elif imageuri in base_image_list:
             return "body"
 
     for imageuri in imageuri_generator(working_image_list):
 
-        image_source = find_image_source(imageuri, metadata_image_url, base_image_list)
+        image_source = find_image_source(imageuri, list(metadata_images.keys()), base_image_list)
 
-        if imageuri == metadata_image_url and image_source == "metadata":
+        if imageuri in list(metadata_images.keys()) and image_source == "metadata":
             n = 0
             N = 0
         else:
@@ -281,11 +291,10 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                 images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
                 images_and_scores[imageuri]['source'] = image_source
 
-                if images_and_scores[imageuri]['source'] == "metadata":
-                    images_and_scores[imageuri].update(scores_for_image(imagecontent, 0, 0))
-                    images_and_scores[imageuri]['source_field'] = metadata_image_field
-                else:
-                    images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
+                if 'metadata' in images_and_scores[imageuri]['source']:
+                    images_and_scores[imageuri]['source_field'] = metadata_images[imageuri]
+                
+                images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
                 
             except (binascii.Error, IOError):
                 module_logger.exception("cannot process data image URI discovered in base page at {}, skipping...".format(uri))
@@ -342,8 +351,8 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                             module_logger.debug("acquiring scores for image {}".format(imageuri))
                             images_and_scores[imageuri]['source'] = image_source
 
-                            if images_and_scores[imageuri]['source'] == "metadata":
-                                images_and_scores[imageuri]['source_field'] = metadata_image_field
+                            if 'metadata' in images_and_scores[imageuri]['source']:
+                                images_and_scores[imageuri]['source_fields'] = metadata_images[imageuri]
                             
                             images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
@@ -359,11 +368,11 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
                         try:
                             module_logger.debug("acquiring scores for image {}".format(imageuri))
-                            images_and_scores[imageuri]['source'] = find_image_source(imageuri, metadata_image_url, base_image_list)
+                            images_and_scores[imageuri]['source'] = image_source
 
-                            if images_and_scores[imageuri]['source'] == "metadata":
-                                images_and_scores[imageuri]['source_field'] = metadata_image_field
-                                
+                            if 'metadata' in images_and_scores[imageuri]['source']:
+                                images_and_scores[imageuri]['source_fields'] = metadata_images[imageuri]
+
                             images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
                         except IOError:
@@ -402,6 +411,8 @@ def get_image_from_metadata(uri, http_cache):
     metadata_image_url = None
     field = None
 
+    metadata_images = {}
+
     try:
         r = http_cache.get(uri)
 
@@ -415,11 +426,11 @@ def get_image_from_metadata(uri, http_cache):
 
         for field in [ "og:image", "twitter:image", "twitter:image:src", "image" ]:
 
-            for attribute in [ "property", "name" ]:
+            for attribute in [ "property", "name", "itemprop" ]:
 
                 try:
-                    metadata_image_url = soup.find_all('meta', { "property": field } )[0]['content']
-                    return metadata_image_url, field
+                    metadata_image_url = soup.find_all('meta', { attribute: field } )[0]['content']
+                    metadata_images.setdefault(metadata_image_url, []).append('{}="{}"'.format(attribute, field))
                 except (IndexError, TypeError):
                     module_logger.debug("did not find metadata-specified image with attribute {} and field {}, moving on...".format(attribute, field))
 
@@ -427,11 +438,14 @@ def get_image_from_metadata(uri, http_cache):
         module_logger.warn("Failed to download {} for extracing images, skipping...".format(uri))
         module_logger.debug("Failed to download {}, details: {}".format(uri, repr(traceback.format_exc())))
         
-    return metadata_image_url, field
+    # return metadata_image_url, field
+    return metadata_images
 
 def get_best_scoring_image(uri, http_cache, futuressession=None):
 
-    metadata_image_url, field = get_image_from_metadata(uri, http_cache)
+    # metadata_image_url, field = get_image_from_metadata(uri, http_cache)
+    metadata_images = get_image_from_metadata(uri, http_cache)
+    metadata_image_url = list(metadata_images.keys())[0]
 
     if metadata_image_url is not None:
         
