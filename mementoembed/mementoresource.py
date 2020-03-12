@@ -581,10 +581,12 @@ class WaybackMemento(MementoResource):
             http_cache, urim, logger, given_uri
         )
 
-        if 'archive-it.org' in urim:
-            self.im_urim = wayback_pattern.sub(r'\1im_/', self.urim)
-        else:
+        if 'archive.org/' in urim:
+            # IA only does rewritten links on main URI-M
             self.im_urim = urim
+        else:
+            # we want rewritten links for image processing
+            self.im_urim = wayback_pattern.sub(r'\1im_/', self.urim)
 
     @property
     def raw_content(self):

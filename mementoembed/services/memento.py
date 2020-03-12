@@ -217,7 +217,10 @@ def imagedata(urim, preferences):
         module_logger.debug("looking for calculated score in imageuri {}".format(imageuri))
         if output['images'][imageuri] is not None:
             if 'calculated score' in output['images'][imageuri]:
-                scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
+
+                if output['images'][imageuri]['is-a-memento'] == True:
+                    # we don't want the live web leaking in
+                    scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
 
     for item in sorted(scorelist, reverse=True):
         output["ranked images"].append(item[1])
@@ -229,8 +232,12 @@ def imagedata(urim, preferences):
         output["ranked images"] = []
 
         for imageuri in output['images']:
+
             if 'calculated score' in output['images'][imageuri]:
-                scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
+
+                if output['images'][imageuri]['is-a-memento'] == True:
+                    # we don't want the live web leaking in
+                    scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
 
         for item in sorted(scorelist, reverse=True):
             output["ranked images"].append(item[1])

@@ -202,9 +202,9 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
     base_image_list = get_image_list(uri, http_cache)
 
-    module_logger.debug
-
     images_and_scores = {}
+
+    module_logger.debug("found {} images in page".format(len(base_image_list)))
 
     futures = {}
     starttimes = {}
@@ -249,7 +249,7 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
             if uri[0:5] != 'data:':
 
                 if uri not in working_image_list:
-                    futures[uri] = futuressession.get(imageuri)
+                    futures[uri] = futuressession.get(uri)
                     starttimes[uri] = datetime.datetime.now()
                     working_image_list.append(uri)
 
@@ -333,6 +333,12 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                             "could not find a content-type for URI {}".format(imageuri)
                         )
                         images_and_scores[imageuri]["content-type"] = "No content type for image"
+
+                    images_and_scores[imageuri]['is-a-memento'] = False
+
+                    if 'memento-datetime' in r.headers:
+                        images_and_scores[imageuri]['is-a-memento'] = True
+                        # images_and_scores[imageuri]['http-headers'] = dict(r.headers)
 
                     imagecontent = r.content
 
