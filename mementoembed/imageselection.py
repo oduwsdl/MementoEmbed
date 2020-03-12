@@ -414,10 +414,9 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
 def get_image_from_metadata(uri, http_cache):
 
-    metadata_image_url = None
-    field = None
-
     metadata_images = {}
+
+    module_logger.info("attempting to retrieve images from metadata of {}".format(uri))
 
     try:
         r = http_cache.get(uri)
@@ -435,8 +434,17 @@ def get_image_from_metadata(uri, http_cache):
             for attribute in [ "property", "name", "itemprop" ]:
 
                 try:
-                    metadata_image_url = soup.find_all('meta', { attribute: field } )[0]['content']
-                    metadata_images.setdefault(metadata_image_url, []).append('{}="{}"'.format(attribute, field))
+                    module_logger.info("for url: {} --- bs4 discovered: {}".format(uri, soup.find_all('meta', { attribute: field } )))
+                    discovered_fields = soup.find_all('meta', { attribute: field } )
+
+                    if len(discovered_fields) > 0:
+
+                        for value_attribute in ['content', 'value']:
+                            if value_attribute in discovered_fields[0]:
+                                metadata_image_url = urljoin( uri, discovered_fields[value_attribute] )
+
+                                metadata_images.setdefault(metadata_image_url, []).append('{}="{}" {}'.format(attribute, field, value_attribute))
+
                 except (IndexError, TypeError):
                     module_logger.debug("did not find metadata-specified image with attribute {} and field {}, moving on...".format(attribute, field))
 
