@@ -294,7 +294,7 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                 if 'metadata' in images_and_scores[imageuri]['source']:
                     images_and_scores[imageuri]['source_field'] = metadata_images[imageuri]
                 
-                images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
+                images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
                 
             except (binascii.Error, IOError):
                 module_logger.exception("cannot process data image URI discovered in base page at {}, skipping...".format(uri))
@@ -445,7 +445,9 @@ def get_best_scoring_image(uri, http_cache, futuressession=None):
 
     # metadata_image_url, field = get_image_from_metadata(uri, http_cache)
     metadata_images = get_image_from_metadata(uri, http_cache)
-    metadata_image_url = list(metadata_images.keys())[0]
+    metadata_image_url = None
+    if len(metadata_images.keys()) > 0:
+        metadata_image_url = list(metadata_images.keys())[0]
 
     if metadata_image_url is not None:
         

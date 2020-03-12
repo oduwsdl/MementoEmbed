@@ -580,7 +580,11 @@ class WaybackMemento(MementoResource):
         super(WaybackMemento, self).__init__(
             http_cache, urim, logger, given_uri
         )
-        self.im_urim = wayback_pattern.sub(r'\1im_/', self.urim)
+
+        if 'archive-it.org' in urim:
+            self.im_urim = wayback_pattern.sub(r'\1im_/', self.urim)
+        else:
+            self.im_urim = urim
 
     @property
     def raw_content(self):
