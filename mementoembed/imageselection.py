@@ -439,9 +439,9 @@ def get_image_from_metadata(uri, http_cache):
                     module_logger.info("for url: {} --- bs4 discovered: {}".format(uri, soup.find_all('meta', { attribute: field } )))
                     discovered_fields = soup.find_all('meta', { attribute: field } )
 
-                    module_logger.debug("discovered {} fields with metadata".format(len(discovered_fields)))
-                    module_logger.debug("discovered fields with metadata: {}".format(discovered_fields[0]))
-                    module_logger.debug("discovered content field in metadata: {}".format(discovered_fields[0]['content']))
+                    #module_logger.debug("discovered {} fields with metadata".format(len(discovered_fields)))
+                    #module_logger.debug("discovered fields with metadata: {}".format(discovered_fields[0]))
+                    #module_logger.debug("discovered content field in metadata: {}".format(discovered_fields[0]['content']))
 
                     if len(discovered_fields) > 0:
 
