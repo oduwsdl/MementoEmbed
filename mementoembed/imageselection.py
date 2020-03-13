@@ -242,6 +242,8 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
     #             starttimes[metadata_image_url] = datetime.datetime.now()
     #             working_image_list.append(metadata_image_url)
 
+    module_logger.info("discovered {} images in metadata".format(len(metadata_images)))
+
     if len(metadata_images) > 0:
 
         for uri in metadata_images.keys():
@@ -437,13 +439,22 @@ def get_image_from_metadata(uri, http_cache):
                     module_logger.info("for url: {} --- bs4 discovered: {}".format(uri, soup.find_all('meta', { attribute: field } )))
                     discovered_fields = soup.find_all('meta', { attribute: field } )
 
+                    module_logger.debug("discovered {} fields with metadata".format(len(discovered_fields)))
+                    module_logger.debug("discovered fields with metadata: {}".format(discovered_fields[0]))
+                    module_logger.debug("discovered content field in metadata: {}".format(discovered_fields[0]['content']))
+
                     if len(discovered_fields) > 0:
 
                         for value_attribute in ['content', 'value']:
-                            if value_attribute in discovered_fields[0]:
-                                metadata_image_url = urljoin( uri, discovered_fields[value_attribute] )
 
+                            module_logger.debug("searching for image URL by {} value".format(value_attribute))
+
+                            try:
+                                metadata_image_url = discovered_fields[0][value_attribute]
+                                metadata_image_url = urljoin( uri, metadata_image_url )
                                 metadata_images.setdefault(metadata_image_url, []).append('{}="{}" {}'.format(attribute, field, value_attribute))
+                            except KeyError:
+                                module_logger.debug("did not find metadata image URL using value attribute {}...".format(value_attribute))
 
                 except (IndexError, TypeError):
                     module_logger.debug("did not find metadata-specified image with attribute {} and field {}, moving on...".format(attribute, field))
