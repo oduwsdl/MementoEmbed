@@ -205,6 +205,8 @@ def generate_docreel_response(urim, prefs):
         httpcache=httpcache
     )
 
+    module_logger.info("docreel preferences: {}".format(prefs))
+
     data = mv.generate_docreel(
         urim, 
         int(prefs['duration']),

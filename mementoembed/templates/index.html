@@ -107,6 +107,13 @@
         </div>
       </div>
 
+      <div class="row">
+        <div class="col-md-12">
+          <input type="radio" id="docreel" name="surrogate_type" value="docreel" />
+          <label for="imagereel">Docreel</label> <strong>(Takes a while to create...)</strong>
+        </div>
+      </div>
+
       <hr>
 
       <div>
@@ -432,6 +439,11 @@
     } else if (document.getElementById('wordcloud').checked) {
 
       window.location.href = "/ui/product/wordcloud/" 
+      + uri.trim();
+
+    } else if (document.getElementById('docreel').checked) {
+
+      window.location.href = "/ui/product/docreel/" 
       + uri.trim();
 
     }

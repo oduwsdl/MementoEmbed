@@ -238,3 +238,42 @@ def generate_wordcloud(subpath):
         wordcloud_endpoint="/services/product/wordcloud/",
         appversion = __appversion__
     ), 200
+
+@bp.route('/ui/product/docreel/<path:subpath>', methods=['HEAD', 'GET'])
+def generate_docreel(subpath):
+
+    prefs = {}
+
+    module_logger.debug("received path {}".format(subpath))
+
+    # because Flask trims off query strings
+    urim = request.full_path[len('/ui/product/docreel/'):]
+    urim = urim[:-1] if urim[-1] == '?' else urim
+
+    if urim[0:4] != "http":
+
+        pathprefs, urim = urim.split('/', 1)
+        module_logger.debug("prefs: {}".format(pathprefs))
+        module_logger.debug("urim: {}".format(urim))
+
+        for entry in pathprefs.split(','):
+            module_logger.debug("examining entry {}".format(entry))
+            key, value = entry.split('=')
+            module_logger.debug("setting preference {} to value {}".format(key, value))
+
+            try:
+                prefs[key] = int(value)
+            except ValueError:
+
+                if key == 'remove_banner':
+                    prefs[key] = value
+                else:
+                    module_logger.exception("failed to set value for preference {}".format(key))
+
+    return render_template('generate_docreel.html', 
+        urim = urim,
+        pagetitle="MementoEmbed - Generate a Docreel",
+        surrogate_type="Docreel",
+        docreel_endpoint="/services/product/docreel/",
+        appversion = __appversion__
+    ), 200
