@@ -97,9 +97,13 @@
       </div>
 
       <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-6">
           <input type="radio" id="imagereel" name="surrogate_type" value="imagereel" />
           <label for="imagereel">Imagereel</label>
+        </div>
+        <div class="col-md-6">
+          <input type="radio" id="wordcloud" name="surrogate_type" value="wordcloud" />
+          <label for="imagereel">Word Cloud</label>
         </div>
       </div>
 
@@ -415,16 +419,21 @@
       + prefs + "/"
       + uri.trim();
 
-  } else if (document.getElementById('imagereel').checked) {
+    } else if (document.getElementById('imagereel').checked) {
 
-    prefs += "imagereel_width=" + $( "input#imagereel_width" ).val();
-    prefs += ",imagereel_height=" + $( "input#imagereel_height" ).val();
-    prefs += ",imagereel_duration=" + $( "input#imagereel_duration" ).val();
-    prefs += ",imagereel_count=" + $( "input#imagereel_count" ).val();
+      prefs += "imagereel_width=" + $( "input#imagereel_width" ).val();
+      prefs += ",imagereel_height=" + $( "input#imagereel_height" ).val();
+      prefs += ",imagereel_duration=" + $( "input#imagereel_duration" ).val();
+      prefs += ",imagereel_count=" + $( "input#imagereel_count" ).val();
 
-    window.location.href = "/ui/product/imagereel/" 
-    + prefs + "/"
-    + uri.trim();
+      window.location.href = "/ui/product/imagereel/" 
+      + prefs + "/"
+      + uri.trim();
+    } else if (document.getElementById('wordcloud').checked) {
+
+      window.location.href = "/ui/product/wordcloud/" 
+      + uri.trim();
+
     }
 
   }

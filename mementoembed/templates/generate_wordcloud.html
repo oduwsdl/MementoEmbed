@@ -1,0 +1,185 @@
+{% include "pagetop.html" %}
+
+{% include "navbar_menu.html" %}
+
+<!-- Begin page content -->
+<main role="main" class="container">
+    <div class="row">
+      <h1 class="mt-5" id="workstatus">Create a {{ surrogate_type }}</h1>
+    </div>
+    <div class="row">
+      <div class="col-sm">
+          <div id="urimform"></div>
+        <hr>
+      </div>
+    </div>
+    <!-- <hr> -->
+    <div class="row">
+      <div class="col-sm">
+          <div id="progressarea"></div>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-sm">
+          <div id="embedWorkArea"></div>
+        </div>
+    </div>
+
+{% include "footer.html" %}
+
+</main>
+
+<script>
+    workarea = document.getElementById("embedWorkArea");
+    formarea = document.getElementById("urimform");
+    workstatus = document.getElementById("workstatus");
+    progress = document.getElementById("progressarea");
+
+    urim = "{{ urim|safe }}";
+    console.log("urim: " + urim);
+
+    workstatus.innerHTML = "";
+    workstatus.innerHTML = "Generating {{ surrogate_type }}";
+    formarea.innerHTML = "";
+    setWorking();
+    requestWordCloud(urim);
+
+    function setWorking() {
+        progress.innerHTML = '';
+        progress.innerHTML += '<img src="/static/images/activity.gif">';
+    }
+
+    function unsetWorking() {
+        progress.innerHTML = '';
+    }
+
+    function setOutput(outputdata) {
+        workarea.style.backgroundColor = "#ffffff";
+        workarea.style.color = "#000000";
+        workarea.innerHTML = "";
+        workarea.innerHTML = outputdata;
+        workarea.style.padding = "5px";
+    }
+
+    function setError(outputdata) {
+        workstatus.innerHTML = "";
+        workstatus.innerHTML = "Failed to generate {{ surrogate_type }}";
+        workarea.style.backgroundColor = "#ffffff";
+        workarea.style.color = "#000000";
+        workarea.innerHTML = "";
+        workarea.innerHTML = outputdata + '<br><br>If you want to try again, <a href="/">click here</a>';
+        workarea.style.fontWeight = "bolder";
+        workarea.style.border = "thick solid #ff0000";
+        workarea.style.padding = "5px";
+        
+    }
+
+    function handle_error(data) {
+
+        if (data.status == 0) {
+            message = 'An Unexpected Error Occurred in the MementoEmbed Page';
+            error = true;
+        } else {
+
+            if (data.responseText === undefined) {
+                message = "MementoEmbed failed to generate an error message"
+                error = true;
+            } else {
+                responseJSON = jQuery.parseJSON(data.responseText);
+                message = responseJSON['content'];
+                console.log("response JSON: " + responseJSON);
+            }
+
+        }
+
+        setError(message);
+        errorhandled = true;
+    }
+
+    function _arrayBufferToBase64(buffer) {
+        var binary = '';
+        var bytes = new Uint8Array(buffer);
+        var len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    };
+
+    function requestWordCloud(uri) {
+        wordcloud_svc = "{{ wordcloud_endpoint }}" + urim;
+        wordcloud_svc = window.location.protocol + '//' + window.location.host + wordcloud_svc
+
+        console.log("creating XHR object");
+
+        var xhr = new XMLHttpRequest();
+        console.log("XHR object created, issuing request to " + wordcloud_svc);
+        xhr.open('GET', wordcloud_svc, true);
+        xhr.responseType = 'arraybuffer';
+
+        console.log("done setting up AJAX request");
+
+        xhr.onload = function(e) {
+            console.log("xhr.onload called...");
+            if (xhr.readyState === 4) {
+                if (this.status === 200) {
+                    console.log("we got a 200 back!");
+                    progress.innerHTML = "WordCloud Generation Complete";
+                    // workarea.innerHTML = "GOOD!!!";
+                    imagehtml = '<img src="data:image/gif;base64,' + 
+                        _arrayBufferToBase64(this.response) + '">'
+
+                    workstatus.innerHTML = "";
+                    workstatus.innerHTML = "{{ surrogate_type }} Generated";
+                    formarea.innerHTML = "";
+
+                    wordcloud_output = '';
+                    wordcloud_output += '<div class="row">';
+                    wordcloud_output += '<div class="col-md-6">';
+                    wordcloud_output += '<p>If you want to include this Word Cloud in your web page:</p>'
+                    wordcloud_output += imagehtml;
+                    wordcloud_output += '</div>';
+                    wordcloud_output += '<div class="col-md-6">';
+                    wordcloud_output += '<div class="row">';
+                    wordcloud_output += '<p>then copy and paste the following code into your page HTML:</p>';
+                    wordcloud_output += '<textarea rows="6" cols="40">' + imagehtml + '</textarea>';
+                    wordcloud_output += '</div>';
+                    wordcloud_output += '</div>';
+                    wordcloud_output += '</div>';
+                    wordcloud_output += '<div class="row">';
+                    wordcloud_output += '<div class="col-md-12">';
+                    wordcloud_output += '<p><strong>Or, right click to download the image and use it on your web site</strong></p>';
+                    wordcloud_output += '</div>';
+                    wordcloud_output += '</div>';
+                    wordcloud_output += '<div class="row"><div class="col-md-12"><br><br>';
+                    wordcloud_output += 'Does this not look right? &nbsp;<a href="https://github.com/oduwsdl/MementoEmbed/issues">Click here to report this URI-M with details of what didn\'t work</a>.'
+                    wordcloud_output += '</div></div>';
+
+                    workarea.innerHTML += wordcloud_output
+                    
+                } else {
+                    unsetWorking();
+                    console.log("things not so rosy, no 200 back");
+                    console.log("response: " + this.response);
+
+                    console.log("length: " + this.response.length);
+                    console.log("byte length: " + this.response.byteLength);
+                    console.log("first entry: " + this.response[0]);
+                    console.log("response type: " + this.responseType);
+                    // console.log("response text: " + this.responseText);
+
+                    message = "There was an error produced while generating an wordcloud for this URI.";
+
+                    // handle_error(this.response);
+                    setError(message);
+                }
+            }
+        }
+
+        xhr.send(null);
+    }
+
+</script>
+
+{% include "pagebottom.html" %}
