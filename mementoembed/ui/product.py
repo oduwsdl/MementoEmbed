@@ -20,26 +20,9 @@ def generate_social_card(subpath):
     prefs = {}
     prefs['datauri_favicon'] = 'no'
     prefs['datauri_image'] = 'no'
+    prefs['remove_remote_javascript'] = 'no'
 
-    social_card_template = render_template("new_social_card.html",
-        urim = "{{ urim }}",
-        urir = "{{ urir }}",
-        image = "{{ image }}",
-        archive_uri = "{{ archive_uri }}",
-        archive_favicon = "{{ archive_favicon }}",
-        archive_collection_id = "{{ archive_collection_id }}",
-        archive_collection_uri = "{{ archive_collection_uri }}",
-        archive_collection_name = "{{ archive_collection_name }}",
-        archive_name = "{{ archive_name }}",
-        original_favicon = "{{ original_favicon }}",
-        original_domain = "{{ original_domain }}",
-        original_link_status = "{{ original_link_status }}",
-        surrogate_creation_time = "{{ surrogate_creation_time }}",
-        memento_datetime = "{{ memento_datetime }}",
-        me_title = "{{ me_title }}",
-        me_snippet = "{{ me_snippet }}",
-        server_domain = "{{ server_domain }}"
-    )
+
 
     # because Flask trims off query strings
     urim = request.full_path[len('/ui/product/socialcard/'):]
@@ -57,6 +40,49 @@ def generate_social_card(subpath):
             module_logger.debug("setting preference {} to value {}".format(key, value))
             prefs[key] = value
 
+    if prefs['remove_remote_javascript'] == 'yes':
+
+        social_card_template = render_template("social_card_htmlonly.html",
+            urim = "{{ urim }}",
+            urir = "{{ urir }}",
+            image = "{{ image }}",
+            archive_uri = "{{ archive_uri }}",
+            archive_favicon = "{{ archive_favicon }}",
+            archive_collection_id = "{{ archive_collection_id }}",
+            archive_collection_uri = "{{ archive_collection_uri }}",
+            archive_collection_name = "{{ archive_collection_name }}",
+            archive_name = "{{ archive_name }}",
+            original_favicon = "{{ original_favicon }}",
+            original_domain = "{{ original_domain }}",
+            original_link_status = "{{ original_link_status }}",
+            surrogate_creation_time = "{{ surrogate_creation_time }}",
+            memento_datetime = "{{ memento_datetime }}",
+            me_title = "{{ me_title }}",
+            me_snippet = "{{ me_snippet }}",
+            server_domain = "{{ server_domain }}"
+        )
+
+    else:
+
+        social_card_template = render_template("new_social_card.html",
+            urim = "{{ urim }}",
+            urir = "{{ urir }}",
+            image = "{{ image }}",
+            archive_uri = "{{ archive_uri }}",
+            archive_favicon = "{{ archive_favicon }}",
+            archive_collection_id = "{{ archive_collection_id }}",
+            archive_collection_uri = "{{ archive_collection_uri }}",
+            archive_collection_name = "{{ archive_collection_name }}",
+            archive_name = "{{ archive_name }}",
+            original_favicon = "{{ original_favicon }}",
+            original_domain = "{{ original_domain }}",
+            original_link_status = "{{ original_link_status }}",
+            surrogate_creation_time = "{{ surrogate_creation_time }}",
+            memento_datetime = "{{ memento_datetime }}",
+            me_title = "{{ me_title }}",
+            me_snippet = "{{ me_snippet }}",
+            server_domain = "{{ server_domain }}"
+        )
 
     return render_template('generate_social_card.html', 
         urim = urim,
@@ -66,10 +92,12 @@ def generate_social_card(subpath):
         archivedata_endpoint="/services/memento/archivedata/",
         originalresourcedata_endpoint="/services/memento/originalresourcedata/",
         bestimage_endpoint="/services/memento/bestimage/",
+        carddata_endpoint="/services/product/socialcard/",
         social_card_template=social_card_template,
         appversion = __appversion__,
         datauri_favicon = prefs['datauri_favicon'],
-        datauri_image = prefs['datauri_image']
+        datauri_image = prefs['datauri_image'],
+        remove_remote_javascript = prefs['remove_remote_javascript']
     ), 200
 
 @bp.route('/ui/product/thumbnail/<path:subpath>', methods=['HEAD', 'GET'])

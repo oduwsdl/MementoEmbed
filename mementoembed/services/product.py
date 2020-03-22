@@ -84,6 +84,8 @@ def generate_social_card_html(urim, surrogate, urlroot,
 
 def generate_socialcard_response(urim, preferences):
 
+    module_logger.info("generating socialcard response with submitted preferences: {}".format(preferences))
+
     httpcache = getURICache(urim)
 
     s = MementoSurrogate(
@@ -128,6 +130,8 @@ def generate_socialcard_response(urim, preferences):
             archive_favicon_uri, httpcache, 16, 16
         )
 
+
+    module_logger.info("preferences: {}".format(preferences))
 
     if preferences['using_remote_javascript'].lower() == 'yes':
         data = generate_social_card_html(

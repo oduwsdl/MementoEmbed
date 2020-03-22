@@ -38,11 +38,14 @@ formarea = document.getElementById("urimform");
 workstatus = document.getElementById("workstatus");
 progress = document.getElementById("progressarea");
 
+remove_remote_javascript = '{{remove_remote_javascript }}';
+
 errorhandled = false;
 textdata = null;
 imagedata = null;
 archivedata = null;
 originaldata = null;
+carddata = null;
 
 urim = "{{ urim|safe }}";
 console.log("urim: " + urim);
@@ -54,6 +57,7 @@ formarea.innerHTML = '<p class="lead">for URI-M: ' + urim + '</p>';
 formarea.innerHTML += '<p>with these settings:</p>';
 formarea.innerHTML += 'Use data URIs for favicons: {{ datauri_favicon }}<br>';
 formarea.innerHTML += 'Use data URIs for striking image: {{ datauri_image }}<br>';
+formarea.innerHTML += 'Remove remote JavaScript: {{ remove_remote_javascript }}<br>';
 setWorking();
 requestEmbed(urim);
 
@@ -69,27 +73,37 @@ function create_bs_column(content, width, id) {
 
 function setWorking() {
 
-    progress.innerHTML = '';
-    progress.innerHTML += create_bs_row(
-        create_bs_column("Analyzing Memento Content", "6", "mc_label") +
-        create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "mc_status")
+    if ( remove_remote_javascript == 'yes' ) {
+        progress.innerHTML = '';
+
+        progress.innerHTML += create_bs_row(
+            create_bs_column("Generating complete social card", "6", "sc_label") +
+            create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "sc_status")
         );
 
-    progress.innerHTML += create_bs_row(
-        create_bs_column("Acquiring Archive Information", "6", "ai_label") +
-        create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "ai_status")
-        );
+    } else {
 
-    progress.innerHTML += create_bs_row(
-        create_bs_column("Discovering Original Resource Information", "6", "or_label") +
-        create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "or_status")
-        );
+        progress.innerHTML = '';
+        progress.innerHTML += create_bs_row(
+            create_bs_column("Analyzing Memento Content", "6", "mc_label") +
+            create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "mc_status")
+            );
 
-    progress.innerHTML += create_bs_row(
-        create_bs_column("Selecting Striking Image", "6", "si_label") +
-        create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "si_status")
-        );
-    
+        progress.innerHTML += create_bs_row(
+            create_bs_column("Acquiring Archive Information", "6", "ai_label") +
+            create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "ai_status")
+            );
+
+        progress.innerHTML += create_bs_row(
+            create_bs_column("Discovering Original Resource Information", "6", "or_label") +
+            create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "or_status")
+            );
+
+        progress.innerHTML += create_bs_row(
+            create_bs_column("Selecting Striking Image", "6", "si_label") +
+            create_bs_column('<img src="/static/images/ajax-loader.gif">', "6", "si_status")
+            );
+    }
 }
 
 function setOutput(outputdata) {
@@ -136,6 +150,7 @@ function fill_social_card_area(html) {
     formarea.innerHTML += '<p>with these settings:</p>';
     formarea.innerHTML += 'Use data URIs for favicons: {{ datauri_favicon }}<br>';
     formarea.innerHTML += 'Use data URIs for striking image: {{ datauri_image }}<br>';
+    formarea.innerHTML += 'Remove remote JavaScript: {{ remove_remote_javascript }}<br>';
 
     social_card_area = "";
     social_card_area += '<div class="row">';
@@ -148,13 +163,16 @@ function fill_social_card_area(html) {
     social_card_area += '<textarea cols="50" rows="5" id="sc_code">';
     social_card_area += html;
 
-    social_card_area += '&lt;script async src="';
-    if (window.location.port == "") {
-        social_card_area += "//" + window.location.hostname + "/static/js/mementoembed-v20180806.js";
-    } else {
-        social_card_area += "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed-v20180806.js";
+
+    if (carddata == null) {
+        social_card_area += '&lt;script async src="';
+        if (window.location.port == "") {
+            social_card_area += "//" + window.location.hostname + "/static/js/mementoembed-v20180806.js";
+        } else {
+            social_card_area += "//" + window.location.hostname + ":" + window.location.port + "/static/js/mementoembed-v20180806.js";
+        }
+        social_card_area += '"&gt;&lt/script&gt;';
     }
-    social_card_area += '"&gt;&lt/script&gt;';
 
     social_card_area += '</textarea>';
     social_card_area += '</div>';
@@ -178,58 +196,63 @@ function fill_social_card_area(html) {
 
 function generate_social_card_content() {
 
-    if (textdata == null || archivedata == null || originaldata == null || imagedata == null) {
-        console.log("not enough items set yet");
-        return;
-    } 
+    if ( remove_remote_javascript == 'yes' ) {
+        social_card_content = carddata;
+    } else {
 
-    console.log("items are set, generating card");
+        if (textdata == null || archivedata == null || originaldata == null || imagedata == null) {
+            console.log("not enough items set yet");
+            return;
+        } 
 
-    urim = textdata['urim'];
-    title = textdata['title'];
-    snippet = textdata['snippet'];
-    creation_time = textdata['generation-time'];
-    memento_datetime = textdata['memento-datetime'];
+        console.log("items are set, generating card");
 
-    urir = originaldata['original-uri'];
-    original_domain = originaldata['original-domain'];
-    original_favicon = originaldata['original-favicon'];
-    original_linkstatus = originaldata['original-linkstatus'];
+        urim = textdata['urim'];
+        title = textdata['title'];
+        snippet = textdata['snippet'];
+        creation_time = textdata['generation-time'];
+        memento_datetime = textdata['memento-datetime'];
 
-    archive_name = archivedata['archive-name'];
-    archive_uri = archivedata ['archive-uri'];
-    archive_collection_id = archivedata['archive-collection-id'];
-    archive_collection_name = archivedata['archive-collection-name'];
-    archive_collection_uri = archivedata['archive-collection-uri'];
-    archive_favicon = archivedata['archive-favicon'];
+        urir = originaldata['original-uri'];
+        original_domain = originaldata['original-domain'];
+        original_favicon = originaldata['original-favicon'];
+        original_linkstatus = originaldata['original-linkstatus'];
 
-    bestimage = imagedata['best-image-uri'];
+        archive_name = archivedata['archive-name'];
+        archive_uri = archivedata ['archive-uri'];
+        archive_collection_id = archivedata['archive-collection-id'];
+        archive_collection_name = archivedata['archive-collection-name'];
+        archive_collection_uri = archivedata['archive-collection-uri'];
+        archive_favicon = archivedata['archive-favicon'];
 
-    social_card_content = `{{ social_card_template|safe }}`;
+        bestimage = imagedata['best-image-uri'];
 
-    console.log("card content " + social_card_content);
+        social_card_content = `{{ social_card_template|safe }}`;
 
-    social_card_content = social_card_content.replace("\{\{ urim \}\}", urim);
-    social_card_content = social_card_content.replace("\{\{ urim \}\}", urim); // yes, this must run twice
-    social_card_content = social_card_content.replace("\{\{ urir \}\}", urir);
-    social_card_content = social_card_content.replace("\{\{ urir \}\}", urir); // yes, this must run twice
-    social_card_content = social_card_content.replace("\{\{ me_title \}\}", title);
-    social_card_content = social_card_content.replace("\{\{ me_snippet \}\}", snippet);
-    social_card_content = social_card_content.replace("\{\{ surrogate_creation_time \}\}", creation_time);
-    social_card_content = social_card_content.replace("\{\{ image \}\}", bestimage);
-    social_card_content = social_card_content.replace("\{\{ archive_name \}\}", archive_name);
-    social_card_content = social_card_content.replace("\{\{ archive_favicon \}\}", archive_favicon);
-    social_card_content = social_card_content.replace("\{\{ archive_uri \}\}", archive_uri);
-    social_card_content = social_card_content.replace("\{\{ archive_collection_id \}\}", archive_collection_id);
-    social_card_content = social_card_content.replace("\{\{ archive_collection_name \}\}", archive_collection_name);
-    social_card_content = social_card_content.replace("\{\{ archive_collection_uri \}\}", archive_collection_uri);
-    social_card_content = social_card_content.replace("\{\{ original_favicon \}\}", original_favicon);
-    social_card_content = social_card_content.replace("\{\{ original_domain \}\}", original_domain);
-    social_card_content = social_card_content.replace("\{\{ original_link_status \}\}", original_linkstatus);
-    social_card_content = social_card_content.replace("\{\{ original_link_status \}\}", original_linkstatus);
-    social_card_content = social_card_content.replace("\{\{ memento_datetime \}\}", memento_datetime);
-    social_card_content = social_card_content.replace("\{\{ memento_datetime \}\}", memento_datetime); // yes, this must run twice
-    social_card_content = social_card_content.replace("\{\{ server_domain \}\}", "//" + window.location.hostname);
+        console.log("card content " + social_card_content);
+
+        social_card_content = social_card_content.replace("\{\{ urim \}\}", urim);
+        social_card_content = social_card_content.replace("\{\{ urim \}\}", urim); // yes, this must run twice
+        social_card_content = social_card_content.replace("\{\{ urir \}\}", urir);
+        social_card_content = social_card_content.replace("\{\{ urir \}\}", urir); // yes, this must run twice
+        social_card_content = social_card_content.replace("\{\{ me_title \}\}", title);
+        social_card_content = social_card_content.replace("\{\{ me_snippet \}\}", snippet);
+        social_card_content = social_card_content.replace("\{\{ surrogate_creation_time \}\}", creation_time);
+        social_card_content = social_card_content.replace("\{\{ image \}\}", bestimage);
+        social_card_content = social_card_content.replace("\{\{ archive_name \}\}", archive_name);
+        social_card_content = social_card_content.replace("\{\{ archive_favicon \}\}", archive_favicon);
+        social_card_content = social_card_content.replace("\{\{ archive_uri \}\}", archive_uri);
+        social_card_content = social_card_content.replace("\{\{ archive_collection_id \}\}", archive_collection_id);
+        social_card_content = social_card_content.replace("\{\{ archive_collection_name \}\}", archive_collection_name);
+        social_card_content = social_card_content.replace("\{\{ archive_collection_uri \}\}", archive_collection_uri);
+        social_card_content = social_card_content.replace("\{\{ original_favicon \}\}", original_favicon);
+        social_card_content = social_card_content.replace("\{\{ original_domain \}\}", original_domain);
+        social_card_content = social_card_content.replace("\{\{ original_link_status \}\}", original_linkstatus);
+        social_card_content = social_card_content.replace("\{\{ original_link_status \}\}", original_linkstatus);
+        social_card_content = social_card_content.replace("\{\{ memento_datetime \}\}", memento_datetime);
+        social_card_content = social_card_content.replace("\{\{ memento_datetime \}\}", memento_datetime); // yes, this must run twice
+        social_card_content = social_card_content.replace("\{\{ server_domain \}\}", "//" + window.location.hostname);
+    }
 
     console.log("card content " + social_card_content);
 
@@ -264,89 +287,114 @@ function handle_error(data) {
 
 function requestEmbed(uri) {
 
-    // 1. textdata endpoint
-    textdata_svc = "{{ textdata_endpoint }}" + urim;
-    $.ajax({
-        type: "GET",
-        url: textdata_svc,
-        success: function(json) {
-            setGood("mc_status");
-            textdata = json;
-            console.log("textdata:" + textdata);
-            generate_social_card_content();
-        },
-        error: function(data, textStatus, errorThrown) {
-            setBad("mc_status");
-            handle_error(data);
-        }
-    });
-    // 2. archivedata endpoint
-    archivedata_svc = "{{ archivedata_endpoint }}" + urim;
-    $.ajax({
-        type: "GET",
-        url: archivedata_svc,
-        beforeSend: function(xhr){
-            xhr.setRequestHeader(
-                'Prefer', 
-                'datauri_favicon={{ datauri_favicon }}'
-            );
-        },
-        success: function(json) {
-            setGood("ai_status");
-            archivedata = json;
-            console.log("archivedata: " + archivedata);
-            generate_social_card_content();
-        },
-        error: function(data, textStatus, errorThrown) {
-            setBad("ai_status");
-            handle_error(data);
-        }
-    });
-    // 3. originalresourcedata endpoint
-    originaldata_svc = "{{ originalresourcedata_endpoint }}" + urim;
-    $.ajax({
-        type: "GET",
-        url: originaldata_svc,
-        beforeSend: function(xhr){
-            xhr.setRequestHeader(
-                'Prefer', 
-                'datauri_favicon={{ datauri_favicon }}'
-            );
-        },
-        success: function(json) {
-            setGood("or_status");
-            originaldata = json;
-            console.log("originadata" + originaldata);
-            generate_social_card_content();
-        },
-        error: function(data, textStatus, errorThrown) {
-            setBad("or_status");
-            handle_error(data);
-        }
-    });
-    // 4. bestimage endpoint
-    bestimage_svc = "{{ bestimage_endpoint }}" + urim;
-    $.ajax({
-        type: "GET",
-        url: bestimage_svc,
-        beforeSend: function(xhr){
-            xhr.setRequestHeader(
-                'Prefer', 
-                'datauri_image={{ datauri_image }}'
-            );
-        },
-        success: function(json) {
-            setGood("si_status");
-            imagedata = json;
-            console.log("imagedata: " + imagedata);
-            generate_social_card_content();
-        },
-        error: function(data, textStatus, errorThrown) {
-            setBad("si_status");
-            handle_error(data);
-        }
-    });
-    // if all are done, then call generate_social_card
+    if ( remove_remote_javascript == 'yes' ) {
+        carddata_svc = "{{ carddata_endpoint }}" + urim;
+        $.ajax({
+            type: "GET",
+            url: carddata_svc,
+            beforeSend: function(xhr){
+                xhr.setRequestHeader(
+                    'Prefer', 
+                    'datauri_favicon={{ datauri_favicon }},using_remote_javascript=no,minify_markup=yes,datauri_image={{ datauri_image }}'
+                );
+            },
+            success: function(json) {
+                setGood("sc_status");
+                carddata = json;
+                console.log("carddata: " + carddata);
+                generate_social_card_content();
+            },
+            error: function(data, textStatus, errorThrown) {
+                setBad("sc_status");
+                handle_error(data);
+            }
+        });
+    } else {
+
+        // 1. textdata endpoint
+        textdata_svc = "{{ textdata_endpoint }}" + urim;
+        $.ajax({
+            type: "GET",
+            url: textdata_svc,
+            success: function(json) {
+                setGood("mc_status");
+                textdata = json;
+                console.log("textdata:" + textdata);
+                generate_social_card_content();
+            },
+            error: function(data, textStatus, errorThrown) {
+                setBad("mc_status");
+                handle_error(data);
+            }
+        });
+        // 2. archivedata endpoint
+        archivedata_svc = "{{ archivedata_endpoint }}" + urim;
+        $.ajax({
+            type: "GET",
+            url: archivedata_svc,
+            beforeSend: function(xhr){
+                xhr.setRequestHeader(
+                    'Prefer', 
+                    'datauri_favicon={{ datauri_favicon }}'
+                );
+            },
+            success: function(json) {
+                setGood("ai_status");
+                archivedata = json;
+                console.log("archivedata: " + archivedata);
+                generate_social_card_content();
+            },
+            error: function(data, textStatus, errorThrown) {
+                setBad("ai_status");
+                handle_error(data);
+            }
+        });
+        // 3. originalresourcedata endpoint
+        originaldata_svc = "{{ originalresourcedata_endpoint }}" + urim;
+        $.ajax({
+            type: "GET",
+            url: originaldata_svc,
+            beforeSend: function(xhr){
+                xhr.setRequestHeader(
+                    'Prefer', 
+                    'datauri_favicon={{ datauri_favicon }}'
+                );
+            },
+            success: function(json) {
+                setGood("or_status");
+                originaldata = json;
+                console.log("originadata" + originaldata);
+                generate_social_card_content();
+            },
+            error: function(data, textStatus, errorThrown) {
+                setBad("or_status");
+                handle_error(data);
+            }
+        });
+        // 4. bestimage endpoint
+        bestimage_svc = "{{ bestimage_endpoint }}" + urim;
+        $.ajax({
+            type: "GET",
+            url: bestimage_svc,
+            beforeSend: function(xhr){
+                xhr.setRequestHeader(
+                    'Prefer', 
+                    'datauri_image={{ datauri_image }}'
+                );
+            },
+            success: function(json) {
+                setGood("si_status");
+                imagedata = json;
+                console.log("imagedata: " + imagedata);
+                generate_social_card_content();
+            },
+            error: function(data, textStatus, errorThrown) {
+                setBad("si_status");
+                handle_error(data);
+            }
+        });
+        // if all are done, then call generate_social_card
+    }
 }
 
 // handlers for all input begin here
