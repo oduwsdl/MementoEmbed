@@ -233,15 +233,6 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
     # metadata_image_url, metadata_image_field = get_image_from_metadata(uri, http_cache)
     metadata_images = get_image_from_metadata(uri, http_cache)
 
-    # if metadata_image_url is not None:
-
-    #     if metadata_image_url[0:5] != 'data:':
-
-    #         if metadata_image_url not in working_image_list:
-    #             futures[metadata_image_url] = futuressession.get(imageuri)
-    #             starttimes[metadata_image_url] = datetime.datetime.now()
-    #             working_image_list.append(metadata_image_url)
-
     module_logger.info("discovered {} images in metadata".format(len(metadata_images)))
 
     if len(metadata_images) > 0:
@@ -298,7 +289,7 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                 
                 images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
                 
-            except (binascii.Error, IOError):
+            except (binascii.Error, IOError, TypeError):
                 module_logger.exception("cannot process data image URI discovered in base page at {}, skipping...".format(uri))
 
             working_image_list.remove(imageuri)
