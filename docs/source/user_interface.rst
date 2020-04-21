@@ -40,3 +40,19 @@ This is the imagereel from the above screenshot.
 
 .. image:: images/imagereel-example.gif
    :align: center
+
+If the user chooses Word Cloud, MementoEmbed will generate a word cloud of the most frequent terms from the page.
+
+.. image:: images/wordcloud-ui-example.png
+
+This is the word cloud from the above screenshot.
+
+.. image:: images/wordcloud-example.png
+
+MementoEmbed also supports an experimental surrogate we call the docreel. Docreels take a while to generate depending on the size of the page and the number of images.
+
+.. image:: images/docreel-ui-example.png
+
+Docreels are an animated GIF of the top 5 images and the top 5 sentences from the page, along with HTML the author can copy and paste into their web page or blog. The user may also download the docreel for future use.
+
+.. image:: images/docreel-example.gif

@@ -15,12 +15,14 @@ Failures
 With the exception of the endpoint ``/services/product/thumbnail/<URIM-M>``, all report failure with a MIME-type of ``application/json``.::
 
     {
+    "urim": "https://example.com",
     "content": "<div class=\"row\">\n    <div class=\"col\">\n        <p style=\"text-align: left;\">The URL you supplied ( <a href=\"https://example.com)\">https://example.com</a> ) is not a memento or comes from an archive that is not Memento-Compliant.</p>\n        <p style=\"text-align: left;\">\n            For a live web resource, you can create a memento that resides on the web in the following ways:\n            <ul>\n                <li style=\"text-align: left;\">Using the <a href=\"https://web.archive.org\">Internet Archive's Save Page Now button.</a></li>\n                <!-- <li style=\"text-align: left;\">Saving the web page at Archive.is</li> -->\n                <li style=\"text-align: left;\">Using the <a href=\"https://github.com/oduwsdl/archivenow\">ArchiveNow</a> utility.</li>\n                <li style=\"text-align: left;\">Using a browser plugin, like <a href=\"https://chrome.google.com/webstore/detail/mink-integrate-live-archi/jemoalkmipibchioofomhkgimhofbbem?hl=en-US\">Mink</a>.</li>\n            </ul>\n\n        </p>\n        <p style=\"text-align: center; font-weight: bold;\">Happy Memento Making! \ud83d\ude00</p>\n    </div>\n</div>\n",
-    "error details": "'Traceback (most recent call last):\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementoresource.py\", line 80, in get_memento_datetime_from_response\\n    response.headers[\\'memento-datetime\\'],\\n  File \"/usr/local/lib/python3.6/site-packages/requests/structures.py\", line 54, in __getitem__\\n    return self._store[key.lower()][1]\\nKeyError: \\'memento-datetime\\'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/services/errors.py\", line 26, in handle_errors\\n    return function_name(urim)\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/services/memento.py\", line 35, in contentdata\\n    memento = memento_resource_factory(urim, httpcache)\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementoresource.py\", line 222, in memento_resource_factory\\n    memento_dt = get_memento_datetime_from_response(response)\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementoresource.py\", line 85, in get_memento_datetime_from_response\\n    response=response, original_exception=e)\\nmementoembed.mementoresource.NotAMementoError: no memento-datetime header\\n'"
+    "error details": "'Traceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 89, in get_memento_datetime_from_response\\n    response.headers[\\'memento-datetime\\'],\\n  File \"/Users/smj/.virtualenvs/MementoEmbed/lib/python3.7/site-packages/requests/structures.py\", line 52, in __getitem__\\n    return self._store[key.lower()][1]\\nKeyError: \\'memento-datetime\\'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/errors.py\", line 28, in handle_errors\\n    return function_name(urim, preferences)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/memento.py\", line 290, in seeddata\\n    memento = memento_resource_factory(urim, httpcache)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 267, in memento_resource_factory\\n    memento_dt = get_memento_datetime_from_response(response)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 100, in get_memento_datetime_from_response\\n    response=response, original_exception=e)\\nmementoembed.mementoresource.NotAMementoError: no memento-datetime header\\n'"
     }
 
-The response consists of two JSON keys:
+The response consists of three JSON keys:
 
+* ``urim`` - the URI-M detected by MementoEmbed
 * ``content`` - HTML containing a formatted error message for inclusion in a web page
 * ``error details`` - this provides a Traceback of the MementoEmbed application that may be useful for diagnosing the error if it is a failure in the application
 
@@ -45,9 +47,9 @@ On success, this service produces an HTTP 200 response with a MIME-type of ``app
 
     {
     "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
-    "generation-time": "2018-07-20T16:27:10Z",
+    "generation-time": "2020-04-20T22:59:52Z",
     "title": "Blast Theory",
-    "snippet": "Sam Pearson and Clara Garcia Fraile are in residence for one month Sam Pearson and Clara Garcia Fraile are in residence for one month working on a new project called In My Shoes. They are developin",
+    "snippet": "Sam Pearson and Clara Garcia Fraile are in residence for one month Sam Pearson and Clara Garcia Fraile are in residence for one month working on a new project called In My Shoes. They are developin...",
     "memento-datetime": "2009-05-22T22:12:51Z"
     }
 
@@ -59,9 +61,9 @@ Endpoint: ``/services/memento/bestimage/<URI-M>``
 On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about the image selected by the image selection algorithm::
 
     {
-        "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
-        "best-image-uri": "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/dotf/Untitled-1.jpg",
-        "generation-time": "2019-06-05T19:19:36Z"
+    "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
+    "best-image-uri": "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/dotf/Untitled-1.jpg",
+    "generation-time": "2020-04-20T23:00:19Z"
     }
 
 Image data
@@ -74,35 +76,46 @@ This service exposes the information used to rank images for selection with soci
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
         "processed urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http://blasttheory.co.uk/",
-        "generation-time": "2019-05-30T03:19:08Z",
+        "generation-time": "2020-04-20T23:01:00Z",
         "images": {
-            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/bt_logo.gif": {
-                "content-type": "image/gif",
-                "magic type": "GIF image data, version 89a, 169 x 28",
-                "imghdr type": "gif",
-                "width": 169,
-                "height": 28,
-                "blank columns in histogram": 14,
-                "size in pixels": 4732,
-                "ratio width/height": 6.035714285714286,
-                "byte size": 2346,
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/uncleroy/ur_icon.jpg": {
+                "source": "body",
+                "content-type": "image/jpeg",
+                "is-a-memento": true,
+                "magic type": "JPEG image data, JFIF standard 1.02, aspect ratio, density 100x100, segment length 16, progressive, precision 8, 168x96, components 3",
+                "imghdr type": "jpeg",
+                "format": "JPEG",
+                "mode": "RGB",
+                "width": 168,
+                "height": 96,
+                "blank columns in histogram": 463,
+                "size in pixels": 16128,
+                "ratio width/height": 1.75,
+                "byte size": 1979,
+                "colorcount": 4776,
+                "pHash": "f771185c8c86c667",
+                "aHash": "00008085f7ffffff",
+                "dHash_horizontal": "0c1b4b0d0d2c2c4d",
+                "dHash_vertical": "cbf7ffffffffffff",
+                "wHash": "00008080e7ffffff",
                 "N": 14,
-                "n": 1,
+                "n": 11,
                 "k1": 0.1,
                 "k2": 0.4,
                 "k3": 10,
                 "k4": 0.5,
-                "calculated score": 1751.082142857143
+                "k5": 10,
+                "calculated score": 49580.625
             },
             ... other records omitted for brevity ...
         },
         "ranked images": [
             "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/dotf/Untitled-1.jpg",
-            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/cysmn/cy_icon.jpg",
-            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/trucold/trucold_icon.jpg",
             "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/yougetme/ygm_icon.jpg",
-            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/ulrikeandeamon/ulrikeandeamon_small.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/cysmn/cy_icon.jpg",
             "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/rider_spoke/rs_icon.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/ulrikeandeamon/ulrikeandeamon_small.jpg",
+            "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/trucold/trucold_icon.jpg",
             "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/i/uncleroy/ur_icon.jpg",
             "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/bt_logo.gif",
             "https://www.webarchive.org.uk/wayback/archive/20090522221251im_/http:/blasttheory.co.uk/bt/pe/latest.gif",
@@ -153,7 +166,7 @@ On success, this service produces an HTTP 200 response with a MIME-type of ``app
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
-        "generation-time": "2019-06-05T19:18:18Z",
+        "generation-time": "2020-04-20T23:02:19Z",
         "archive-uri": "https://www.webarchive.org.uk",
         "archive-name": "WEBARCHIVE.ORG.UK",
         "archive-favicon": "https://www.webarchive.org.uk/favicon.ico",
@@ -162,7 +175,7 @@ On success, this service produces an HTTP 200 response with a MIME-type of ``app
         "archive-collection-uri": null
     }
 
-If the archive collection information is not available, those values are filled with ``null``. Collection information is only currently available for Archive-It and Webrecorder collections.
+If the archive collection information is not available, those values are filled with ``null``. Collection information is only currently available for Archive-It collections.
 
 Original Resource data
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -173,7 +186,7 @@ On success, this service produces an HTTP 200 response with a MIME-type of ``app
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
-        "generation-time": "2018-07-20T16:36:48Z",
+        "generation-time": "2020-04-20T23:02:46Z",
         "original-uri": "http://blasttheory.co.uk/",
         "original-domain": "blasttheory.co.uk",
         "original-favicon": "https://www.blasttheory.co.uk/wp-content/themes/blasttheory/images/bt_icon.ico",
@@ -189,14 +202,14 @@ On success, this service produces an HTTP 200 response with a MIME-type of ``app
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
-        "generation-time": "2019-05-04T16:16:55Z",
+        "generation-time": "2020-04-20T17:05:51Z",
         "timemap": "https://www.webarchive.org.uk/wayback/archive/timemap/link/http://blasttheory.co.uk/",
         "original-url": "http://blasttheory.co.uk/",
-        "memento-count": 80,
+        "memento-count": 87,
         "first-memento-datetime": "2009-05-22T22:12:30Z",
         "first-urim": "https://www.webarchive.org.uk/wayback/archive/20090522221230mp_/http://www.blasttheory.co.uk/",
-        "last-memento-datetime": "2019-04-01T04:42:08Z",
-        "last-urim": "https://www.webarchive.org.uk/wayback/archive/20190401044208mp_/https://www.blasttheory.co.uk/",
+        "last-memento-datetime": "2019-07-01T11:21:37Z",
+        "last-urim": "https://www.webarchive.org.uk/wayback/archive/20190701112137mp_/https://www.blasttheory.co.uk/",
         "metadata": {}
     }
 
@@ -206,10 +219,10 @@ For Archive-It mementos, the ``application-json`` contains the metadata supplied
 
     {
         "urim": "https://wayback.archive-it.org/2358/20110213141707/http://twitter.com/DailyNewsEgypt/",
-        "generation-time": "2019-05-04T16:16:22Z",
+        "generation-time": "2020-04-20T17:05:34Z",
         "timemap": "https://wayback.archive-it.org/2358/timemap/link/http://twitter.com/DailyNewsEgypt/",
         "original-url": "http://twitter.com/DailyNewsEgypt/",
-        "memento-count": 223,
+        "memento-count": 216,
         "first-memento-datetime": "2011-02-13T14:17:07Z",
         "first-urim": "https://wayback.archive-it.org/2358/20110213141707/http://twitter.com/DailyNewsEgypt",
         "last-memento-datetime": "2014-12-04T14:01:29Z",
@@ -217,9 +230,6 @@ For Archive-It mementos, the ``application-json`` contains the metadata supplied
         "metadata": [
             {
                 "title": "The Daily News Egypt on Twitter",
-                "videos": [
-                    "912 Videos Captured"
-                ],
                 "subject": [
                     "Revolutions--Egypt",
                     "Social media--Political aspects"
@@ -245,24 +255,9 @@ For Archive-It mementos, the ``application-json`` contains the metadata supplied
         ]
     }
 
-
 Note that the ``metadata`` key is a list. Sometimes an Archive-It collection contains the same seed multiple times. Each instance of the same seed will be a separate list entry in value for the ``metadata`` key.
 
-If data on other mementos at the archive is not available, then a ``seeddata-error`` key will exist, the ``memento-count``, ``first-urim``, ``last-urim``, ``first-memento-datetime``, and ``last-memento-datetime`` values will be set to ``null``::
-
-    {
-        "urim": "https://webrecorder.io/despens/bear-with-me/list/bookmarks/b1/20170318154741/http://bearwithme.theater/archive/",
-        "generation-time": "2019-07-10T21:17:52Z",
-        "timemap": "https://content.webrecorder.io/despens/bear-with-me/list/bookmarks/b1/timemap/link/http://bearwithme.theater/archive/",
-        "original-url": "http://bearwithme.theater/archive/",
-        "memento-count": null,
-        "seeddata-error": "There was an issue processing the TimeMap discovered at https://content.webrecorder.io/despens/bear-with-me/list/bookmarks/b1/timemap/link/http://bearwithme.theater/archive/",
-        "first-memento-datetime": null,
-        "first-urim": null,
-        "last-memento-datetime": null,
-        "last-urim": null,
-        "metadata": {}
-    }
+If data on other mementos at the archive is not available, then a ``seeddata-error`` key will exist, the ``memento-count``, ``first-urim``, ``last-urim``, ``first-memento-datetime``, and ``last-memento-datetime`` values will be set to ``null``.
 
 Paragraph ranking
 ~~~~~~~~~~~~~~~~~
@@ -273,7 +268,7 @@ On success, this service provides an HTTP 200 response with a MIME-type of ``app
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
-        "generation-time": "2019-06-03T21:24:46Z",
+        "generation-time": "2020-04-20T23:08:46Z",
         "algorithm": "readability",
         "scored paragraphs": [
             {
@@ -311,7 +306,7 @@ On success, this service provides an HTTP 200 response with a MIME-type of ``app
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
-        "generation-time": "2019-06-03T21:34:03Z",
+        "generation-time": "2020-04-20T23:09:26Z",
         "paragraph scoring algorithm": "readability",
         "sentence ranking algorithm": "lede3",
         "scored sentences": [
@@ -376,42 +371,18 @@ Social Cards
 
 Endpoint: ``/services/product/socialcard/<URI-M>``
 
-On success, the social card service produces an HTTP 200 status response containing a social card with a MIME-type of ``text/html``. This HTML is suitable for inclusion into a web page::
+On success, the social card service produces an HTTP 200 status response containing a social card with a MIME-type of ``text/html``. This HTML is suitable for inclusion into a web page. Previous versions of MementoEmbed produced cards that rendered with JavaScript. The current version produces full HTML cards by default, with no remote JavaScript required.
 
-    <blockquote
-        class="mementoembed"
-        data-versionurl="https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/"
-        data-originalurl="http://blasttheory.co.uk/" 
-        data-surrogate-creation-time="2018-07-20T16:08:40Z" 
-        data-image="https://www.webarchive.org.uk/wayback/archive/20090522221251/http:/blasttheory.co.uk/bt/i/yougetme/ygm_icon.jpg" 
-        data-archive-name="WEBARCHIVE.ORG.UK" data-archive-favicon="https://www.webarchive.org.uk/ukwa/static/images/ukwa-icon-16.png" 
-        data-archive-uri="https://www.webarchive.org.uk" 
-        data-archive-collection-id="None" 
-        data-archive-collection-uri="None" 
-        data-archive-collection-name="None" 
-        data-original-favicon="https://www.blasttheory.co.uk/wp-content/themes/blasttheory/images/bt_icon.ico" 
-        data-original-domain="blasttheory.co.uk" 
-        data-original-link-status="Live" 
-        data-versiondate="2009-05-22 22:12:51 GMT" 
-        style="width: 500px; font-size: 12px; border: 1px solid rgb(231, 231, 231);">
-        <div class="me-textright">
-            <p class="me-title"><a class="me-title-link" href="https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/">Blast Theory</a>
-            </p>
-            <p class="me-snippet">Sam Pearson and Clara Garcia Fraile are in residence for one month Sam Pearson and Clara Garcia Fraile are in residence for one month working on a new project called In My Shoes. They are developin
-            </p>
-            </div>
-    </blockquote>
-    <script async src="http://mementoembed.ws-dl.cs.odu.edu/static/js/mementoembed-v20180806.js" charset="utf-8"></script>
+.. image:: images/socialcard-example.png
 
+One could conceivably use the output of this endpoint as an argument to the ``src`` attribute in an HTML ``<iframe>`` tag, but we do not recommend this. The use of this content in an ``<iframe>`` introduces a dependency on the MementoEmbed service which may impact your user's experience. The HTML is intended to be downloaded and included separately.
 
-One could conceivably use the output of this endpoint as an argument to the ``src`` attribute in an HTML ``<iframe>`` tag, but we do not recommend this. The HTML is intended to be downloaded and included separately.
-
-On failure, the thumbnail service produces a response with a MIME-type of ``application/json`` that includes the nature of the failure::
+On failure, the social card service produces a response with a MIME-type of ``application/json`` that includes the nature of the failure::
 
     {
-
-    "content": "<div class=\"row\">\n    <div class=\"col\">\n        <p style=\"text-align: left;\">The URL you supplied ( <a href=\"http://example.com)\">http://example.com</a> ) is not a memento or comes from an archive that is not Memento-Compliant.</p>\n        <p style=\"text-align: left;\">\n            For a live web resource, you can create a memento that resides on the web in the following ways:\n            <ul>\n                <li style=\"text-align: left;\">Using the <a href=\"https://web.archive.org\">Internet Archive's Save Page Now button.</a></li>\n                <!-- <li style=\"text-align: left;\">Saving the web page at Archive.is</li> -->\n                <li style=\"text-align: left;\">Using the <a href=\"https://github.com/oduwsdl/archivenow\">ArchiveNow</a> utility.</li>\n                <li style=\"text-align: left;\">Using a browser plugin, like <a href=\"https://chrome.google.com/webstore/detail/mink-integrate-live-archi/jemoalkmipibchioofomhkgimhofbbem?hl=en-US\">Mink</a>.</li>\n            </ul>\n\n        </p>\n        <p style=\"text-align: center; font-weight: bold;\">Happy Memento Making! \ud83d\ude00</p>\n    </div>\n</div>\n",
-    "error details": "'Traceback (most recent call last):\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementoresource.py\", line 80, in get_memento_datetime_from_response\\n    response.headers[\\'memento-datetime\\'],\\n  File \"/usr/local/lib/python3.6/site-packages/requests/structures.py\", line 54, in __getitem__\\n    return self._store[key.lower()][1]\\nKeyError: \\'memento-datetime\\'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/services/errors.py\", line 26, in handle_errors\\n    return function_name(urim)\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/services/product.py\", line 57, in generate_socialcard_response\\n    httpcache\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementosurrogate.py\", line 26, in __init__\\n    self.memento = memento_resource_factory(self.urim, self.httpcache)\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementoresource.py\", line 222, in memento_resource_factory\\n    memento_dt = get_memento_datetime_from_response(response)\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/mementoresource.py\", line 85, in get_memento_datetime_from_response\\n    response=response, original_exception=e)\\nmementoembed.mementoresource.NotAMementoError: no memento-datetime header\\n'"
+        "urim": "http://example.com",
+        "content": "<div class=\"row\">\n    <div class=\"col\">\n        <p style=\"text-align: left;\">The URL you supplied ( <a href=\"http://example.com)\">http://example.com</a> ) is not a memento or comes from an archive that is not Memento-Compliant.</p>\n        <p style=\"text-align: left;\">\n            For a live web resource, you can create a memento that resides on the web in the following ways:\n            <ul>\n                <li style=\"text-align: left;\">Using the <a href=\"https://web.archive.org\">Internet Archive's Save Page Now button.</a></li>\n                <!-- <li style=\"text-align: left;\">Saving the web page at Archive.is</li> -->\n                <li style=\"text-align: left;\">Using the <a href=\"https://github.com/oduwsdl/archivenow\">ArchiveNow</a> utility.</li>\n                <li style=\"text-align: left;\">Using a browser plugin, like <a href=\"https://chrome.google.com/webstore/detail/mink-integrate-live-archi/jemoalkmipibchioofomhkgimhofbbem?hl=en-US\">Mink</a>.</li>\n            </ul>\n\n        </p>\n        <p style=\"text-align: center; font-weight: bold;\">Happy Memento Making! \ud83d\ude00</p>\n    </div>\n</div>\n",
+        "error details": "'Traceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 89, in get_memento_datetime_from_response\\n    response.headers[\\'memento-datetime\\'],\\n  File \"/Users/smj/.virtualenvs/MementoEmbed/lib/python3.7/site-packages/requests/structures.py\", line 52, in __getitem__\\n    return self._store[key.lower()][1]\\nKeyError: \\'memento-datetime\\'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/errors.py\", line 28, in handle_errors\\n    return function_name(urim, preferences)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/product.py\", line 94, in generate_socialcard_response\\n    default_image_uri=current_app.config[\\'DEFAULT_IMAGE_URI\\']\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementosurrogate.py\", line 26, in __init__\\n    self.memento = memento_resource_factory(self.urim, self.httpcache)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 267, in memento_resource_factory\\n    memento_dt = get_memento_datetime_from_response(response)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 100, in get_memento_datetime_from_response\\n    response=response, original_exception=e)\\nmementoembed.mementoresource.NotAMementoError: no memento-datetime header\\n'"
     }
 
 **Specifying desired options for the social card with HTTP Prefer**
@@ -454,12 +425,14 @@ On success, the thumbnail service produces an HTTP 200 status response containin
 On failure, the thumbnail service produces an HTTP 500 status response with a MIME-type of `application/json` that indicates the nature of the failure::
 
     {
-        "error": "a thumbnail failed to generate in 30 seconds",
-        "error details": "'Traceback (most recent call last):\\n  File \"/usr/local/lib/python3.6/site-packages/mementoembed/services/product.py\", line 109, in thumbnail_endpoint\\n    p.wait(timeout=timeout)\\n  File \"/usr/local/lib/python3.6/subprocess.py\", line 1449, in wait\\n    raise TimeoutExpired(self.args, timeout)\\nsubprocess.TimeoutExpired: Command \\'[\\'node\\', \\'mementoembed/static/js/create_screenshot.js\\']\\' timed out after 30 seconds\\n'"
+        "urim": "http://example.notadomain",
+        "error": "a thumbnail failed to generated in 300 seconds", 
+        "error details": "'Traceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementothumbnail.py\", line 227, in generate_thumbnail\\n    p.wait(timeout=self.timeout)\\n  File \"/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/subprocess.py\", line 1019, in wait\\n    return self._wait(timeout=timeout)\\n  File \"/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/subprocess.py\", line 1645, in _wait\\n    raise TimeoutExpired(self.args, timeout)\\nsubprocess.TimeoutExpired: Command \\'[\\'node\\', \\'mementoembed/static/js/create_screenshot.js\\']\\' timed out after 300 seconds\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/product.py\", line 398, in thumbnail_endpoint\\n    data = mt.generate_thumbnail(urim, remove_banner=remove_banner)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementothumbnail.py\", line 261, in generate_thumbnail\\n    \"Thumbnail script failed to return after {} seconds\".format(self.timeout))\\nmementoembed.mementothumbnail.MementoThumbnailGenerationError: Thumbnail script failed to return after 300 seconds\\n'"
     }
 
-This response contains two keys:
+This response contains three JSON keys:
 
+* ``urim`` - the URI-M detected by MementoEmbed
 * ``error`` - this provides an explanation of the failure
 * ``error details`` - this provides a Traceback of the MementoEmbed application that may be useful for diagnosing the error if it is a failure in the application
 
@@ -493,6 +466,7 @@ The following options are supported:
 * ``thumbnail_width`` - the width of the thumbnail in pixels, the thumbnail will be reduced in size to meet this requirement (upper bound is 5210px)
 * ``thumbnail_height`` - the height of the thumbnail in pixels, the thumbnail will be reduced in size to meet this requirement (upper bound is 2880px)
 * ``timeout`` - how long MementoEmbed should wait for the thumbnail to finish generating before issuing an error (upper bound is 5 minutes)
+* ``remove_banner`` - if set to ``yes``, this instructs MementoEmbed to try and remove the archive-specific banner placed on the memento prior to taking the screenshot
 
 If the viewport size requested is less than the thumbnail size, the thumbnail size will match the viewport size.
 
@@ -507,15 +481,24 @@ On success, the imagereel service produces an HTTP 200 status response containin
 
 .. image:: images/imagereel-example.gif
 
+The following options are supported:
+
+* ``duration`` - the length, in seconds, between image transitions, including fades
+* ``imagecount`` - the maximum number of images to include in the imagereel
+* ``width`` - the width of the imagereel in pixels
+* ``height`` - the height of the imagereel in pixels
+
 On failure, the thumbnail service produces an HTTP 500 status response with a MIME-type of `application/json` that indicates the nature of the failure::
 
     {
+        "urim": "https://www.cnn.com",
         "content": "<div class=\"row\">\n    <div class=\"col\">\n        <p style=\"text-align: left;\">The URL you supplied ( <a href=\"https://www.cnn.com)\">https://www.cnn.com</a> ) is not a memento or comes from an archive that is not Memento-Compliant.</p>\n        <p style=\"text-align: left;\">\n            For a live web resource, you can create a memento that resides on the web in the following ways:\n            <ul>\n                <li style=\"text-align: left;\">Using the <a href=\"https://web.archive.org\">Internet Archive's Save Page Now button.</a></li>\n                <!-- <li style=\"text-align: left;\">Saving the web page at Archive.is</li> -->\n                <li style=\"text-align: left;\">Using the <a href=\"https://github.com/oduwsdl/archivenow\">ArchiveNow</a> utility.</li>\n                <li style=\"text-align: left;\">Using a browser plugin, like <a href=\"https://chrome.google.com/webstore/detail/mink-integrate-live-archi/jemoalkmipibchioofomhkgimhofbbem?hl=en-US\">Mink</a>.</li>\n            </ul>\n\n        </p>\n        <p style=\"text-align: center; font-weight: bold;\">Happy Memento Making! \ud83d\ude00</p>\n    </div>\n</div>\n",
-        "error details": "'Traceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 88, in get_memento_datetime_from_response\\n    response.headers[\\'memento-datetime\\'],\\n  File \"/Users/smj/.virtualenvs/MementoEmbed/lib/python3.7/site-packages/requests/structures.py\", line 52, in __getitem__\\n    return self._store[key.lower()][1]\\nKeyError: \\'memento-datetime\\'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/errors.py\", line 28, in handle_errors\\n    return function_name(urim, preferences)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/product.py\", line 185, in generate_imagereel_response\\n    int(prefs[\\'height\\'])\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoimagereel.py\", line 36, in generate_imagereel\\n    memento = memento_resource_factory(urim, self.httpcache)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 240, in memento_resource_factory\\n    memento_dt = get_memento_datetime_from_response(response)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 99, in get_memento_datetime_from_response\\n    response=response, original_exception=e)\\nmementoembed.mementoresource.NotAMementoError: no memento-datetime header\\n'"
+        "error details": "'Traceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 89, in get_memento_datetime_from_response\\n    response.headers[\\'memento-datetime\\'],\\n  File \"/Users/smj/.virtualenvs/MementoEmbed/lib/python3.7/site-packages/requests/structures.py\", line 52, in __getitem__\\n    return self._store[key.lower()][1]\\nKeyError: \\'memento-datetime\\'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/errors.py\", line 28, in handle_errors\\n    return function_name(urim, preferences)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/services/product.py\", line 180, in generate_imagereel_response\\n    int(prefs[\\'height\\'])\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoimagereel.py\", line 36, in generate_imagereel\\n    memento = memento_resource_factory(urim, self.httpcache)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 267, in memento_resource_factory\\n    memento_dt = get_memento_datetime_from_response(response)\\n  File \"/Volumes/nerfherder External/Unsynced-Projects/MementoEmbed/mementoembed/mementoresource.py\", line 100, in get_memento_datetime_from_response\\n    response=response, original_exception=e)\\nmementoembed.mementoresource.NotAMementoError: no memento-datetime header\\n'"
     }
 
-This response contains two keys:
+This response contains three JSON keys:
 
+* ``urim`` - the URI-M detected by MementoEmbed
 * ``error`` - this provides an explanation of the failure
 * ``error details`` - this provides a Traceback of the MementoEmbed application that may be useful for diagnosing the error if it is a failure in the application
 
@@ -550,3 +533,41 @@ The following options are supported:
 * ``height`` - the height of the imagereel in pixels
 
 If the imagereel height is not specified, the ratio of width to height of the viewport will be used to calculate the height of the thumbnail.
+
+Word Clouds
+~~~~~~~~~~
+
+Endpoint: ``/services/product/wordcloud/<URI-M>``
+
+On success, the wordcloud service produces an HTTP 200 status response containing a wordcloud with a MIME-type of ``image/png``.
+
+.. image:: images/wordcloud-example.png
+
+**Specifying desired options for the imagreel with HTTP Prefer**
+
+The following options are supported:
+
+* ``colormap`` - the `matplotlib colormap <https://matplotlib.org/tutorials/colors/colormaps.html>`_ of the Word Cloud (default: ``inferno``)
+* ``background_color`` - the background color of the word cloud (default: ``white``)
+* ``textonly`` - instead of a word cloud, generate a list of words that would have been included (default: ``no``)
+
+Docreels
+~~~~~~~~
+
+Endpoint: ``/services/product/docreel/<URI-M>``
+
+Docreels are an experimental mixture of the top ranked sentences and the top ranked images from a page. They may take a long time to generate.
+
+On success, the docreel service produces an HTTP 200 status response containing a docreel with a MIME-type of ``image/gif``.
+
+.. image:: images/docreel-example.gif
+
+**Specifying desired options for the imagreel with HTTP Prefer**
+
+The following options are supported for docreel:
+
+* ``duration`` - the duration between transitions, including fades
+* ``imagecount`` - the number of images to include
+* ``sentencecount`` - the number of sentences to include
+* ``width`` - the width of the docreel in pixels
+* ``height`` - the height of the docreel in pixels
