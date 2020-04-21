@@ -146,19 +146,19 @@ class TestImageSelection(unittest.TestCase):
                     data = f.read()
                     uri = "http://example.com/images/image1.test"
                     self.uri_to_content[uri] = data
-                    self.uri_to_headers[uri] = {'content-type': 'image/testing'}
+                    self.uri_to_headers[uri] = {'content-type': 'image/testing', 'memento-datetime': 'cheese'}
 
                 with open("{}/mm_1b.gif".format(imagedir), 'rb') as f:
                     data = f.read()
                     uri = "https://example2.com/myimage.test"
                     self.uri_to_content[uri] = data
-                    self.uri_to_headers[uri] = {'content-type': 'image/testing'}
+                    self.uri_to_headers[uri] = {'content-type': 'image/testing', 'memento-datetime': 'cheese'}
 
                 with open("{}/serbia.184.1.jpg".format(imagedir), 'rb') as f:
                     data = f.read()
                     uri = "http://example.com/images/image2.test"
                     self.uri_to_content[uri] = data
-                    self.uri_to_headers[uri] = {'content-type': 'image/testing'}
+                    self.uri_to_headers[uri] = {'content-type': 'image/testing', 'memento-datetime': 'cheese'}
 
                 uri = "http://example.com/example.html"
                 self.uri_to_content[uri] = htmlcontent

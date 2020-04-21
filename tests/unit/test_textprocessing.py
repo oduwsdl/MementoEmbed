@@ -185,7 +185,7 @@ class TestTextProcessing(unittest.TestCase):
 
     def test_snippet_nocontent(self):
         """
-            We fall back to other methods if no snippet.
+            We deliver an empty snippet if no metadata and no content.
         """
 
         expectedsnippet = ""
@@ -202,7 +202,7 @@ class TestTextProcessing(unittest.TestCase):
     def test_snippet_toolong(self):
 
         reallylongstring = "a" * 200
-        expectedsnippet = reallylongstring[0:197]
+        expectedsnippet = reallylongstring[0:197] + '...'
 
         htmlcontent = """<html>
         <head>
@@ -217,7 +217,7 @@ class TestTextProcessing(unittest.TestCase):
     def test_snippet_empty_twitter_metatag(self):
 
         reallylongstring = "a" * 200
-        expectedsnippet = reallylongstring[0:197]
+        expectedsnippet = reallylongstring[0:197] + '...'
 
         htmlcontent = """<html>
         <head>
@@ -233,7 +233,7 @@ class TestTextProcessing(unittest.TestCase):
     def test_snippet_empty_ogp_metatag(self):
 
         reallylongstring = "a" * 200
-        expectedsnippet = reallylongstring[0:197]
+        expectedsnippet = reallylongstring[0:197] + '...'
 
         htmlcontent = """<html>
         <head>

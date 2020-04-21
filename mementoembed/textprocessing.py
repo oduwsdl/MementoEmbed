@@ -1,5 +1,6 @@
 import re
 import logging
+import string
 
 from bs4 import BeautifulSoup
 from readability import Document
@@ -401,9 +402,16 @@ def extract_text_snippet(htmlcontent):
 
     # 3. use readability or justext
     if snippet is None:
-        snippet = get_best_description(htmlcontent)
+        snippet = get_best_description(htmlcontent)[0:197]
 
-    return snippet[0:197]
+        print("SNIPPET: {}".format(snippet))
+
+        if len(snippet) > 0:
+
+            if snippet[-1] not in string.punctuation:
+                snippet += '...'
+
+    return snippet
 
 
 def extract_title(htmlcontent):
