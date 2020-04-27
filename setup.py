@@ -24,7 +24,7 @@ setup(
         'imageio==2.5.0',
         'ImageHash==4.0',
         'justext==2.2.0',
-        'Pillow==5.2.0',
+        'Pillow==6.2.2',
         'python-datauri==0.2.8',
         'python-magic==0.4.15',
         'readability-lxml==0.7',

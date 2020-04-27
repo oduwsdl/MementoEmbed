@@ -160,6 +160,39 @@ def scores_for_image(imagecontent, n, N):
 
     return imagedata
 
+def get_image_with_timegate(base_uri, imageuri, http_cache):
+
+    new_imageuri = None
+
+    r = http_cache.get(base_uri)
+
+    try:
+        urig = r.links['timegate']['url']
+        urir = r.links['original']['url']
+    except Exception:
+        module_logger.exception("Failed to extract values from link headers from base URI {} -- headers: {}".format(base_uri, r.headers))
+        return new_imageuri
+
+    if urir in urig:
+        module_logger.info("URI-R of page is in URI-G, replacing with image URI-R")
+
+        image_urig = urig.replace(urir, imageuri)
+
+        module_logger.info("new URI-G is {}".format(image_urig))
+
+        r = http_cache.get(image_urig)
+
+        module_logger.info("status code from URI-G was {}".format(r.status_code))
+
+        if r.status_code == 200:
+            module_logger.info("discovered image {} through timegate with a 200 status code".format(r.url))
+
+            if 'memento-datetime' in r.headers:
+                module_logger.info("confirmed that image {} is a memento, returning it".format(r.url))
+                new_imageuri = r.url
+
+    return new_imageuri
+
 def get_image_list(uri, http_cache):
 
     module_logger.debug("extracting images from the HTML of URI {}".format(uri))
@@ -196,11 +229,13 @@ def get_image_list(uri, http_cache):
     
     return image_list
 
-def generate_images_and_scores(uri, http_cache, futuressession=None):
+def generate_images_and_scores(baseuri, http_cache, futuressession=None):
+
+    # TODO: this function works, but it is a nightmare at this point - break it up somehow
 
     module_logger.debug("generating list of images and computing their scores")
 
-    base_image_list = get_image_list(uri, http_cache)
+    base_image_list = get_image_list(baseuri, http_cache)
 
     images_and_scores = {}
 
@@ -211,7 +246,7 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
     image_position = {}
 
     if futuressession is None:
-        module_logger.debug("creating FuturesSession for images from uri {}".format(uri))
+        module_logger.debug("creating FuturesSession for images from uri {}".format(baseuri))
         futuressession = FuturesSession(session=http_cache)
 
     timeout = http_cache.timeout # in case we fall into a crawler trap (CNN?)
@@ -231,20 +266,20 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
             image_position[imageuri] = base_image_list.index(imageuri)
 
     # metadata_image_url, metadata_image_field = get_image_from_metadata(uri, http_cache)
-    metadata_images = get_image_from_metadata(uri, http_cache)
+    metadata_images = get_image_from_metadata(baseuri, http_cache)
 
     module_logger.info("discovered {} images in metadata".format(len(metadata_images)))
 
     if len(metadata_images) > 0:
 
-        for uri in metadata_images.keys():
+        for imageuri in metadata_images.keys():
 
-            if uri[0:5] != 'data:':
+            if imageuri[0:5] != 'data:':
 
-                if uri not in working_image_list:
-                    futures[uri] = futuressession.get(uri)
-                    starttimes[uri] = datetime.datetime.now()
-                    working_image_list.append(uri)
+                if imageuri not in working_image_list:
+                    futures[imageuri] = futuressession.get(imageuri)
+                    starttimes[imageuri] = datetime.datetime.now()
+                    working_image_list.append(imageuri)
 
     def imageuri_generator(imagelist):
 
@@ -270,8 +305,8 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
             images_and_scores[imageuri]['source_fields'] = metadata_images[imageuri]
 
         if imageuri in list(metadata_images.keys()) and image_source == "metadata":
-            n = 0
-            N = 0
+            n = -1
+            N = len(base_image_list)
         else:
             n = image_position[imageuri]
             N = len(base_image_list)
@@ -286,7 +321,6 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                 images_and_scores[imageuri]['magic type'] = magic.from_buffer(datainput.data)
                 images_and_scores[imageuri]['imghdr type'] = imghdr.what(None, datainput.data)
                 images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
-                
 
                 if 'metadata' in images_and_scores[imageuri]['source']:
                     images_and_scores[imageuri]['source_field'] = metadata_images[imageuri]
@@ -294,8 +328,8 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                 images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
                 
             except (binascii.Error, IOError, TypeError) as e:
-                module_logger.exception("cannot process data image URI discovered in base page at {}, skipping...".format(uri))
-                images_and_scores[imageuri]['error'] = e
+                module_logger.exception("cannot process data image URI {} discovered in base page at {}, skipping...".format(imageuri, baseuri))
+                images_and_scores[imageuri]['error'] = repr(e)
 
             working_image_list.remove(imageuri)
 
@@ -311,8 +345,8 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                     module_logger.exception(
                         "Failed to download image URI {}, skipping...".format(imageuri)
                     )
-                    # images_and_scores[imageuri] = "Image could not be downloaded"
-                    images_and_scores[imageuri]['error'] = e
+
+                    images_and_scores[imageuri]['error'] = repr(e)
                     working_image_list.remove(imageuri)
                     del futures[imageuri]
                     continue
@@ -323,6 +357,39 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
                     module_logger.debug("extracting image content type information from {}".format(imageuri))
 
+                    images_and_scores[imageuri]['is-a-memento'] = False
+
+                    imagecontent = r.content
+
+                    if 'memento-datetime' in r.headers:
+                        images_and_scores[imageuri]['is-a-memento'] = True
+                    else:
+                        # not all image links get rewritten 
+                        module_logger.warning("image {} from {} is not a memento, attempting datetime negotiation to find a memento".format(imageuri, baseuri))
+                        new_imageuri = get_image_with_timegate(baseuri, imageuri, http_cache)
+
+                        if new_imageuri is not None:
+
+                            # remove the old record
+                            del images_and_scores[imageuri]
+                            del futures[imageuri]
+                            working_image_list.remove(imageuri)
+
+                            # create a new record for the memento
+                            images_and_scores.setdefault(new_imageuri, {})
+                            images_and_scores[new_imageuri]['is-a-memento'] = True
+                            images_and_scores[new_imageuri] = {}
+                            image_source = find_image_source(new_imageuri, list(metadata_images.keys()), base_image_list)
+                            images_and_scores[new_imageuri]['source'] = image_source
+
+                            # so the rest of the existing code will flow smoothly
+                            working_image_list.append(new_imageuri)
+                            futures[new_imageuri] = None
+
+                            r = http_cache.get(new_imageuri)
+                            imagecontent = r.content
+                            imageuri = new_imageuri
+
                     try:
                         images_and_scores[imageuri]["content-type"] = r.headers['content-type']
                     except KeyError:
@@ -332,18 +399,11 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
                         # images_and_scores[imageuri]["content-type"] = "No content type for image"
                         images_and_scores[imageuri]['error'] = "No content type for image"
 
-                    images_and_scores[imageuri]['is-a-memento'] = False
-
-                    if 'memento-datetime' in r.headers:
-                        images_and_scores[imageuri]['is-a-memento'] = True
-                        # images_and_scores[imageuri]['http-headers'] = dict(r.headers)
-
-                    imagecontent = r.content
-
                     try:
                         images_and_scores[imageuri]["magic type"] = \
-                            magic.from_buffer(r.content)
+                            magic.from_buffer(imagecontent)
                     except Exception as e:
+                        module_logger.exception("failed to determine magic type of {}".format(imageuri))
                         images_and_scores[imageuri]["magic type"] = "ERROR: {}".format(e)
 
                     images_and_scores[imageuri]["imghdr type"] = \
@@ -353,16 +413,10 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
                         try:
                             module_logger.debug("acquiring scores for image {}".format(imageuri))
-                            # images_and_scores[imageuri]['source'] = image_source
-
-                            # if 'metadata' in images_and_scores[imageuri]['source']:
-                            #     images_and_scores[imageuri]['source_fields'] = metadata_images[imageuri]
-                            
                             images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
                         except IOError as e:
-                            # images_and_scores[imageuri] = None
-                            images_and_scores[imageuri]['error'] = e
+                            images_and_scores[imageuri]['error'] = repr(e)
 
                         working_image_list.remove(imageuri)
                         del futures[imageuri]
@@ -373,16 +427,12 @@ def generate_images_and_scores(uri, http_cache, futuressession=None):
 
                         try:
                             module_logger.debug("acquiring scores for image {}".format(imageuri))
-                            # images_and_scores[imageuri]['source'] = image_source
-
-                            # if 'metadata' in images_and_scores[imageuri]['source']:
-                            #     images_and_scores[imageuri]['source_fields'] = metadata_images[imageuri]
 
                             images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
                         except IOError:
                             # images_and_scores[imageuri] = None
-                            images_and_scores[imageuri]['error'] = e
+                            images_and_scores[imageuri]['error'] = repr(e)
 
                         working_image_list.remove(imageuri)
                         del futures[imageuri]
@@ -489,32 +539,14 @@ def get_best_scoring_image(uri, http_cache, futuressession=None):
                 return metadata_image_url
 
             else:
+                # not all image links get rewritten
+                # TODO: put this in a function
                 module_logger.info("metadata image was discovered as an original resource, attempting datetime negotiation...")
 
-                r = http_cache.get(uri)
-                urig = r.links['timegate']['url']
-                urir = r.links['original']['url']
+                metadata_image_url = get_image_with_timegate(uri, metadata_image_url, http_cache)
 
-                module_logger.info("discovered URI-G of page at {}".format(urig))
-                
-                if urir in urig:
-
-                    module_logger.info("URI-R of page is in URI-G, replacing with image URI-R")
-
-                    image_urig = urig.replace(urir, metadata_image_url)
-
-                    module_logger.info("new URI-G is {}".format(image_urig))
-
-                    r = http_cache.get(image_urig)
-
-                    module_logger.info("status code from URI-G was {}".format(r.status_code))
-
-                    if r.status_code == 200:
-                        module_logger.info("discovered metadata image {} through timegate with a 200 status code".format(r.url))
-
-                        if 'memento-datetime' in r.headers:
-                            module_logger.info("confirmed that metadata image {} is a memento, returning it".format(r.url))
-                            return r.url
+                if metadata_image_url is not None:
+                    return metadata_image_url
 
     scorelist = []
 
