@@ -214,9 +214,25 @@ def get_image_list(uri, http_cache):
 
         try:
             for imgtag in soup.find_all("img"):
-                imageuri = urljoin(uri, imgtag.get("src"))
-                module_logger.debug("adding imageuri {} to list".format(imageuri))
-                image_list.append(imageuri)
+                
+                try:
+                    imageuri = urljoin(uri, imgtag.get("src"))
+                    module_logger.debug("adding imageuri {} to list".format(imageuri))
+                    image_list.append(imageuri)
+                except Exception:
+                    module_logger.exception("Failed to extract value of src attribute from img tag")
+
+                try:
+                    imgdata = imgtag.get("srcset")
+
+                    if imgdata is not None:
+                        imageuris = [ k[0] for k in [ j.split() for j in [ i.strip() for i in imgdata.split(',') ] ] ]
+                        module_logger.debug("adding imageuris {} to list".format(imageuris))
+                        image_list.extend(imageuris)
+
+                except Exception:
+                    module_logger.exception("Failed to extract value of srcset attribute form img tag")
+
         except Exception as e:
             module_logger.error("failed to find images in document using BeautifulSoup")
             raise MementoParsingError(
