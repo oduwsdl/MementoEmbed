@@ -35,6 +35,7 @@ RUN pip install -r /requirements.txt
 # installing the MementoEmbed application
 COPY . /app
 
+# workaround for README.md compliance with PyPI
 RUN pip install .
 
 COPY sample_appconfig.cfg /etc/mementoembed.cfg

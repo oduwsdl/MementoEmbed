@@ -1,3 +1,4 @@
+import os
 from setuptools import setup, find_packages
 from os import path
 
@@ -10,6 +11,9 @@ exec(open("mementoembed/version.py").read())
 
 here = path.abspath(path.dirname(__file__))
 
+print("here is.... {}".format(here))
+print("directory contents: {}".format(os.listdir(here)))
+
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
@@ -19,7 +23,7 @@ setup(
     packages=find_packages(),
     long_description_content_type="text/markdown",
     long_description=long_description,
-    url='https://github.com/oduwsdl/off-topic-memento-toolkit',
+    url='https://github.com/oduwsdl/MementoEmbed',
     author='Shawn M. Jones',
     author_email='jones.shawn.m@gmail.com',
     license='MIT',
@@ -66,5 +70,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.7',
     ],
-    test_suite="tests.unit"
+    test_suite="tests.unit",
+    zip_safe=True,
+    keywords='webarchives memento embeds nlp'
 )

@@ -343,7 +343,7 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None):
                 
                 images_and_scores[imageuri].update(scores_for_image(datainput.data, n, N))
                 
-            except (binascii.Error, IOError, TypeError) as e:
+            except Exception as e:
                 module_logger.exception("cannot process data image URI {} discovered in base page at {}, skipping...".format(imageuri, baseuri))
                 images_and_scores[imageuri]['error'] = repr(e)
 
