@@ -357,7 +357,7 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None):
 
                 try:
                     r = futures[imageuri].result()
-                except Exception:
+                except Exception as e:
                     module_logger.exception(
                         "Failed to download image URI {}, skipping...".format(imageuri)
                     )
@@ -382,7 +382,13 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None):
                     else:
                         # not all image links get rewritten 
                         module_logger.warning("image {} from {} is not a memento, attempting datetime negotiation to find a memento".format(imageuri, baseuri))
-                        new_imageuri = get_image_with_timegate(baseuri, imageuri, http_cache)
+
+                        new_imageuri = None
+
+                        try:
+                            new_imageuri = get_image_with_timegate(baseuri, imageuri, http_cache)
+                        except Exception:
+                            module_logger.exception("attempt at datetime negotiation failed for image {}".format(imageuri))
 
                         if new_imageuri is not None:
 
@@ -431,7 +437,10 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None):
                             module_logger.debug("acquiring scores for image {}".format(imageuri))
                             images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
-                        except IOError as e:
+                        except Exception as e:
+                            module_logger.exception(
+                                "failed to acquire scores for image with content type {}: {}".format(
+                                    images_and_scores[imageuri]['content-type'], imageuri))
                             images_and_scores[imageuri]['error'] = repr(e)
 
                         working_image_list.remove(imageuri)
@@ -446,8 +455,11 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None):
 
                             images_and_scores[imageuri].update(scores_for_image(imagecontent, n, N))
 
-                        except IOError:
+                        except Exception as e:
                             # images_and_scores[imageuri] = None
+                            module_logger.exception(
+                                "failed to acquire scores for image with content type {}: {}".format(
+                                    images_and_scores[imageuri]['imghdr type'], imageuri))
                             images_and_scores[imageuri]['error'] = repr(e)
 
                         working_image_list.remove(imageuri)
