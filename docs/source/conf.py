@@ -26,7 +26,7 @@ author = 'Shawn M. Jones'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.2020.04.28.143915'
+release = '0.2020.04.30.151719'
 
 
 # -- General configuration ---------------------------------------------------

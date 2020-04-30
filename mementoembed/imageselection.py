@@ -193,7 +193,45 @@ def get_image_with_timegate(base_uri, imageuri, http_cache):
 
     return new_imageuri
 
-def get_image_list(uri, http_cache):
+def ignore_image(imgtag, ignoreclasses, ignoreids):
+
+    ignoreImage = False
+
+    html_classes = imgtag.get('class') 
+    
+    ignoreImage = False
+    
+    if html_classes is not None:
+        for html_class in html_classes:
+            if html_class in ignoreclasses:
+                return True
+    
+    html_ids = imgtag.get('id')
+    
+    if html_ids is not None:
+        for html_id in html_ids:
+            if html_id in ignoreids:
+                return True
+
+    for parent in imgtag.parents:
+
+        html_classes = parent.get('class')
+
+        if html_classes is not None:
+            for html_class in html_classes:
+                if html_class in ignoreclasses:
+                    return True
+        
+        html_ids = parent.get('id')
+        
+        if html_ids is not None:
+            for html_id in html_ids:
+                if html_id in ignoreids:
+                    return True
+
+    return ignoreImage
+
+def get_image_list(uri, http_cache, ignoreclasses=[], ignoreids=[], ignore_images=[]):
 
     module_logger.debug("extracting images from the HTML of URI {}".format(uri))
 
@@ -217,18 +255,28 @@ def get_image_list(uri, http_cache):
                 
                 try:
                     imageuri = urljoin(uri, imgtag.get("src"))
-                    module_logger.debug("adding imageuri {} to list".format(imageuri))
-                    image_list.append(imageuri)
+
+                    if ignore_image(imgtag, ignoreclasses, ignoreids) == False:
+
+                        if imageuri not in ignore_images:
+                            module_logger.debug("adding imageuri {} to list".format(imageuri))
+                            image_list.append(imageuri)
+
                 except Exception:
                     module_logger.exception("Failed to extract value of src attribute from img tag")
 
                 try:
                     imgdata = imgtag.get("srcset")
 
-                    if imgdata is not None:
-                        imageuris = [ k[0] for k in [ j.split() for j in [ i.strip() for i in imgdata.split(',') ] ] ]
-                        module_logger.debug("adding imageuris {} to list".format(imageuris))
-                        image_list.extend(imageuris)
+                    if ignore_image(imgtag, ignoreclasses, ignoreids) == False:
+
+                        if imgdata is not None:
+                            imageuris = [ urljoin(uri, k[0]) for k in [ j.split() for j in [ i.strip() for i in imgdata.split(',') ] ] ]
+
+
+                            if imageuri not in ignore_images:
+                                module_logger.debug("adding imageuri {} to list".format(imageuri))
+                                image_list.append(imageuri)
 
                 except Exception:
                     module_logger.exception("Failed to extract value of srcset attribute form img tag")
@@ -245,13 +293,13 @@ def get_image_list(uri, http_cache):
     
     return image_list
 
-def generate_images_and_scores(baseuri, http_cache, futuressession=None):
+def generate_images_and_scores(baseuri, http_cache, futuressession=None, ignoreclasses=[], ignoreids=[], ignore_images=[], datetime_negotiation=True):
 
     # TODO: this function works, but it is a nightmare at this point - break it up somehow
 
     module_logger.debug("generating list of images and computing their scores")
 
-    base_image_list = get_image_list(baseuri, http_cache)
+    base_image_list = get_image_list(baseuri, http_cache, ignoreclasses=ignoreclasses, ignoreids=ignoreids, ignore_images=ignore_images)
 
     images_and_scores = {}
 
@@ -381,14 +429,15 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None):
                         images_and_scores[imageuri]['is-a-memento'] = True
                     else:
                         # not all image links get rewritten 
-                        module_logger.warning("image {} from {} is not a memento, attempting datetime negotiation to find a memento".format(imageuri, baseuri))
-
                         new_imageuri = None
 
-                        try:
-                            new_imageuri = get_image_with_timegate(baseuri, imageuri, http_cache)
-                        except Exception:
-                            module_logger.exception("attempt at datetime negotiation failed for image {}".format(imageuri))
+                        if datetime_negotiation == True:
+                            module_logger.warning("image {} from {} is not a memento, attempting datetime negotiation to find a memento".format(imageuri, baseuri))
+
+                            try:
+                                new_imageuri = get_image_with_timegate(baseuri, imageuri, http_cache)
+                            except Exception:
+                                module_logger.exception("attempt at datetime negotiation failed for image {}".format(imageuri))
 
                         if new_imageuri is not None:
 
