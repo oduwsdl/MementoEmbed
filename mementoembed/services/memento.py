@@ -218,9 +218,15 @@ def imagedata(urim, preferences):
         if output['images'][imageuri] is not None:
             if 'calculated score' in output['images'][imageuri]:
 
-                if output['images'][imageuri]['is-a-memento'] == True:
-                    # we don't want the live web leaking in
-                    scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
+                try:
+
+                    if output['images'][imageuri]['is-a-memento'] == True:
+                        # we don't want the live web leaking in
+                        scorelist.append( (output['images'][imageuri]["calculated score"], imageuri) )
+
+                except KeyError:
+                    module_logger.exception("there was an issue determining if {} was a memento".format(imageuri))
+                    continue
 
     for item in sorted(scorelist, reverse=True):
         output["ranked images"].append(item[1])

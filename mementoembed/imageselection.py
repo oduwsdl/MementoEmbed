@@ -319,6 +319,9 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None, ignorec
 
     for imageuri in base_image_list:
 
+        if 'http://a.fssta.com/content/dam/fsdigital/fscom/BOXING/images/2015/03/16/mitt-romney-evander-holyfield.vresize.1200.675.high.93.jpg' in imageuri:
+            module_logger.info("imageuri is clearly in body...")
+
         if imageuri not in working_image_list:
             working_image_list.append(imageuri)
 
@@ -352,18 +355,23 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None, ignorec
 
     def find_image_source(imageuri, metadata_images, base_image_list):
 
-        if imageuri in metadata_images and imageuri in base_image_list:
-            return "body and metadata"
-        elif imageuri in metadata_images:
+        # if imageuri in metadata_images and imageuri in base_image_list:
+        #     return "body and metadata"
+        if imageuri in metadata_images:
             return "metadata"
         elif imageuri in base_image_list:
             return "body"
+        else:
+            module_logger.warning("could not image source: {}".format(imageuri))
+            return "unknown"
 
     for imageuri in imageuri_generator(working_image_list):
 
         images_and_scores[imageuri] = {}
         image_source = find_image_source(imageuri, list(metadata_images.keys()), base_image_list)
         images_and_scores[imageuri]['source'] = image_source
+        images_and_scores[imageuri]['is-a-memento'] = False
+        images_and_scores[imageuri]['origin'] = 'page-content'
 
         if 'metadata' in images_and_scores[imageuri]['source']:
             images_and_scores[imageuri]['source_fields'] = metadata_images[imageuri]
@@ -421,8 +429,6 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None, ignorec
 
                     module_logger.debug("extracting image content type information from {}".format(imageuri))
 
-                    images_and_scores[imageuri]['is-a-memento'] = False
-
                     imagecontent = r.content
 
                     if 'memento-datetime' in r.headers:
@@ -441,25 +447,37 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None, ignorec
 
                         if new_imageuri is not None:
 
-                            # remove the old record
-                            del images_and_scores[imageuri]
-                            del futures[imageuri]
-                            working_image_list.remove(imageuri)
+                            try:
 
-                            # create a new record for the memento
-                            images_and_scores.setdefault(new_imageuri, {})
-                            images_and_scores[new_imageuri]['is-a-memento'] = True
-                            images_and_scores[new_imageuri] = {}
-                            image_source = find_image_source(new_imageuri, list(metadata_images.keys()), base_image_list)
-                            images_and_scores[new_imageuri]['source'] = image_source
+                                r = http_cache.get(new_imageuri)
 
-                            # so the rest of the existing code will flow smoothly
-                            working_image_list.append(new_imageuri)
-                            futures[new_imageuri] = None
+                                if r.status_code == 200:
 
-                            r = http_cache.get(new_imageuri)
-                            imagecontent = r.content
-                            imageuri = new_imageuri
+                                    # create a new record for the memento
+                                    images_and_scores.setdefault(new_imageuri, {})
+                                    images_and_scores[new_imageuri] = {}
+                                    images_and_scores[new_imageuri]['is-a-memento'] = True
+
+                                    # image_source = find_image_source(new_imageuri, list(metadata_images.keys()), base_image_list)
+                                    image_source = images_and_scores[imageuri]['source']
+                                    images_and_scores[new_imageuri]['source'] = image_source
+                                    images_and_scores[new_imageuri]['origin'] = 'datetime-negotiation'
+
+                                    # so the rest of the existing code will flow smoothly
+                                    working_image_list.append(new_imageuri)
+                                    futures[new_imageuri] = None
+
+                                    # remove the old record
+                                    del images_and_scores[imageuri]
+                                    del futures[imageuri]
+                                    working_image_list.remove(imageuri)
+
+                                    imagecontent = r.content
+                                    imageuri = new_imageuri
+                                
+                            except Exception:
+                                module_logger.exception("Failed to fetch memento of image {}".format(new_imageuri))
+
 
                     try:
                         images_and_scores[imageuri]["content-type"] = r.headers['content-type']
