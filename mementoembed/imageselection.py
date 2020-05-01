@@ -462,6 +462,9 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None, ignorec
                                     image_source = images_and_scores[imageuri]['source']
                                     images_and_scores[new_imageuri]['source'] = image_source
                                     images_and_scores[new_imageuri]['origin'] = 'datetime-negotiation'
+                                    
+                                    if 'metadata' in images_and_scores[new_imageuri]['source']:
+                                        images_and_scores[new_imageuri]['source_field'] = metadata_images[imageuri]
 
                                     # so the rest of the existing code will flow smoothly
                                     working_image_list.append(new_imageuri)
