@@ -10,7 +10,7 @@ htmlmin==0.1.12
 ImageHash==4.0
 imageio==2.5.0
 jusText==2.2.0
-Pillow==5.2.0
+Pillow>=6.2.2
 readability-lxml==0.7
 redis==3.0.1
 redis-namespace==3.0.1.1
