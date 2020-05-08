@@ -1,2 +1,3 @@
 graft mementoembed/templates
 graft mementoembed/static
+prune test

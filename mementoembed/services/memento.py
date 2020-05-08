@@ -17,6 +17,7 @@ from mementoembed.sessions import ManagedSession
 from mementoembed.archiveresource import ArchiveResource
 from mementoembed.seedresource import SeedResource
 from mementoembed.imageselection import get_best_image, convert_imageuri_to_pngdata_uri, generate_images_and_scores
+from mementoembed.pagedata import parse_page_metadata
 from mementoembed.version import __useragent__
 
 from .errors import handle_errors
@@ -26,6 +27,22 @@ from .. import getURICache
 bp = Blueprint('services.memento', __name__)
 
 module_logger = logging.getLogger('mementoembed.services.memento')
+
+def page_metadata(urim, preferences):
+
+    output = {}
+
+    httpcache = getURICache(urim)
+
+    memento = memento_resource_factory(urim, httpcache)
+
+    output['urim'] = urim
+    output['generation-time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    output['page-metadata'] = parse_page_metadata(memento.raw_content)
+
+    response = make_response(json.dumps(output, indent=4))
+    response.headers['Content-Type'] = 'application/json'
+    return response, 200
 
 def paragraphrank(urim, preferences):
 
@@ -461,3 +478,10 @@ def seeddata_endpoint(subpath):
     prefs = {}
 
     return handle_errors(seeddata, urim, prefs)
+
+@bp.route('/services/memento/page-metadata/<path:subpath>')
+def page_metadata_endpoint(subpath):
+    urim = extract_urim_from_request_path(request.full_path, '/services/memento/page-metadata/')
+    prefs = {}
+
+    return handle_errors(page_metadata, urim, prefs)

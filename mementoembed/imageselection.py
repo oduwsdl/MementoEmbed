@@ -637,14 +637,21 @@ def get_best_scoring_image(uri, http_cache, futuressession=None):
                 return metadata_image_url
 
             else:
-                # not all image links get rewritten
-                # TODO: put this in a function
-                module_logger.info("metadata image was discovered as an original resource, attempting datetime negotiation...")
+                # sometimes the metadata image is supplied by the archive
+                o1 = urlparse(metadata_image_url)
+                o2 = urlparse(uri)
 
-                metadata_image_url = get_image_with_timegate(uri, metadata_image_url, http_cache)
-
-                if metadata_image_url is not None:
+                if o1.hostname == o2.hostname:
                     return metadata_image_url
+                else:
+
+                    # not all image links in metadata get rewritten
+                    module_logger.info("metadata image was discovered as an original resource, attempting datetime negotiation...")
+
+                    metadata_image_url = get_image_with_timegate(uri, metadata_image_url, http_cache)
+
+                    if metadata_image_url is not None:
+                        return metadata_image_url
 
     scorelist = []
 

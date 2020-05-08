@@ -58,7 +58,7 @@ Best image
 
 Endpoint: ``/services/memento/bestimage/<URI-M>``
 
-On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about the image selected by the image selection algorithm::
+On success, this service produces an HTTP 200 response with a MIME-type of ``application/json`` that contains information about the image selected by the image selection algorithm::
 
     {
     "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -71,7 +71,7 @@ Image data
 
 Endpoint: ``/services/memento/imagedata/<URI-M>``
 
-This service exposes the information used to rank images for selection with social cards. On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about all images discovered in the memento::
+This service exposes the information used to rank images for selection with social cards. On success, this service produces an HTTP 200 response with a MIME-type of ``application/json`` that contains information about all images discovered in the memento::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -162,7 +162,7 @@ Archive data
 
 Endpoint: ``/services/memento/archivedata/<URI-M>``
 
-On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about the archive, and if possible, archive collection containing the memento::
+On success, this service produces an HTTP 200 response with a MIME-type of ``application/json`` that contains information about the archive, and if possible, archive collection containing the memento::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -182,7 +182,7 @@ Original Resource data
 
 Endpoint: ``/services/memento/originalresourcedata/<URI-M>``
 
-On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about the original resource::
+On success, this service produces an HTTP 200 response with a MIME-type of ``application/json`` that contains information about the original resource::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -198,7 +198,7 @@ Seed data
 
 Endpoint: ``/services/memento/seeddata/<URI-M>``
 
-On success, this service produces an HTTP 200 response with a MIME-type of ``application-json`` that contains information about the seed::
+On success, this service produces an HTTP 200 response with a MIME-type of ``application/json`` that contains information about the seed::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -215,7 +215,7 @@ On success, this service produces an HTTP 200 response with a MIME-type of ``app
 
 The ``originalresourcedata`` endpoint returns information about the original resource. In contrast, the ``seeddata`` service provides information from an archive's perspective, including information about other mementos.  Web archives often contain the first and last URI-M and memento-datetime in the Memento headers, but not all do. This service finds the other mementos available at the archive and creates the first and last entries for you.
 
-For Archive-It mementos, the ``application-json`` contains the metadata supplied by the collection curator for this seed::
+For Archive-It mementos, the ``application/json`` contains the metadata supplied by the collection curator for this seed::
 
     {
         "urim": "https://wayback.archive-it.org/2358/20110213141707/http://twitter.com/DailyNewsEgypt/",
@@ -264,7 +264,7 @@ Paragraph ranking
 
 Endpoint: ``/services/memento/paragraphrank/<URI-M>``
 
-On success, this service provides an HTTP 200 response with a MIME-type of ``application-json`` that contains a set of paragraphs discovered in the memento::
+On success, this service provides an HTTP 200 response with a MIME-type of ``application/json`` that contains a set of paragraphs discovered in the memento::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -302,7 +302,7 @@ Sentence ranking
 
 Endpoint: ``/services/memento/sentencerank/<URI-M>``
 
-On success, this service provides an HTTP 200 response with a MIME-type of ``application-json`` that contains a set of setences discovered in the memento::
+On success, this service provides an HTTP 200 response with a MIME-type of ``application/json`` that contains a set of setences discovered in the memento::
 
     {
         "urim": "https://www.webarchive.org.uk/wayback/archive/20090522221251/http://blasttheory.co.uk/",
@@ -362,6 +362,52 @@ The algorithms are combinations of paragraph ranking and sentence ranking algori
 * ``readability/textrank`` - instructs MementoEmbed to score paragraphs via the ``readability`` algorithm and then rank the sentences within each paragraph via  `Barrios et al.'s Summa implementation <https://github.com/summanlp/textrank>`_ of `Mihalcea's Textrank algorithm <http://www.aclweb.org/anthology/W04-3252>`_
 * ``justext/textrank`` - instructs MementoEmbed to use the `jusText library <https://pypi.org/project/jusText/>`_ to extract text from the memento and then feed it through ``textrank``; the Textrank scores in this case are built based on the entire document rather than within ranked paragraphs
 
+Page Metadata
+~~~~~~~~~~~~~
+
+Endpoint: ``/services/memento/page-metadata/``
+
+On success, this service provides an HTTP 200 response with a MIME-type of ``application/json`` that contains the content of the <code>META</code> tags discovered in the memento::
+
+    {
+        "urim": "http://web.archive.org/web/20180621081452/http://ws-dl.blogspot.com/",
+        "generation-time": "2020-05-08T17:46:17Z",
+        "page-metadata": [
+            {
+                "content": "text/html; charset=UTF-8",
+                "http-equiv": "Content-Type"
+            },
+            {
+                "content": "blogger",
+                "name": "generator"
+            },
+            {
+                "content": "http://ws-dl.blogspot.com/",
+                "property": "og:url"
+            },
+            {
+                "content": "Web Science and Digital Libraries Research Group",
+                "property": "og:title"
+            },
+            {
+                "content": "Research and Teaching Updates from the Web Science and Digital Libraries Research Group at Old Dominion University.",
+                "property": "og:description"
+            },
+            {
+                "content": "https://3.bp.blogspot.com/-TnbFkpgJx_Q/WxwOICsSbeI/AAAAAAAAAUY/oSha5xbKLsQaPCkQiGGl5GbN3QMo-dfagCLcBGAs/s320/Fort%2BWorth%2BMuseum%2Bof%2BScience%2Band%2BHistory%2B9-11%2BTribute.jpg",
+                "itemprop": "image_url"
+            },
+            {
+                "content": "summary_large_image",
+                "name": "twitter:card"
+            },
+            {
+                "content": "953024975153422094",
+                "itemprop": "blogId"
+            },
+            ... other records omitted for brevity ...
+        ]
+    }
 
 Product Endpoints for Requesting a Surrogate Directly
 -----------------------------------------------------
