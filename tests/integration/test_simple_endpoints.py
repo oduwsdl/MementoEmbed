@@ -14,6 +14,8 @@ class TestSimpleMementoEmbedEndpoints(unittest.TestCase):
 
         serviceport = "5550"
 
+        self.maxDiff = None
+
         configured_serviceport = os.getenv('TESTPORT')
 
         if configured_serviceport is not None:
@@ -47,12 +49,20 @@ class TestSimpleMementoEmbedEndpoints(unittest.TestCase):
                             if datarow[field] == '':
                                 self.assertEqual(data[field], None, msg="failed for field {}".format(field))
                             else:
-                                self.assertEqual(data[field], datarow[field], msg="failed for field {}".format(field))
+
+                                value = datarow[field]
+
+                                if value.isdigit() and field != 'archive-collection-id':
+                                    value = int(value)
+
+                                self.assertEqual(data[field], value, msg="failed for field {}".format(field))
 
                         except AssertionError as e:
+                            print()
                             print("Failed with URI-M {} for field {} at endpoint {}".format(urim, field, endpoint))
                             print("exception: {}".format(e))
                             assertionerrors.append(e)
+                            print()
 
                         except KeyError as e:
                             assertionerrors.append(e)

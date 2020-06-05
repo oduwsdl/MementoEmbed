@@ -41,6 +41,10 @@ class TestImageSelection(unittest.TestCase):
             def text(self):
                 return htmlcontent
 
+            @property
+            def status_code(self):
+                return 200
+
         mh = mock_httpcache()
         uri = "http://example.com/example.html"
 

@@ -23,7 +23,7 @@ from requests_cache import CachedSession
 from requests_futures.sessions import FuturesSession
 from datauri import DataURI
 
-from .mementoresource import MementoParsingError
+from .mementoresource import MementoParsingError, MementoResourceError
 from .sessions import ManagedSession
 
 module_logger = logging.getLogger('mementoembed.imageselection')
@@ -239,6 +239,13 @@ def get_image_list(uri, http_cache, ignoreclasses=[], ignoreids=[], ignore_image
 
     try:
         r = http_cache.get(uri)
+
+        if r.status_code != 200:
+            msg = "cannot extract image list, got status of {} whle attempting to download {}".format(
+                r.status_code, uri
+            )
+            module_logger.error(msg)
+            raise MementoResourceError(msg)
 
         module_logger.debug("content from URI-M: {}".format(r.text))
 
