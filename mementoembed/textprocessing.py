@@ -27,6 +27,12 @@ class SnippetGenerationError(TextProcessingError):
 
 def get_text_without_boilerplate(htmlcontent):
 
+    # Note: this boilerplate method did not work for archive.is
+
+    # from boilerpy3 import extractors
+    # extractor = extractors.ArticleExtractor()
+    # bpfree = extractor.get_content(htmlcontent)
+    # return bpfree
     # htmlcontent = htmlcontent.replace('\n', ' ')
 
     try:

@@ -63,7 +63,15 @@ class MementoImageReel:
 
             for imageuri in [ i[1] for i in sorted(scorelist, reverse=True) ]:
 
-                r = self.httpcache.get(imageuri)
+                try:
+
+                    r = self.httpcache.get(imageuri)
+
+                except Exception:
+
+                    module_logger.exception("failed to download image at {}, skipping".format(imageuri))
+                    continue
+
                 ifp = io.BytesIO(r.content)
 
                 baseims.append( 
