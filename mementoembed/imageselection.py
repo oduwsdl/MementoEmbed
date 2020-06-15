@@ -326,9 +326,6 @@ def generate_images_and_scores(baseuri, http_cache, futuressession=None, ignorec
 
     for imageuri in base_image_list:
 
-        if 'http://a.fssta.com/content/dam/fsdigital/fscom/BOXING/images/2015/03/16/mitt-romney-evander-holyfield.vresize.1200.675.high.93.jpg' in imageuri:
-            module_logger.info("imageuri is clearly in body...")
-
         if imageuri not in working_image_list:
             working_image_list.append(imageuri)
 
@@ -608,7 +605,8 @@ def get_image_from_metadata(uri, http_cache):
 
                             try:
                                 metadata_image_url = discovered_fields[0][value_attribute]
-                                metadata_image_url = urljoin( uri, metadata_image_url )
+                                if metadata_image_url != "":
+                                    metadata_image_url = urljoin( uri, metadata_image_url )
                                 metadata_images.setdefault(metadata_image_url, []).append('{}="{}" {}'.format(attribute, field, value_attribute))
                             except KeyError:
                                 module_logger.debug("did not find metadata image URL using value attribute {}...".format(value_attribute))
@@ -628,19 +626,29 @@ def get_best_scoring_image(uri, http_cache, futuressession=None):
     # metadata_image_url, field = get_image_from_metadata(uri, http_cache)
     metadata_images = get_image_from_metadata(uri, http_cache)
     metadata_image_url = None
-    if len(metadata_images.keys()) > 0:
-        metadata_image_url = list(metadata_images.keys())[0]
+
+    # if one of the metadata fields is blank, try taking the next
+    for metadata_image_url in list(metadata_images.keys()):
+
+        if metadata_image_url is not None:
+
+            if metadata_image_url == "":
+                metadata_image_url = None
+            else:
+                break
 
     if metadata_image_url is not None:
+
+        module_logger.debug("metadata_image_url is [{}]".format(metadata_image_url))
         
         r = http_cache.get(metadata_image_url)
 
         if r.status_code == 200:
 
-            module_logger.info("discovered image {} with a 200 status code".format(metadata_image_url))
+            module_logger.debug("discovered metadata image {} with a 200 status code".format(metadata_image_url))
 
             if 'memento-datetime' in r.headers:
-                module_logger.info("discovered image {} is a memento, returning it".format(metadata_image_url))
+                module_logger.info("discovered metadata image {} is a memento, returning it".format(metadata_image_url))
                 return metadata_image_url
 
             else:
