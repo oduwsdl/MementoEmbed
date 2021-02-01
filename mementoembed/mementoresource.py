@@ -245,7 +245,7 @@ def memento_resource_factory(urim, http_cache):
                 return WaybackMemento(http_cache, real_urim, given_uri=given_urim)
 
         #Detecting NLA memento, using this condition for now, might need to use another method to accomadate other URI-Ms which follow similar behaviour 
-        if o.netloc == 'webarchive.nla.gov.au':
+        elif o.netloc == 'webarchive.nla.gov.au':
             real_urim = urim.replace(o.netloc, 'web.archive.org.au')
             real_urim = wayback_pattern.sub(r'\1mp_/', real_urim)
             candidate_raw_urim = wayback_pattern.sub(r'\1id_/', urim)
@@ -254,7 +254,7 @@ def memento_resource_factory(urim, http_cache):
 
             if resp.status_code == 200:
                 module_logger.info("memento is a NLA memento")
-                return NLAMemento(http_cache, real_urim, given_uri=given_urim)
+                return WaybackMemento(http_cache, real_urim, given_uri=given_urim)
         else:
 
             module_logger.info("response history size is {}".format(len(response.history)))
@@ -633,6 +633,3 @@ class WaybackMemento(MementoResource):
             self.logger.debug("using raw URI-M {}".format(self.raw_urim))
             raw_response = self.http_cache.get(self.raw_urim)
             return raw_response.text
-
-class NLAMemento(MementoResource):
-    pass
