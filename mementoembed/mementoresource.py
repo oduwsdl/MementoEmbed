@@ -124,6 +124,14 @@ def get_original_uri_from_response(response):
         # urir = aiu.convert_LinkTimeMap_to_dict(
         #     response.headers['link'] )['original_uri']
         urir = response.links['original']['url']
+
+        if 'pandora.nla.gov.au/pan/' in urir:
+            # TODO: make regex
+            module_logger.info("discovered URI-R {} with hostname pandora.nla.gov, fixing...".format(urir))
+            urir = re.sub(r'http[s]?://pandora.nla.gov.au/pan/[0-9]*/[0-9]*-[0-9]*/(.*)', r'\1', urir)
+            if urir[0:4] != 'http':
+                urir = "http://{}".format(urir)
+
     except KeyError as e:
         raise NotAMementoError(
             "link header could not be parsed for original URI",
