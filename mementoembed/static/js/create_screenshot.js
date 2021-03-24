@@ -26,7 +26,7 @@ const puppeteer = require('puppeteer');
 
   //Set wait time before screenshotURI - equivalent to 'networkidle0'
   await Promise.all([
-    waitForNetworkIdle(page, 2000, 0), 
+    waitForNetworkIdle(page, 60000, 0), 
   ]);
 
   await page.screenshot({path: process.env.THUMBNAIL_OUTPUTFILE});
