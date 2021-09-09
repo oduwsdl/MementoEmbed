@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Jones"
+  given-names: "Shawn"
+  orcid: "https://orcid.org/0000-0002-4372-870X"
+- family-names: "Nelson"
+  given-names: "Michael"
+  orcid: "0000-0003-3749-8116"
+- family-names: "Weigle"
+  given-names: "Michele"
+  orcid: "0000-0002-2787-7166"
+- family-names: "Klein"
+  given-names: "Martin"
+  orcid: "0000-0003-0130-2097"
+title: "MementoEmbed: Visualize a Single Archived Web Page (Memento) to Share with the World"
+version: 0.2021.03.24.211511
+date-released: 2021-03-24
+url: "https://github.com/oduwsdl/MementoEmbed"
