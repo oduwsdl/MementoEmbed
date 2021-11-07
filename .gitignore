@@ -15,3 +15,5 @@ working-dontcommit
 
 # used for creating UTF-8 CSV files
 *.numbers
+
+installer/

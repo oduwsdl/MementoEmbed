@@ -72,6 +72,10 @@ $ export FLASK_APP=mementoembed
 $ flask run
 ```
 
+### Installing for a Linux/Unix System
+
+Download the code and install it
+
 ### Loading a Desired Configuration
 
 The configuration options for MementoEmbed are documented in `sample_appconfig.cfg`.
