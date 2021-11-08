@@ -177,7 +177,7 @@ status=\$?
 pid=\$!
 
 if [ \$status -eq 0 ]; then
-    cat \$pid > ${INSTALL_DIRECTORY}/var/run/mementoembed.pid
+    echo \$pid > ${INSTALL_DIRECTORY}/var/run/mementoembed.pid
     printf "[ OK ]\n"
 else
     printf "[FAIL]\n"
@@ -313,6 +313,8 @@ function perform_install() {
     test_command "dirname"
     test_command "python"
     test_command "virtualenv"
+    test_command "node"
+    test_command "npm"
 
     test_access `dirname ${INSTALL_DIRECTORY}`
     test_access "/etc"
@@ -338,6 +340,12 @@ function perform_install() {
     run_command "creating virtualenv for MementoEmbed" "virtualenv $INSTALL_DIRECTORY/mementoembed-virtualenv"
     run_command "installing MementoEmbed and dependencies" "${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/pip install --no-cache-dir ${MEMENTOEMBED_TARBALL}"
     run_command "installing waitress" "${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/pip install waitress"
+    run_command "copying package-lock.json" "cp package-lock.json ${INSTALL_DIRECTORY}"
+    run_command "installing NodeJS dependencies" "(cd ${INSTALL_DIRECTORY}; npm install --save)"
+#    run_command "establishing package.json" "(cd ${INSTALL_DIRECTORY}; npm init)"
+    run_command "removing pakcage-lock.json" "rm ${INSTALL_DIRECTORY}/package-lock.json"
+    run_command "installing Puppeteer" "(cd ${INSTALL_DIRECTORY}; npm install puppeteer --save --unsafe-perm)"
+
     run_command "copying template configuration file into ${INSTALL_DIRECTORY}" "cp template_appconfig.cfg ${INSTALL_DIRECTORY}"
 
     update_configuration_for_environment_and_install
