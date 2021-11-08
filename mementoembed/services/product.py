@@ -29,7 +29,7 @@ from .. import getURICache
 
 module_logger = logging.getLogger('mementoembed.services.product')
 
-bp = Blueprint('services.product', __name__)
+bp = Blueprint('services__product', __name__)
 
 def generate_social_card_html_without_javascript(urim, surrogate, urlroot, 
     archive_favicon_uri, original_favicon_uri, striking_image_uri):

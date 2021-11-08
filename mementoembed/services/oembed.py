@@ -21,7 +21,7 @@ from .errors import handle_errors
 
 module_logger = logging.getLogger('mementoembed.services.oembed')
 
-bp = Blueprint('services.oembed', __name__)
+bp = Blueprint('services__oembed', __name__)
 
 def generate_oembed_response(urim):
 

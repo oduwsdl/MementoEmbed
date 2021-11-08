@@ -24,7 +24,7 @@ from .errors import handle_errors
 from . import extract_urim_from_request_path
 from .. import getURICache
 
-bp = Blueprint('services.memento', __name__)
+bp = Blueprint('services__memento', __name__)
 
 module_logger = logging.getLogger('mementoembed.services.memento')
 
