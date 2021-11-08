@@ -170,14 +170,14 @@ function create_generic_startup_scripts() {
 #!/bin/bash
 set -e
 
-${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/waitress-serve --host=${FLASK_IP} --port=${FLASK_PORT} --call mementoembed:create_app
-status=$?
-pid=$!
+printf "starting MementoEmbed [    ]"
 
-printf "starting MementoEmbed "
+${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/waitress-serve --host=${FLASK_IP} --port=${FLASK_PORT} --call mementoembed:create_app &
+status=\$?
+pid=\$!
 
-if [ $status -eq 0 ]; then
-    cat $pid > ${INSTALL_DIRECTORY}/var/run/mementoembed.pid
+if [ \$status -eq 0 ]; then
+    cat \$pid > ${INSTALL_DIRECTORY}/var/run/mementoembed.pid
     printf "[ OK ]\n"
 else
     printf "[FAIL]\n"
@@ -206,10 +206,10 @@ set -e
 
 printf "stopping MementoEmbed "
 
-pid=`cat ${INSTALL_DIRECTORY}/var/run/mementoembed.pid`
-kill $pid
+pid=\`cat ${INSTALL_DIRECTORY}/var/run/mementoembed.pid\`
+kill \$pid
 
-ps -ef | grep $pid | grep -v $pid
+ps -ef | grep \$pid | grep -v \$pid
 status=$?
 
 if [ $status -eq 0 ]; then
@@ -217,7 +217,7 @@ if [ $status -eq 0 ]; then
     rm ${INSTALL_DIRECTORY}/var/run/mementoembed.pid
 else
     printf "[FAIL]\n"
-    echo "could not stop process $pid"
+    echo "could not stop process \$pid"
 fi
 EOF
     status=$?
@@ -335,8 +335,9 @@ function perform_install() {
     run_command "discovering MementoEmbed archive" "ls mementoembed-*.tar.gz"
     MEMENTOEMBED_TARBALL=`cat ${command_output_file}`
 
-#    run_command "creating virtualenv for MementoEmbed" "virtualenv $INSTALL_DIRECTORY/mementoembed-virtualenv"
-#    run_command "installing MementoEmbed and dependencies" "${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/pip install --no-cache-dir ${MEMENTOEMBED_TARBALL}"
+    run_command "creating virtualenv for MementoEmbed" "virtualenv $INSTALL_DIRECTORY/mementoembed-virtualenv"
+    run_command "installing MementoEmbed and dependencies" "${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/pip install --no-cache-dir ${MEMENTOEMBED_TARBALL}"
+    run_command "installing waitress" "${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/pip install waitress"
     run_command "copying template configuration file into ${INSTALL_DIRECTORY}" "cp template_appconfig.cfg ${INSTALL_DIRECTORY}"
 
     update_configuration_for_environment_and_install
