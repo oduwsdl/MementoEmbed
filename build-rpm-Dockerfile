@@ -1,0 +1,26 @@
+FROM centos:8
+
+ARG mementoembed_version
+
+# RPM build dependencies -- thanks: https://www.redhat.com/sysadmin/create-rpm-package
+RUN dnf update -y
+RUN dnf install -y rpmdevtools rpmlint glibc-langpack-en
+
+# MementoEmbed build/install dependencies
+RUN dnf install -y epel-release
+RUN dnf install -y nodejs sed grep tar python3-virtualenv makeself which make
+# install Python3.8 separately and set it as the default
+RUN dnf install -y python38
+RUN alternatives --install /usr/bin/python unversioned-python /usr/bin/python3.8 1
+
+# build the RPM
+RUN rpmdev-setuptree
+COPY source-distro/MementoEmbed-$mementoembed_version.tar.gz /root/rpmbuild/SOURCES
+COPY mementoembed.spec /root
+RUN sed "s/{{ mementoembed_version }}/$mementoembed_version/g" /root/mementoembed.spec > /root/rpmbuild/SPECS/mementoembed.spec
+RUN rpmlint /root/rpmbuild/SPECS/mementoembed.spec
+# RUN rpmbuild -bs /root/rpmbuild/SPECS/mementoembed.spec
+# RUN rpmbuild -bb /root/rpmbuild/SPECS/mementoembed.spec
+
+# keep running
+# ENTRYPOINT [ "tail", "-f", "/dev/null"]

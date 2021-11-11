@@ -17,3 +17,5 @@ working-dontcommit
 *.numbers
 
 installer/
+release/
+source-distro/

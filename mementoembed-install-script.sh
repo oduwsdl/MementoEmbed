@@ -337,13 +337,13 @@ function perform_install() {
     run_command "discovering MementoEmbed archive" "ls mementoembed-*.tar.gz"
     MEMENTOEMBED_TARBALL=`cat ${command_output_file}`
 
-    run_command "creating virtualenv for MementoEmbed" "virtualenv $INSTALL_DIRECTORY/mementoembed-virtualenv"
+    run_command "creating virtualenv for MementoEmbed" "virtualenv $INSTALL_DIRECTORY/mementoembed-virtualenv --python ${PYTHON_EXE}"
     run_command "installing MementoEmbed and dependencies" "${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/pip install --no-cache-dir ${MEMENTOEMBED_TARBALL}"
     run_command "installing waitress" "${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/pip install waitress"
     run_command "copying package-lock.json" "cp package-lock.json ${INSTALL_DIRECTORY}"
     run_command "installing NodeJS dependencies" "(cd ${INSTALL_DIRECTORY}; npm install --save)"
 #    run_command "establishing package.json" "(cd ${INSTALL_DIRECTORY}; npm init)"
-    run_command "removing pakcage-lock.json" "rm ${INSTALL_DIRECTORY}/package-lock.json"
+    run_command "removing package-lock.json" "rm ${INSTALL_DIRECTORY}/package-lock.json"
     run_command "installing Puppeteer" "(cd ${INSTALL_DIRECTORY}; npm install puppeteer --save --unsafe-perm)"
 
     run_command "copying template configuration file into ${INSTALL_DIRECTORY}" "cp template_appconfig.cfg ${INSTALL_DIRECTORY}"
@@ -399,9 +399,13 @@ while test $# -gt 0; do
         shift
         WRAPPER_SCRIPT_PATH=$1
         ;;
-        --raintale-user)
+        --mementoembed-user)
         shift
         MEMENTOEMBED_USER=$1
+        ;;
+        --python-exe)
+        shift
+        PYTHON_EXE=$1
         ;;
         --force-systemd)
         shift
@@ -419,6 +423,8 @@ while test $# -gt 0; do
     shift
 
 done
+
+echo "installing to directory ${INSTALL_DIRECTORY}"
 
 perform_install $@
 
