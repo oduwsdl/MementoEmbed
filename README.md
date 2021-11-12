@@ -19,6 +19,13 @@ For more information on this application, please visit our [Documentation Page](
 
 ## Installation and Execution
 
+### Installing for a Linux/Unix System
+
+We have an experimental RPM installer for RHEL 8 and CentOS 8 systems.
+
+1. download the RPM and save it to the Linux server (e.g., MementoEmbed-0.20211106041644-1.el8.x86_64.rpm)
+2. type `dnf install MementoEmbed-0.20211106041644-1.el8.x86_64.rpm
+
 ### Installing and Running the Latest Build Using Docker
 
 Because of its complex cross-language and environment dependencies, MementoEmbed is installed via Docker. To run the latest build use the following commands.
@@ -55,7 +62,7 @@ $ docker run -d -p 5550:5550 mementoembed
 
 In either case, the application should be accessible at http://localhost:5550/.
 
-### Installing and Running Locally
+### Installing and Running Locally From Source With PIP
 
 Download the code and install it within your Python environment.
 
@@ -72,9 +79,9 @@ $ export FLASK_APP=mementoembed
 $ flask run
 ```
 
-### Installing for a Linux/Unix System
 
-Download the code and install it
+
+
 
 ### Loading a Desired Configuration
 

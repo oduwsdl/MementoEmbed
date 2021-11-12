@@ -288,7 +288,7 @@ function update_configuration_for_environment_and_install() {
         printf " OK ]\n"
     fi
 
-    printf "copying configuration file to /etc/mementoembed.cfg"
+    printf "copying configuration file to /etc/mementoembed.cfg [    ]"
 
     cp /tmp/me.cfg3 /etc/mementoembed.cfg
     status=$?

@@ -108,7 +108,7 @@ run_command "copying install script to archive directory" "cp ${SCRIPT_DIR}/meme
 #run_command "copying requirements.txt to archive directory" "cp ${SCRIPT_DIR}/requirements.txt ${SCRIPT_DIR}/dist"
 run_command "copying package-lock.json to archive directory" "cp ${SCRIPT_DIR}/package-lock.json ${SCRIPT_DIR}/dist"
 run_command "copying sample configuration to archive directory" "cp ${SCRIPT_DIR}/sample_appconfig.cfg ${SCRIPT_DIR}/dist"
-run_command "copying template configurations to archie directory" "cp ${SCRIPT_DIR}/template_appconfig.cfg ${SCRIPT_DIR}/dist"
+run_command "copying template configurations to archive directory" "cp ${SCRIPT_DIR}/template_appconfig.cfg ${SCRIPT_DIR}/dist"
 run_command "setting install script permissions" "chmod 0755 ${SCRIPT_DIR}/mementoembed-install-script.sh"
 run_command "creating directory for installer" "mkdir ${SCRIPT_DIR}/installer"
 

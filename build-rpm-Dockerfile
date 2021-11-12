@@ -19,8 +19,10 @@ COPY source-distro/MementoEmbed-$mementoembed_version.tar.gz /root/rpmbuild/SOUR
 COPY mementoembed.spec /root
 RUN sed "s/{{ mementoembed_version }}/$mementoembed_version/g" /root/mementoembed.spec > /root/rpmbuild/SPECS/mementoembed.spec
 RUN rpmlint /root/rpmbuild/SPECS/mementoembed.spec
-# RUN rpmbuild -bs /root/rpmbuild/SPECS/mementoembed.spec
-# RUN rpmbuild -bb /root/rpmbuild/SPECS/mementoembed.spec
+RUN printf "#!/bin/bash\nrpmbuild -bs /root/rpmbuild/SPECS/mementoembed.spec\nrpmbuild -bb /root/rpmbuild/SPECS/mementoembed.spec\n" > /root/build-rpms.sh
+RUN chmod 0700 /root/build-rpms.sh
 
 # keep running
 # ENTRYPOINT [ "tail", "-f", "/dev/null"]
+
+CMD ["/root/build-rpms.sh"]
