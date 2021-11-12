@@ -245,6 +245,8 @@ function create_systemd_startup() {
     cat <<EOF > /etc/systemd/system/mementoembed.service
 [Unit]
 Description=The MementoEmbed service
+After=syslog.target network.target remote-fs.target nss-lookup.target redis
+Requires=redis
 
 [Service]
 ExecStart=${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/waitress-serve --host=${FLASK_IP} --port=${FLASK_PORT} --call mementoembed:create_app
@@ -382,6 +384,7 @@ FLASK_PORT=5550
 FLASK_IP="0.0.0.0"
 MEMENTOEMBED_USER="root"
 FORCE_SYSTEMD=1
+PYTHON_EXE="/usr/bin/python"
 
 while test $# -gt 0; do
 

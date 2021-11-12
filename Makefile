@@ -1,6 +1,6 @@
 me_version = $(shell grep "__appversion__ = " mementoembed/version.py | sed 's/__appversion__ = //g' | sed "s/'//g")
 
-all: native_installer rpm
+all: generic_installer rpm
 
 source:
 	-rm -rf /tmp/mementoembed-source
@@ -37,37 +37,39 @@ clean:
 	-find . -name '*.pyc' -exec rm {} \;
 	-find . -name '__pycache__' -exec rm -rf {} \;
 	-rm -rf source-distro
-	-rm -rf rpmbuild
 	python ./setup.py clean
+
+clean-installer:
+	-rm -rf installer
 
 build:
 	python ./setup.py sdist
 
-native_installer:
+generic_installer:
 	./create-linux-installer.sh
 
 rpm: source
-	-rm -rf rpmbuild
-	mkdir -p rpmbuild/RPMS rpmbuild/SRPMS
-	docker build -t rpmbuild:dev -f build-rpm-Dockerfile . --build-arg mementoembed_version=$(me_version) --progress=plain
-	docker container run --name rpmbuild_mementoembed --rm -it -v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS -v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS rpmbuild:dev
+	-rm -rf installer/rpmbuild
+	mkdir -p installer/rpmbuild/RPMS installer/rpmbuild/SRPMS
+	docker build -t mementoembed_rpmbuild:dev -f build-rpm-Dockerfile . --build-arg mementoembed_version=$(me_version) --progress=plain
+	docker container run --name rpmbuild_mementoembed --rm -it -v $(CURDIR)/installer/rpmbuild/RPMS:/root/rpmbuild/RPMS -v $(CURDIR)/installer/rpmbuild/SRPMS:/root/rpmbuild/SRPMS mementoembed_rpmbuild:dev
 	-docker stop rpmbuild_mementoembed
 	-docker rm rpmbuild_mementoembed
-	@echo "an RPM structure exists in the rpmbuild directory"
+	@echo "an RPM structure exists in the installer/rpmbuild directory"
 
-# dpkg:
-# 	-rm -rf dpkgbuild
-# 	mkdir dpkgbuild
-# 	docker build -t dpkgbuild:dev -f build-dpkg-Dockerfile . --build-arg mementoembed_version=$(me_version) --progress=plain
-	
-	
+deb: generic_installer
+	-rm -rf installer/debbuild
+	mkdir -p installer/debbuild
+	docker build -t mementoembed_debbuild:dev -f build-deb-Dockerfile . --build-arg mementoembed_version=$(me_version) --progress=plain
+	docker container run --name deb_mementoembed --rm -it -v $(CURDIR)/installer/debbuild:/buildapp/debbuild mementoembed_debbuild:dev
+	-docker stop deb_mementoembed
+	-docker rm deb_mementoembed
+	@echo "a DEB exists in the installer/debbuild directory"
 
-release: source build native_installer rpm
+release: source build generic_installer rpm deb
 	-rm -rf release
 	-mkdir release
 	cp ./installer/install-mementoembed.sh release/install-mementoembed-${me_version}.sh
 	cp ./source-distro/MementoEmbed-${me_version}.tar.gz release/
-	cp ./rpmbuild/RPMS/x86_64/MementoEmbed-${me_version}-1.el8.x86_64.rpm release/
-	cp ./rpmbuild/SRPMS/MementoEmbed-${me_version}-1.el8.src.rpm release/
-# TODO: copy RPM...
-	
+	cp ./installer/rpmbuild/RPMS/x86_64/MementoEmbed-${me_version}-1.el8.x86_64.rpm release/
+	cp ./installer/rpmbuild/SRPMS/MementoEmbed-${me_version}-1.el8.src.rpm release/	
