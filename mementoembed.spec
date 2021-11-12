@@ -4,7 +4,7 @@ Summary: MementoEmbed is service that provides archive-aware embeddable surrogat
 Release: 1%{?dist}
 License: MIT
 Source0: %{name}-%{version}.tar.gz
-BuildArch: x86_64
+ExclusiveArch: x86_64
 
 BuildRequires: sed, grep, tar
 Requires: nodejs, sed, grep, tar, python3-virtualenv, makeself, which, python38, redis

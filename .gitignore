@@ -19,3 +19,4 @@ working-dontcommit
 installer/
 release/
 source-distro/
+rpmbuild/

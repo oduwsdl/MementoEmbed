@@ -20,6 +20,8 @@ source:
 	cp /tmp/MementoEmbed-$(me_version).tar.gz source-distro
 	
 clean:
+	-docker stop rpmbuild_mementoembed
+	-docker rm rpmbuild_mementoembed
 	-rm -rf .eggs
 	-rm -rf build
 	-rm -rf _build
@@ -35,6 +37,7 @@ clean:
 	-find . -name '*.pyc' -exec rm {} \;
 	-find . -name '__pycache__' -exec rm -rf {} \;
 	-rm -rf source-distro
+	-rm -rf rpmbuild
 	python ./setup.py clean
 
 build:
@@ -44,8 +47,12 @@ native_installer:
 	./create-linux-installer.sh
 
 rpm: source
+	-rm -rf rpmbuild
+	mkdir rpmbuild/{RPMS, SRPMS}
 	docker build -t rpmbuild:dev -f build-rpm-Dockerfile . --build-arg mementoembed_version=$(me_version) --progress=plain
-#	docker container run --rm --it -v $(cwd):/root/rpmbuild/ rpmbuild:dev
+	docker container run --name rpmbuild_mementoembed --rm -it -v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS -v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS rpmbuild:dev
+	docker stop rpmbuild_mementoembed
+	docker rm rpmbuild_mementoembed
 
 release: source build native_installer rpm
 	-rm -rf release
