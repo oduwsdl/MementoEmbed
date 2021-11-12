@@ -48,16 +48,18 @@ native_installer:
 
 rpm: source
 	-rm -rf rpmbuild
-	mkdir rpmbuild/{RPMS, SRPMS}
+	mkdir -p rpmbuild/{RPMS, SRPMS}
 	docker build -t rpmbuild:dev -f build-rpm-Dockerfile . --build-arg mementoembed_version=$(me_version) --progress=plain
 	docker container run --name rpmbuild_mementoembed --rm -it -v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS -v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS rpmbuild:dev
-	docker stop rpmbuild_mementoembed
-	docker rm rpmbuild_mementoembed
+	-docker stop rpmbuild_mementoembed
+	-docker rm rpmbuild_mementoembed
 
 release: source build native_installer rpm
 	-rm -rf release
 	-mkdir release
 	cp ./installer/install-mementoembed.sh release/install-mementoembed-${me_version}.sh
 	cp ./source-distro/MementoEmbed-${me_version}.tar.gz release/
+	cp ./rpmbuild/RPMS/x86_64/MementoEmbed-${me_version}-1.el8.x86_64.rpm release/
+	cp ./rpmbuild/SRPMS/MementoEmbed-${me_version}-1.el8.src.rpm release/
 # TODO: copy RPM...
 	
