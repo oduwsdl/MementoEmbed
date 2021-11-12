@@ -249,7 +249,6 @@ Description=The MementoEmbed service
 [Service]
 ExecStart=${INSTALL_DIRECTORY}/mementoembed-virtualenv/bin/waitress-serve --host=${FLASK_IP} --port=${FLASK_PORT} --call mementoembed:create_app
 User=${MEMENTOEMBED_USER}
-WorkingDirectory=${INSTALL_DIRECTORY}/mementoembed-working
 
 [Install]
 WantedBy=multi-user.target

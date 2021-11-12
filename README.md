@@ -19,12 +19,12 @@ For more information on this application, please visit our [Documentation Page](
 
 ## Installation and Execution
 
-### Installing for a Linux/Unix System
+### Installing on a CentOS 8 System
 
 We have an experimental RPM installer for RHEL 8 and CentOS 8 systems.
 
-1. download the RPM and save it to the Linux server (e.g., MementoEmbed-0.20211106041644-1.el8.x86_64.rpm)
-2. type `dnf install MementoEmbed-0.20211106041644-1.el8.x86_64.rpm
+1. download the RPM and save it to the Linux server (e.g., `MementoEmbed-0.20211106041644-1.el8.x86_64.rpm`)
+2. type `dnf install MementoEmbed-0.20211106041644-1.el8.x86_64.rpm`
 
 ### Installing and Running the Latest Build Using Docker
 
@@ -78,10 +78,6 @@ Then set it up to run locally using Flask.
 $ export FLASK_APP=mementoembed
 $ flask run
 ```
-
-
-
-
 
 ### Loading a Desired Configuration
 
@@ -143,6 +139,15 @@ python -m unittest discover -s tests/integration
 Integration tests, by default, assume that the instance to be tested is running at port 5550. This can be altered with the `TESTPORT` environment variable, like so: `export TESTPORT=9000`.
 
 Integration tests are heavily dependent on environmental factors such as the current state of web archive playback systems. The favicon detection appears to be especially unpredictable. Because of this, we recommend that integration tests be reviewed by humans and not executed automatically on build.
+
+## Run CentOS8 test environment
+
+```
+$ docker build --rm -t local/c8-systemd -f tests/installer/centos8/centos8-systemd-Dockerfile .
+$ docker run --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -d -p 5550:5550 local/c8-systemd
+```
+
+From here use common docker commands (e.g., `docker cp`, `docker exec`) to interact with the container.
 
 # Contributing
 
