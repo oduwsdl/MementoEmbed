@@ -26,7 +26,7 @@ MementoEmbed is a tool to create archive-aware embeddable surrogates for archive
 
 %build
 rm -rf $RPM_BUILD_ROOT
-make native_installer
+make generic_installer
 
 %install
 echo RPM_BUILD_ROOT is $RPM_BUILD_ROOT

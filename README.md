@@ -21,10 +21,28 @@ For more information on this application, please visit our [Documentation Page](
 
 ### Installing on a CentOS 8 System
 
-We have an experimental RPM installer for RHEL 8 and CentOS 8 systems.
+If you would like to use the RPM installer for RHEL 8 and CentOS 8 systems:
 
 1. download the RPM and save it to the Linux server (e.g., `MementoEmbed-0.20211106041644-1.el8.x86_64.rpm`)
 2. type `dnf install MementoEmbed-0.20211106041644-1.el8.x86_64.rpm`
+3. type `systemctl enable mementoembed.service`
+4. type `systemctl start mementoembed.service`
+
+If the service does not work at first, you may need to run `systemctl start redis`.
+
+### Installing on an Ubuntu 21.04+ System
+
+If you would like to use the deb installer for RHEL 8 and CentOS 8 systems:
+
+1. download the DEB and save it to the Linux server (e.g., `MementoEmbed-0.20211112212747.deb`)
+2. type `apt-get update`
+3. type `apt-get install ./MementoEmbed-0.20211112212747.deb` <-- the ./ is important, do not leave it off
+4. type `systemctl enable mementoembed.service`
+5. type `systemctl start mementoembed.service`
+
+If the service does not work at first, you may need to run `systemctl start redis`.
+
+Headless Chromium has a problem on Ubuntu. [The issue](https://bugs.chromium.org/p/chromium/issues/detail?id=1221905&q=Passthrough%20is%20not%20supported%2C%20GL%20is%20swiftshader&can=1) is known to Google. This may manifest in a log with a message such as `ERROR:gpu_init.cc(441) Passthrough is not supported, GL is disabled`.  MementoEmbed still appears to generate thumbnails, so we are waiting for Google to address the issue.
 
 ### Installing and Running the Latest Build Using Docker
 
@@ -140,11 +158,20 @@ Integration tests, by default, assume that the instance to be tested is running 
 
 Integration tests are heavily dependent on environmental factors such as the current state of web archive playback systems. The favicon detection appears to be especially unpredictable. Because of this, we recommend that integration tests be reviewed by humans and not executed automatically on build.
 
-## Run CentOS8 test environment
+## Run CentOS 8 test environment
 
 ```
 $ docker build --rm -t local/c8-systemd -f tests/installer/centos8/centos8-systemd-Dockerfile .
 $ docker run --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -d -p 5550:5550 local/c8-systemd
+```
+
+From here use common docker commands (e.g., `docker cp`, `docker exec`) to interact with the container.
+
+## Run Ubuntu 21.04 test environment
+
+```
+$ docker build --rm -t local/u2104-systemd -f tests/installer/ubuntu2104/ubuntu2104-systemd-Dockerfile .
+$ docker run --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -d -p 5550:5550 local/u2104-systemd
 ```
 
 From here use common docker commands (e.g., `docker cp`, `docker exec`) to interact with the container.

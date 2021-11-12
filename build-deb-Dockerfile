@@ -17,7 +17,8 @@ COPY installer/install-mementoembed.sh .
 RUN ./install-mementoembed.sh -- --install-directory /buildapp/mementoembed_amd64/opt/mementoembed --python-exe /usr/bin/python
 RUN mv /etc/mementoembed.cfg /buildapp/mementoembed_amd64/etc/
 RUN mv /etc/systemd/system/mementoembed.service /buildapp/mementoembed_amd64/etc/systemd/system/
-RUN sed -i "s?/buildapp/mementoembed_amd64/??g" /buildapp/mementoembed_amd64/etc/mementoembed.cfg
+RUN sed -i "s?/buildapp/mementoembed_amd64??g" /buildapp/mementoembed_amd64/etc/mementoembed.cfg
+RUN sed -i "s?/buildapp/mementoembed_amd64??g" /buildapp/mementoembed_amd64/etc/systemd/system/mementoembed.service
 RUN find /buildapp/mementoembed_amd64/opt/mementoembed/mementoembed-virtualenv/bin -type f -exec sed -i "s?/buildapp/mementoembed_amd64??g" {} \;
 RUN find /buildapp/mementoembed_amd64/opt/mementoembed/node_modules -type f -exec sed -i "s?/buildapp/mementoembed_amd64??g" {} \;
 RUN mkdir mementoembed_amd64/DEBIAN
