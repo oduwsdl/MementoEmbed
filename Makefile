@@ -19,7 +19,7 @@ source:
 	mkdir source-distro
 	cp /tmp/MementoEmbed-$(me_version).tar.gz source-distro
 	
-clean:
+clean: clean-installer
 	-docker stop rpmbuild_mementoembed
 	-docker rm rpmbuild_mementoembed
 	-rm -rf .eggs
@@ -29,7 +29,6 @@ clean:
 	-rm -rf docs/source/_build
 	-rm -rf dist
 	-rm -rf .web_cache
-	-rm -rf installer
 	-rm -rf mementoembed.egg-info
 	-rm -rf node_modules
 	-rm -rf *.log
@@ -37,15 +36,17 @@ clean:
 	-find . -name '*.pyc' -exec rm {} \;
 	-find . -name '__pycache__' -exec rm -rf {} \;
 	-rm -rf source-distro
-	python ./setup.py clean
 
 clean-installer:
 	-rm -rf installer
 
-build:
+clean-all: clean
+	-rm -rf release
+
+build-sdist: check-virtualenv
 	python ./setup.py sdist
 
-generic_installer:
+generic_installer: check-virtualenv
 	./create-linux-installer.sh
 
 rpm: source
@@ -66,10 +67,23 @@ deb: generic_installer
 	-docker rm deb_mementoembed
 	@echo "a DEB exists in the installer/debbuild directory"
 
-release: source build generic_installer rpm deb
+release: source build-sdist generic_installer rpm deb
 	-rm -rf release
 	-mkdir release
-	cp ./installer/install-mementoembed.sh release/install-mementoembed-${me_version}.sh
+	cp ./installer/generic-unix/install-mementoembed.sh release/install-mementoembed-${me_version}.sh
 	cp ./source-distro/MementoEmbed-${me_version}.tar.gz release/
 	cp ./installer/rpmbuild/RPMS/x86_64/MementoEmbed-${me_version}-1.el8.x86_64.rpm release/
 	cp ./installer/rpmbuild/SRPMS/MementoEmbed-${me_version}-1.el8.src.rpm release/	
+	cp ./installer/debbuild/MementoEmbed-${me_version}.deb release/
+
+check-virtualenv:
+ifndef VIRTUAL_ENV
+	$(error VIRTUAL_ENV is undefined, please establish a virtualenv before building)
+endif
+
+clean-virtualenv: check-virtualenv
+	-pip uninstall -y raintale
+	@for p in $(shell pip freeze | awk -F== '{ print $$1 }'); do \
+		pip uninstall -y $$p ; \
+	done
+	@echo "done removing all packages from virtualenv"

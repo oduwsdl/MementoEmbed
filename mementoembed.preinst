@@ -1,0 +1,5 @@
+getent group dsa >/dev/null || groupadd -r dsa
+getent passwd mementoembed >/dev/null || \
+    useradd -r -g dsa -d /opt/raintale -s /sbin/nologin \
+    -c "MementoEmbed service account" mementoembed
+exit 0

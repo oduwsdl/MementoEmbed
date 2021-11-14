@@ -100,7 +100,7 @@ mementoembed_version=`cat ${command_output_file} | sed "s/'//g"`
 echo " --- MementoEmbed version is ${mementoembed_version}"
 run_command "cleaning MementoEmbed library build environment" "(cd ${SCRIPT_DIR} && python ./setup.py clean 2>&1)"
 run_command "cleaning MementoEmbed library build environment" "(cd ${SCRIPT_DIR} && rm -rf build dist 2>&1)"
-run_command "cleaning installer directory" "rm -rf ${SCRIPT_DIR}/installer"
+run_command "cleaning installer directory" "rm -rf ${SCRIPT_DIR}/installer/generic-unix"
 run_command "building MementoEmbed library install" "(cd ${SCRIPT_DIR} && python ./setup.py sdist 2>&1)"
 run_command "verifying MementoEmbed library tarball" "ls ${SCRIPT_DIR}/dist/mementoembed-${mementoembed_version}.tar.gz" "nonewline"
 echo " --- ${SCRIPT_DIR}/dist/mementoembed-${mementoembed_version}.tar.gz exists"
@@ -110,8 +110,8 @@ run_command "copying package-lock.json to archive directory" "cp ${SCRIPT_DIR}/p
 run_command "copying sample configuration to archive directory" "cp ${SCRIPT_DIR}/sample_appconfig.cfg ${SCRIPT_DIR}/dist"
 run_command "copying template configurations to archive directory" "cp ${SCRIPT_DIR}/template_appconfig.cfg ${SCRIPT_DIR}/dist"
 run_command "setting install script permissions" "chmod 0755 ${SCRIPT_DIR}/mementoembed-install-script.sh"
-run_command "creating directory for installer" "mkdir ${SCRIPT_DIR}/installer"
+run_command "creating directory for installer" "mkdir -p ${SCRIPT_DIR}/installer/generic-unix"
 
-run_command "executing makeself" "makeself ${SCRIPT_DIR}/dist/ ${SCRIPT_DIR}/installer/install-mementoembed.sh 'MementoEmbed from the Dark and Stormy Archives Project' ./mementoembed-install-script.sh"
+run_command "executing makeself" "makeself ${SCRIPT_DIR}/dist/ ${SCRIPT_DIR}/installer/generic-unix/install-mementoembed.sh 'MementoEmbed from the Dark and Stormy Archives Project' ./mementoembed-install-script.sh"
 installer_file=`cat ${command_output_file} | grep "successfully created" | sed 's/Self-extractable archive "//g' | sed 's/" successfully created.//g'`
 echo "DONE: installer available at in ${installer_file}"

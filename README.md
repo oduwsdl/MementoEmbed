@@ -25,22 +25,24 @@ If you would like to use the RPM installer for RHEL 8 and CentOS 8 systems:
 
 1. download the RPM and save it to the Linux server (e.g., `MementoEmbed-0.20211106041644-1.el8.x86_64.rpm`)
 2. type `dnf install MementoEmbed-0.20211106041644-1.el8.x86_64.rpm`
-3. type `systemctl enable mementoembed.service`
-4. type `systemctl start mementoembed.service`
+3. type `systemctl start mementoembed.service`
 
 If the service does not work at first, you may need to run `systemctl start redis`.
+
+To remove MementoEmbed, type `dnf remove MementoEmbed` (it is case sensitive). The uninstall process will create a tarball of the `/opt/mementoembed/var` directory. This contains the thumbnail cache, imagereel cache, and logs. It is left in case the system administrator needs this data.
 
 ### Installing on an Ubuntu 21.04+ System
 
 If you would like to use the deb installer for RHEL 8 and CentOS 8 systems:
 
 1. download the DEB and save it to the Linux server (e.g., `MementoEmbed-0.20211112212747.deb`)
-2. type `apt-get update`
+2. type `apt-get update` <-- this may not be necessary, but is needed in some cases to make sure dependencies are loaded
 3. type `apt-get install ./MementoEmbed-0.20211112212747.deb` <-- the ./ is important, do not leave it off
-4. type `systemctl enable mementoembed.service`
-5. type `systemctl start mementoembed.service`
+4. type `systemctl start mementoembed.service`
 
 If the service does not work at first, you may need to run `systemctl start redis`.
+
+To remove MementoEmbed, type `apt-get remove mementoembed` (it is case sensitive). The uninstall process will create a tarball of the `/opt/mementoembed/var` directory. This contains the thumbnail cache, imagereel cache, and logs. It is left in case the system administrator needs this data.
 
 Headless Chromium has a problem on Ubuntu. [The issue](https://bugs.chromium.org/p/chromium/issues/detail?id=1221905&q=Passthrough%20is%20not%20supported%2C%20GL%20is%20swiftshader&can=1) is known to Google. This may manifest in a log with a message such as `ERROR:gpu_init.cc(441) Passthrough is not supported, GL is disabled`.  MementoEmbed still appears to generate thumbnails, so we are waiting for Google to address the issue.
 
