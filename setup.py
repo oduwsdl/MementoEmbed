@@ -11,8 +11,8 @@ exec(open("mementoembed/version.py").read())
 
 here = path.abspath(path.dirname(__file__))
 
-print("here is.... {}".format(here))
-print("directory contents: {}".format(os.listdir(here)))
+# print("here is.... {}".format(here))
+# print("directory contents: {}".format(os.listdir(here)))
 
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()

@@ -1,9 +1,0 @@
-#!/bin/sh
-#
-# To enable this hook, rename this file to "pre-commit".
-
-echo PWD is $PWD
-
-$PWD/raiseversion.sh
-
-git add mementoembed/version.py

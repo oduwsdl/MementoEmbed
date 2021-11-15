@@ -11,8 +11,15 @@ docs
 working-dontcommit
 *.log
 *.sqlite
-.web_cache.eggs
+.web_cache
+.eggs
+*.egg
+*.egg-info
+*.egg/
 _build
 *.numbers
 dist
 build
+__pycache__
+*.pyc
+release/

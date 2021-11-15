@@ -1,0 +1,7 @@
+/usr/sbin/userdel mementoembed
+if [ -d /opt/mementoembed/var ]; then
+    backup_file="var-backup-`date '+%Y%m%d%H%M%S'`.tar.gz"
+    tar -C /opt/mementoembed -c -v -z -f ${backup_file} var
+    rm -rf /opt/mementoembed/var
+    echo "created ${backup_file} in /opt/mementoembed"
+fi

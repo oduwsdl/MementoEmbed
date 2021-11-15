@@ -6,7 +6,7 @@ from mementoembed.version import __appversion__
 
 module_logger = logging.getLogger('mementoembed.ui.product')
 
-bp = Blueprint('ui.product', __name__)
+bp = Blueprint('ui__product', __name__)
 
 @bp.route('/ui/product/wordcloud/')
 @bp.route('/ui/product/imagereel/')

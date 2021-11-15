@@ -1,0 +1,7 @@
+find /opt/mementoembed -type d -exec chmod 0755 {} \;
+find /opt/mementoembed -exec chown mementoembed:dsa {} \;
+/usr/bin/systemctl enable mementoembed.service
+mkdir -m0755 -p /opt/mementoembed/var/run/thumbnails
+mkdir -m0755 -p /opt/mementoembed/var/run/imagereels
+mkdir -m0755 -p /opt/mementoembed/var/run/docreels
+chown -R mementoembed:dsa /opt/mementoembed/var/run/

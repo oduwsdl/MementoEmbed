@@ -1,0 +1,7 @@
+Package: MementoEmbed
+Version: {{ mementoembed_version }}
+Depends: python3, nodejs, redis, libcairo2, libnss3, libatspi2.0-0, libatk1.0-0, libcups2, libdrm-dev, libdrm2, libxkbcommon-dev, libxkbcommon0, libxcomposite1, libxcomposite-dev, libxdamage1, libxrandr2, libgbm1, libpango1.0-0, libmagic1, libasound2, libxshmfence1, libatk-bridge2.0-0, libx11-xcb1, python-is-python3
+Architecture: amd64
+Maintainer: Shawn M. Jones <jones.shawn.m@gmail.com>
+Description: MementoEmbed is service that provides archive-aware embeddable surrogates (social cards, thumbnails, etc.) for archived web pages (mementos).
+ MementoEmbed is a tool to create archive-aware embeddable surrogates for archived web pages (mementos), like the social card above. MementoEmbed is different from other surrogate-generation systems in that it provides access to archive-specific information, such as the original domain of the URI-M, its memento-datetime, and to which collection a memento belongs. MementoEmbed can also create browser thumbnails. In addition, MementoEmbed can create imagereels, animated GIFs of the best five images from the memento.
