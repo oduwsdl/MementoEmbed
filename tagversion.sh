@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_STRING=`date -u +0.%Y%m%d%H%M%S`
+VERSION_STRING=`date -u +0.5.%Y%m%d%H%M%S`
 
 ./raiseversion.sh $VERSION_STRING
 
