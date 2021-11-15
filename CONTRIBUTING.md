@@ -48,7 +48,7 @@ python ./setup.py test
 
 **Do you have questions about the source code or the project in general?**
 
-Contact: sjone@cs.odu.edu
+Contact: jones.shawn.m@gmail.com
 
 Thanks so much for your contributions!!!
 

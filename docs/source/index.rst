@@ -16,6 +16,7 @@ Guide
 .. toctree::
    :maxdepth: 2
 
+   install
    user_interface
    web_api
    robust_links

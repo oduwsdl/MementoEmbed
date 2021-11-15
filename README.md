@@ -19,6 +19,8 @@ For more information on this application, please visit our [Documentation Page](
 
 ## Installation and Execution
 
+MementoEmbed relies on Redis for caching. Install Redis first and then follow the directions for your applicable Linux/Unix system below.
+
 ### Installing on a CentOS 8 System
 
 If you would like to use the RPM installer for RHEL 8 and CentOS 8 systems:
@@ -30,6 +32,8 @@ If you would like to use the RPM installer for RHEL 8 and CentOS 8 systems:
 If the service does not work at first, you may need to run `systemctl start redis`.
 
 To remove MementoEmbed, type `dnf remove MementoEmbed` (it is case sensitive). The uninstall process will create a tarball of the `/opt/mementoembed/var` directory. This contains the thumbnail cache, imagereel cache, and logs. It is left in case the system administrator needs this data.
+
+MementoEmbed can now be accessed from http://localhost:5550/.
 
 ### Installing on an Ubuntu 21.04+ System
 
@@ -46,9 +50,21 @@ To remove MementoEmbed, type `apt-get remove mementoembed` (it is case sensitive
 
 Headless Chromium has a problem on Ubuntu. [The issue](https://bugs.chromium.org/p/chromium/issues/detail?id=1221905&q=Passthrough%20is%20not%20supported%2C%20GL%20is%20swiftshader&can=1) is known to Google. This may manifest in a log with a message such as `ERROR:gpu_init.cc(441) Passthrough is not supported, GL is disabled`.  MementoEmbed still appears to generate thumbnails, so we are waiting for Google to address the issue.
 
-### Installing and Running the Latest Build Using Docker
+MementoEmbed can now be accessed from http://localhost:5550/.
 
-Because of its complex cross-language and environment dependencies, MementoEmbed is installed via Docker. To run the latest build use the following commands.
+### Installing on a generic Unix System
+
+If you would like to use the generic installer for Unix (including macOS):
+
+1. download the generic installer (e.g., `install-mementoembed-0.20211112212747.sh`)
+2. type `sudo ./install-mementoembed-0.20211112212747.sh`
+3. start MementoEmbed using either `systemctl start mementoembed.service` (if your Unix/Linux supports systemd) or `/opt/mementoembed/start-mementoembed.sh` if not
+
+MementoEmbed can now be accessed from http://localhost:5550/.
+
+### Installing and Running the Latest Docker Build
+
+To run the latest Docker build use the following commands.
 
 ```
 $ docker pull oduwsdl/mementoembed
@@ -130,14 +146,23 @@ The following directory structure exists for organizing MementoEmbed:
 * Dockerfile - used to build the docker image
 * LICENSE - the license for this project
 * MANIFEST.in - used to ensure additional files are installed on the system when pip is run
+* Makefile - used to build install packages
 * README.md - this file
 * dockerstart.sh - the script run by Docker to start MementoEmbed once a container is started
+* mementoembed-install-script.sh - script included in the generic Unix install package
+* mementembed.control - DEB installer information file
+* mementoembed.postinst - DEB installer post-install script
+* mementoembed.postun - DEB installer post-uninstall script
+* mementoembed.presint - DEB installer pre-install script
+* mementoembed.spec - RPM installer configuration file
 * package-lock.json - pakcage version information used by npm for thumbnail generation
 * raiseversion.sh - a script run to raise the version of MementoEmbed in both documentation and source code
-* requirements.txt - listing of requirements used in the Docker container's Python environment
 * release.sh - script planned for use when releasing MementoEmbed (not currently used, may be removed at some point)
+* requirements.txt - listing of requirements used in the Docker container's Python environment
 * sample_appconfig.cfg - MementoEmbed configuration used by the Docker container
 * setup.py - standard Python installation configuration file
+* tagversion.sh - a script run to raise the version of MementoEmbed and tag it for release
+* template_appconfig.cfg - a template of a MementoEmbed configuration used by the generic Unix, DEB, and RPM installers
 
 ## Run unit tests
 
