@@ -2,7 +2,7 @@ aiu==0.1.1a4
 beautifulsoup4==4.8.2
 Brotli==1.0.4
 bs4==0.0.1
-CairoSVG==2.3.0
+CairoSVG==2.5.1
 dicttoxml==1.7.4
 Flask==1.0.2
 html5lib==1.0.1
